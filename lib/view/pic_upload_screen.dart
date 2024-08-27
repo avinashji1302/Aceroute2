@@ -11,13 +11,15 @@ class PicUploadScreen extends StatelessWidget {
   // Initialize the controller using Get.put() to make it available throughout the app
   final PicUploadController controller = Get.put(PicUploadController());
   final fontSizeController = Get.find<FontSizeController>();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(
           'Picture Upload',
-          style: TextStyle(color: Colors.white,fontSize: fontSizeController.fontSize),
+          style: TextStyle(
+              color: Colors.white, fontSize: fontSizeController.fontSize),
         ),
         centerTitle: true,
         backgroundColor: Colors.blue,
@@ -28,6 +30,7 @@ class PicUploadScreen extends StatelessWidget {
           ),
           onPressed: () {
             Navigator.of(context).pop();
+            controller.clearImages();
           },
         ),
       ),
@@ -36,17 +39,21 @@ class PicUploadScreen extends StatelessWidget {
         child: Column(
           children: [
             ElevatedButton.icon(
-              onPressed: controller.pickImage, // Call the pickImage method from the controller
+              onPressed: controller
+                  .pickImage, // Call the pickImage method from the controller
               icon: Icon(Icons.camera_alt),
-              label: Text('Take Picture',style: TextStyle(fontSize: fontSizeController.fontSize),),
+              label: Text(
+                'Take Picture',
+                style: TextStyle(fontSize: fontSizeController.fontSize),
+              ),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
+                backgroundColor: Colors.white,
               ),
             ),
             SizedBox(height: 20),
             Expanded(
               child: Obx(
-                    () => GridView.builder(
+                () => GridView.builder(
                   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
                     crossAxisSpacing: 10,
@@ -54,9 +61,61 @@ class PicUploadScreen extends StatelessWidget {
                   ),
                   itemCount: controller.images.length,
                   itemBuilder: (context, index) {
-                    return Image.file(
-                      File(controller.images[index].path),
-                      fit: BoxFit.cover,
+                    return GestureDetector(
+                      onLongPress: () {
+                        // Toggle selection on long press
+                        controller.toggleSelection(index);
+                      },
+                      onTap: () {
+                        controller.clearSelection();
+                      },
+                      child: Obx(() {
+                        // Highlight the selected image
+                        bool isSelected =
+                            controller.selectedIndices.contains(index);
+
+                        return Stack(
+                          children: [
+                            Container(
+                              decoration: BoxDecoration(
+                                border: Border.all(
+                                  color: isSelected
+                                      ? Colors.red
+                                      : Colors.transparent,
+                                  width: 3,
+                                ),
+                              ),
+                              child: Image.file(
+                                File(controller.images[index].path),
+                                fit: BoxFit.cover,
+                                width: double.infinity,
+                                height: double.infinity,
+                              ),
+                            ),
+                            if (isSelected)
+                              Positioned(
+                                top: 5,
+                                right: 5,
+                                child: GestureDetector(
+                                  onTap: () {
+                                    // Delete the image
+                                    controller.deleteImage(index);
+                                  },
+                                  child: CircleAvatar(
+                                    radius: 15,
+                                    backgroundColor:
+                                        Colors.red.withOpacity(0.7),
+                                    child: Icon(
+                                      Icons.close,
+                                      color: Colors.white,
+                                      size: 18,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                          ],
+                        );
+                      }),
                     );
                   },
                 ),

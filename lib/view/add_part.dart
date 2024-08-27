@@ -1,6 +1,6 @@
+import 'package:ace_routes/controller/barcode_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 
 import '../controller/fontSizeController.dart';
 
@@ -18,6 +18,7 @@ class _AddPartState extends State<AddPart> {
   final fontSizeController = Get.find<FontSizeController>();
   // Dummy list of categories
   final List<String> _categories = ['Category 1', 'Category 2', 'Category 3'];
+  final BarcodeController _barcodeController = Get.put(BarcodeController());
 
   @override
   Widget build(BuildContext context) {
@@ -60,9 +61,9 @@ class _AddPartState extends State<AddPart> {
                   value: _selectedCategory,
                   items: _categories
                       .map((category) => DropdownMenuItem<String>(
-                    value: category,
-                    child: Text(category),
-                  ))
+                            value: category,
+                            child: Text(category),
+                          ))
                       .toList(),
                   onChanged: (value) {
                     setState(() {
@@ -98,8 +99,10 @@ class _AddPartState extends State<AddPart> {
                     // Barcode Icon Button
                     IconButton(
                       icon: Icon(Icons.qr_code_scanner),
-                      onPressed: () {
+                      onPressed: ()  {
                         // Add your barcode scanning logic here
+                         _barcodeController.scanBarcode();
+                        print('hello barcode ');
                       },
                     ),
                   ],
@@ -148,7 +151,8 @@ class _AddPartState extends State<AddPart> {
                 style: TextStyle(color: Colors.white),
               ),
               style: ElevatedButton.styleFrom(
-                minimumSize: Size(double.infinity, 50), // Make button full width
+                minimumSize:
+                    Size(double.infinity, 50), // Make button full width
                 backgroundColor: Colors.blue,
               ),
             ),

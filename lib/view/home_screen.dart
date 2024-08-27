@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'package:ace_routes/view/audio.dart';
 import 'package:ace_routes/view/pic_upload_screen.dart';
+import 'package:ace_routes/view/signature_scree.dart';
 import 'package:ace_routes/view/status_screen.dart';
 import 'package:ace_routes/view/summary_screen.dart';
 import 'package:ace_routes/view/vehicle_details.dart';
@@ -27,8 +29,10 @@ class _HomeScreenState extends State<HomeScreen> {
   LatLng _currentLocation = LatLng(45.521563, -122.677433); // Default location
   final TextEditingController _searchController = TextEditingController();
   bool _showSearchBar = false;
-  bool _showCard = false;
+  bool _showCard = true;
   final FontSizeController fontSizeController = Get.put(FontSizeController());
+
+  List<bool> _showCardDetails = List.generate(5, (_) => false);
 
   @override
   void initState() {
@@ -37,12 +41,16 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _getCurrentLocation() async {
+    print('up');
     try {
       bool serviceEnabled;
       geo.LocationPermission permission;
+      print('try');
 
       serviceEnabled = await geo.Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
+        print('eror');
+
         return Future.error('Location services are disabled.');
       }
 
@@ -63,6 +71,8 @@ class _HomeScreenState extends State<HomeScreen> {
           desiredAccuracy: geo.LocationAccuracy.high);
 
       setState(() {
+        print('set');
+
         _currentLocation = LatLng(position.latitude, position.longitude);
       });
 
@@ -77,11 +87,14 @@ class _HomeScreenState extends State<HomeScreen> {
     if (_searchController.text.isEmpty) return;
 
     try {
-      List<Location> locations = await locationFromAddress(_searchController.text);
+      List<Location> locations =
+          await locationFromAddress(_searchController.text);
       if (locations.isNotEmpty) {
-        LatLng targetLocation = LatLng(locations.first.latitude, locations.first.longitude);
+        LatLng targetLocation =
+            LatLng(locations.first.latitude, locations.first.longitude);
         final GoogleMapController controller = await _mapController.future;
-        controller.animateCamera(CameraUpdate.newLatLngZoom(targetLocation, 14.0));
+        controller
+            .animateCamera(CameraUpdate.newLatLngZoom(targetLocation, 14.0));
       } else {
         print('Location not found');
       }
@@ -106,23 +119,23 @@ class _HomeScreenState extends State<HomeScreen> {
     // Add more entries as needed
   ];
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Obx(() {
           return Column(
-            crossAxisAlignment: CrossAxisAlignment.start, // Align text to the left
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                homeController.getFormattedDate(),
-                style: TextStyle(  fontSize: fontSizeController.fontSize,) // Adjust the font size as needed
-              ),
-              SizedBox(height: 4), // Add some spacing between date and day
+              Text(homeController.getFormattedDate(),
+                  style: TextStyle(
+                    fontSize: fontSizeController.fontSize,
+                  )),
+              SizedBox(height: 4),
               Text(
                 homeController.getFormattedDay(),
-                style: TextStyle(  fontSize: fontSizeController.fontSize, color: Colors.black), // Adjust the style for the day
+                style: TextStyle(
+                    fontSize: fontSizeController.fontSize, color: Colors.black),
               ),
             ],
           );
@@ -130,32 +143,26 @@ class _HomeScreenState extends State<HomeScreen> {
         centerTitle: true,
         actions: [
           Obx(() => Container(
-            margin: const EdgeInsets.only(right: 16.0),
-            padding: const EdgeInsets.all(8.0),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.red,
-            ),
-            child: Text(
-              '${homeController.counter.value}',
-              style: const TextStyle(color: Colors.white),
-            ),
-          )),
+                margin: const EdgeInsets.only(right: 16.0),
+                padding: const EdgeInsets.all(8.0),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.red,
+                ),
+                child: Text(
+                  '${homeController.counter.value}',
+                  style: const TextStyle(color: Colors.white),
+                ),
+              )),
         ],
         elevation: 5,
         backgroundColor: Colors.white,
       ),
       drawer: const DrawerWidget(),
-        body: _showCard
-            ? ListView.builder(
-              itemCount: 5, // Ensure this is not null and is a valid number
+      body: _showCard
+          ? ListView.builder(
+              itemCount: _showCardDetails.length, // Number of cards
               itemBuilder: (context, index) {
-                // Ensure you don't access null values
-                String timeText = index % 2 == 0 ? '1:20 pm' : 'Danville'; // Example data
-                String detailsText = index % 2 == 0
-                    ? 'Should show Voltage from\nDelivery : p5 : Normal'
-                    : 't1 upstaire\nt2\nt3';
-
                 return Card(
                   elevation: 5,
                   margin: const EdgeInsets.all(8.0),
@@ -163,348 +170,393 @@ class _HomeScreenState extends State<HomeScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       GestureDetector(
-                        onTap: (){
-                          Get.to(StatusScreen());
+                        onTap: () {
+                          setState(() {
+                            // Toggle the visibility for the specific card
+                            _showCardDetails[index] = !_showCardDetails[index];
+                          });
                         },
                         child: Container(
-                          color: Colors.blue,
+                          color: const Color.fromARGB(255, 76, 81, 175),
                           padding: const EdgeInsets.all(16.0),
                           width: double.infinity,
                           child: Center(
                             child: Text(
                               'Scheduled',
-                              style: TextStyle(color: Colors.white,   fontSize: fontSizeController.fontSize,),
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: fontSizeController.fontSize),
                             ),
                           ),
                         ),
                       ),
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Column(
-                          children: [
-                            GestureDetector(
-                              onTap: (){
-                                Get.to(SummaryDetails());
-                              },
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Icon(
-                                    Icons.access_time_filled,
-                                    size: 50,
-                                    color: Colors.green[200],
-                                  ),
-                                  SizedBox(width: 10),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Container(
-                                          width: 120,
-                                          height: 40,
-                                          decoration: BoxDecoration(
-                                            color: Colors.grey[500],
-                                            borderRadius: BorderRadius.circular(12.0),
-                                          ),
-                                          child: Center(
-                                            child: Text(
-                                              timeText,
-                                              style: TextStyle(color: Colors.white,   fontSize: fontSizeController.fontSize,),
+                      if (_showCardDetails[index])
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Column(
+                            children: [
+                              GestureDetector(
+                                onTap: () {
+                                  Get.to(SummaryDetails());
+                                },
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Icon(
+                                      Icons.access_time_filled,
+                                      size: 45,
+                                      color: const Color.fromARGB(255, 184, 200, 255),
+                                    ),
+                                    SizedBox(width: 10),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Container(
+                                            width: 85,
+                                            height: 40,
+                                            decoration: BoxDecoration(
+                                              color: Colors.grey[500],
+                                              borderRadius:
+                                                  BorderRadius.circular(12.0),
+                                            ),
+                                            child: Center(
+                                              child: Text(
+                                                '1:20 pm', // Example data
+                                                style: TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize: fontSizeController
+                                                        .fontSize),
+                                              ),
                                             ),
                                           ),
-                                        ),
-                                        SizedBox(height: 5.0),
-                                        Text(
-                                          detailsText,
-                                          style: TextStyle(fontSize: 18, color: Colors.black),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  SizedBox(width: 20),
-                                  Container(
-                                    width: 60,
-                                    height: 40,
-                                    decoration: BoxDecoration(
-                                      color: Colors.brown[400],
-                                      borderRadius: BorderRadius.circular(12.0),
-                                    ),
-                                    child: Center(
-                                      child: Text(
-                                        '1',
-                                        style: TextStyle(color: Colors.white,   fontSize: fontSizeController.fontSize,),
+                                          SizedBox(height: 5.0),
+                                          Text(
+                                            'Should show Voltage from\nDelivery : p5 : Normal',
+                                            style: TextStyle(
+                                                fontSize: 16,
+                                                fontWeight:FontWeight.bold,
+                                                color: Colors.black),
+                                          ),
+                                        ],
                                       ),
                                     ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            SizedBox(height: 20.0,),
-                            GestureDetector(
-                              onTap: (){
-                                Get.to(DirectoryDetails());
-                              },
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.start, // Align children at the start
-                                children: [
-                                  // Clock icon
-                                  Icon(
-                                    Icons.watch_later_outlined,
-                                    size: 50,
-                                    color: Colors.green[200],
-                                  ),
-                                  SizedBox(width: 10), // Space between the icon and the time container
-
-                                  // Container for time and multiline text
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Container(
-                                          width: 120,
-                                          height: 40,
-                                          decoration: BoxDecoration(
-                                            borderRadius: BorderRadius.circular(12.0), // Rounded corners
-                                          ),
-                                          child: Center(
-                                            child: Text(
-                                              'Danville',
-                                              style: TextStyle(color: Colors.black,   fontSize: fontSizeController.fontSize,),
-                                            ),
+                                    SizedBox(width: 20),
+                                    Padding(
+                                      padding: const EdgeInsets.only(left: 7 , right: 10, top: 8, bottom:8),
+                                      child: Container(
+                                        width: 60,
+                                        height: 40,
+                                        decoration: BoxDecoration(
+                                          color: Colors.green[500],
+                                          borderRadius:
+                                              BorderRadius.circular(12.0),
+                                        ),
+                                        child: Center(
+                                          child: Text(
+                                            '1',
+                                            style: TextStyle(
+                                                color: Colors.white,
+                                                fontSize:
+                                                    fontSizeController.fontSize),
                                           ),
                                         ),
-                                        SizedBox(height: 5.0), // Space between the time container and the text
-                                        // Multiline text aligned with the time container
-                                        Container(
-                                          child: RichText(
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              SizedBox(height: 20.0),
+                              GestureDetector(
+                                onTap: () {
+                                  Get.to(DirectoryDetails());
+                                },
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Icon(
+                                      Icons.watch_later_outlined,
+                                    size: 45,
+                                      color: const Color.fromARGB(255, 184, 200, 255),
+                                    ),
+                                    SizedBox(width: 10),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Container(
+                                            width: 120,
+                                            height: 40,
+                                            decoration: BoxDecoration(
+                                              borderRadius:
+                                                  BorderRadius.circular(12.0),
+                                            ),
+                                            child: Padding(
+                                              padding: const EdgeInsets.only(top: 9),
+                                              child: Text(
+                                                'Danville',
+                                                style: TextStyle(
+                                                    color: Colors.black,
+                                                    fontSize: fontSizeController
+                                                        .fontSize),
+                                              ),
+                                            ),
+                                          ),
+                                         
+                                          RichText(
                                             text: TextSpan(
-                                              style: TextStyle(  fontSize: fontSizeController.fontSize, color: Colors.black),
+                                              style: TextStyle(
+                                                  fontSize: fontSizeController
+                                                      .fontSize,
+                                                  color: Colors.black),
                                               children: [
                                                 TextSpan(
-                                                  text: 'Should show Voltage from\nDelivery : p5 : Normal',
-                                                  style: TextStyle(color: Colors.black), // Style for the text
+                                                  text:
+                                                      'Should show Voltage from\nDelivery : p5 : Normal',
+                                                  style: TextStyle(
+                                                      color: Colors.black),
                                                 ),
                                               ],
                                             ),
                                           ),
-                                        ),
-                                      ],
+                                        ],
+                                      ),
                                     ),
-                                  ),
-
-                                  SizedBox(width: 20), // Space between the text and number container
-
-                                  // Container for the number
-                                  Container(
-                                    width: 60,
-                                    height: 40,
-                                    decoration: BoxDecoration(
-                                      color: Colors.brown[400], // Background color
-                                      borderRadius: BorderRadius.circular(12.0), // Rounded corners
+                                    SizedBox(width: 20),
+                                    Container(
+                                     width: 60,
+                                      height: 40,
+                                      decoration: BoxDecoration(
+                                         color: Colors.blue[900],
+                                        borderRadius:
+                                            BorderRadius.circular(12.0),
+                                      ),
+                                      child: Center(
+                                        child: Icon(Icons.share , color: Colors.white,),
+                                      ),
                                     ),
-                                    child: Center(
-                                        child: Icon(Icons.share)
-                                    ),
-                                  ),
-                                  SizedBox(width: 10.0,)
-                                ],
-                              ),
-                            ),
-                            SizedBox(height: 20.0,),
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.start, // Align children at the start
-                              children: [
-                                // Clock icon
-                                Icon(
-                                  Icons.add_home_outlined,
-                                  size: 50,
-                                  color: Colors.green[200],
+                                    SizedBox(width: 10.0),
+                                  ],
                                 ),
-                                SizedBox(width: 10), // Space between the icon and the time container
-
-                                // Container for time and multiline text
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Container(
-                                        width: 120,
-                                        height: 40,
-                                        decoration: BoxDecoration(
-                                          borderRadius: BorderRadius.circular(12.0), // Rounded corners
-                                        ),
-                                        child: Center(
-                                          child: Text(
-                                            'Danville',
-                                            style: TextStyle(color: Colors.black,   fontSize: fontSizeController.fontSize,),
+                              ),
+                              SizedBox(height: 20.0),
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Icon(
+                                    Icons.list,
+                                    size: 45,
+                                    color: const Color.fromARGB(255, 184, 200, 255),
+                                  ),
+                                  SizedBox(width: 10),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Container(
+                                          width: 120,
+                                          height: 40,
+                                          decoration: BoxDecoration(
+                                            borderRadius:
+                                                BorderRadius.circular(12.0),
+                                          ),
+                                         
+                                          child: Padding(
+                                            padding: const EdgeInsets.only(top: 9.0),
+                                            child: Text(
+                                              'Danville',
+                                              style: TextStyle(
+                                                  color: Colors.black,
+                                                  fontSize: fontSizeController
+                                                      .fontSize),
+                                            ),
                                           ),
                                         ),
-                                      ),
-                                      SizedBox(height: 5.0), // Space between the time container and the text
-                                      // Multiline text aligned with the time container
-                                      Container(
-                                        child: RichText(
+                                       
+                                        RichText(
                                           text: TextSpan(
-                                            style: TextStyle(fontSize: 18, color: Colors.black),
+                                            style: TextStyle(
+                                                fontSize: 18,
+                                                color: Colors.black),
                                             children: [
                                               TextSpan(
                                                 text: 't1 upstaire\nt2\nt3',
-                                                style: TextStyle(color: Colors.black,  fontSize: fontSizeController.fontSize,), // Style for the text
+                                                style: TextStyle(
+                                                    color: Colors.black,
+                                                    fontSize: fontSizeController
+                                                        .fontSize),
                                               ),
                                             ],
                                           ),
                                         ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                      Container(
-                        color: Colors.grey[200],
-                        padding: const EdgeInsets.all(8.0),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            IconButton(
-                              icon: Stack(
-                                children: [
-                                  Icon(Icons.person_2_sharp, size: 30),
-                                  Positioned(
-                                    top: 0,
-                                    right: 0,
-                                    child: Container(
-                                      padding: EdgeInsets.all(4),
-                                      decoration: BoxDecoration(
-                                        color: Colors.red,
-                                        shape: BoxShape.circle,
-                                      ),
-                                      child: Text(
-                                        '5',
-                                        style: TextStyle(color: Colors.white, fontSize: 12),
-                                      ),
+                                      ],
                                     ),
                                   ),
                                 ],
                               ),
-                              onPressed: () {
-                                Get.to(AddPart());
-                              },
-                            ),
-
-                            IconButton(
-                              icon: Icon(Icons.tips_and_updates, size: 30),
-                              onPressed: () {
-                                Get.to(VehicleDetails());
-                              },
-                            ),
-                            IconButton(
-                              icon: Icon(Icons.camera_alt_outlined, size: 30),
-                              onPressed: () {
-                                Get.to(PicUploadScreen());
-                              },
-                            ),
-                            IconButton(
-                              icon: Icon(Icons.mic, size: 30),
-                              onPressed: () {
-                                Get.to(StatusScreen());
-                              },
-                            ),
-                            IconButton(
-                              icon: Icon(Icons.edit, size: 30),
-                              onPressed: () {
-                                Get.to(AddBwForm());
-                              },
-                            ),
-                          ],
+                              SizedBox(height: 20.0),
+                              Container(
+                                color: Colors.grey[200],
+                                padding: const EdgeInsets.all(8.0),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceEvenly,
+                                  children: [
+                                    IconButton(
+                                      icon: Stack(
+                                        children: [
+                                          Icon(Icons.person_2_sharp, size: 30),
+                                          Positioned(
+                                            top: 0,
+                                            right: 0,
+                                            child: Container(
+                                              padding: EdgeInsets.all(4),
+                                              decoration: BoxDecoration(
+                                                color: Colors.red,
+                                                shape: BoxShape.circle,
+                                              ),
+                                              child: Text(
+                                                '5',
+                                                style: TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize: 12),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      onPressed: () {
+                                        Get.to(AddPart());
+                                      },
+                                    ),
+                                    IconButton(
+                                      icon: Icon(Icons.tips_and_updates,
+                                          size: 30),
+                                      onPressed: () {
+                                        Get.to(VehicleDetails());
+                                      },
+                                    ),
+                                    IconButton(
+                                      icon: Icon(Icons.camera_alt_outlined,
+                                          size: 30),
+                                      onPressed: () {
+                                        Get.to(PicUploadScreen());
+                                      },
+                                    ),
+                                    IconButton(
+                                      icon: Icon(Icons.mic, size: 30),
+                                      onPressed: () {
+                                        Get.to(AudioRecord());
+                                      },
+                                    ),
+                                    IconButton(
+                                      icon: Icon(Icons.edit, size: 30),
+                                      onPressed: () {
+                                        Get.to(Signature());
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
                     ],
                   ),
                 );
               },
-            ) : Column(
-        children: [
-          if (_showSearchBar) // Conditionally show the search bar
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: TextField(
-                controller: _searchController,
-                decoration: InputDecoration(
-                  hintText: 'Search Location',
-                  suffixIcon: IconButton(
-                    icon: Icon(Icons.search),
-                    onPressed: _searchLocation,
+            )
+          : Column(
+              children: [
+                if (_showSearchBar) // Conditionally show the search bar
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: TextField(
+                      controller: _searchController,
+                      decoration: InputDecoration(
+                        hintText: 'Search Location',
+                        suffixIcon: IconButton(
+                          icon: Icon(Icons.search),
+                          onPressed: _searchLocation,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8.0),
+                        ),
+                      ),
+                    ),
                   ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8.0),
+                Expanded(
+                  child: GoogleMap(
+                    onMapCreated: (GoogleMapController controller) {
+                      _mapController.complete(controller);
+                    },
+                    initialCameraPosition: CameraPosition(
+                      target: _currentLocation,
+                      zoom: 11.0,
+                    ),
+                    myLocationEnabled: true,
                   ),
                 ),
-              ),
+              ],
             ),
-          Expanded(
-            child: GoogleMap(
-              onMapCreated: (GoogleMapController controller) {
-                _mapController.complete(controller);
-              },
-              initialCameraPosition: CameraPosition(
-                target: _currentLocation,
-                zoom: 11.0,
-              ),
-              myLocationEnabled: true,
-            ),
-          ),
-        ],
-      ),
       bottomNavigationBar: Obx(() => BottomNavigationBar(
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.mail_rounded, size: 30),
-            label: 'Inbox',
-          ),
-          /*BottomNavigationBarItem(
+            items: const <BottomNavigationBarItem>[
+              BottomNavigationBarItem(
+                icon: Icon(Icons.mail_rounded, size: 30),
+                label: 'Inbox',
+              ),
+              /*BottomNavigationBarItem(
             icon: Icon(Icons.search, size: 30),
             label: 'Search',
           ),*/
-          BottomNavigationBarItem(
-            icon: Icon(Icons.location_on_outlined, size: 30),
-            label: 'Map',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.watch_later_outlined, size: 30),
-            label: 'Clocked In',
-          ),
-        ],
-        currentIndex: homeController.selectedIndex.value,
-        selectedItemColor: Colors.amber[800],
-        unselectedItemColor: Colors.grey,
-        backgroundColor: Colors.blueAccent[300],
-        selectedLabelStyle: TextStyle(fontSize: fontSizeController.fontSize),
-        unselectedLabelStyle: TextStyle(fontSize: fontSizeController.fontSize * 0.9),
-        onTap: (index) {
-          setState(() {
-            if (index == 0) { // Inbox tab
-              _showCard = true; // Show card
-             // _showSearchBar = false; // Hide search bar
-            } else if (index == 1) { // Search tab
-              _showCard = false; // Hide card
-              //_showSearchBar = !_showSearchBar; // Toggle search bar
-            } else if (index == 2) { // Map tab
-              _showCard = false; // Hide card
-              _showSearchBar = false; // Hide search bar
-              _getCurrentLocation(); // Update map location
-            } else if (index == 3) { // Clocked In tab
-              _showCard = false; // Hide card
-              _showSearchBar = false; // Hide search bar
-              _getCurrentLocation(); // Update map location
-            }
-          });
-          homeController.onItemTapped(index);
-        },
-      )),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.location_on_outlined, size: 30),
+                label: 'Map',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.watch_later_outlined, size: 30),
+                label: 'Clocked In',
+              ),
+            ],
+            currentIndex: homeController.selectedIndex.value,
+            selectedItemColor: Colors.amber[800],
+            unselectedItemColor: Colors.grey,
+            backgroundColor: Colors.blueAccent[300],
+            selectedLabelStyle:
+                TextStyle(fontSize: fontSizeController.fontSize),
+            unselectedLabelStyle:
+                TextStyle(fontSize: fontSizeController.fontSize * 0.9),
+            onTap: (index) {
+              setState(() {
+                if (index == 0) {
+                  // Inbox tab
+                  _showCard = true; // Show card
+                  // _showSearchBar = false; // Hide search bar
+                } else if (index == 1) {
+                  // Search tab
+                  _showCard = false; // Hide card
+                  //_showSearchBar = !_showSearchBar; // Toggle search bar
+                  _getCurrentLocation(); // Up
+                } else if (index == 2) {
+                  // Map tab
+
+                  print('object');
+                  _showCard = false; // Hide card
+                  _showSearchBar = false; // Hide search bar
+                  _getCurrentLocation(); // Update map location
+                } else if (index == 3) {
+                  // Clocked In tab
+                  _showCard = false; // Hide card
+                  _showSearchBar = false; // Hide search bar
+                  _getCurrentLocation(); // Update map location
+                }
+              });
+              homeController.onItemTapped(index);
+            },
+          )),
     );
   }
 }
