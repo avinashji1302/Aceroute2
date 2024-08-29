@@ -1,14 +1,12 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:image_picker/image_picker.dart';
 import '../controller/fontSizeController.dart';
 import '../controller/picUploadController.dart';
 
 class PicUploadScreen extends StatelessWidget {
   PicUploadScreen({Key? key}) : super(key: key);
 
-  // Initialize the controller using Get.put() to make it available throughout the app
   final PicUploadController controller = Get.put(PicUploadController());
   final fontSizeController = Get.find<FontSizeController>();
 
@@ -22,7 +20,7 @@ class PicUploadScreen extends StatelessWidget {
               color: Colors.white, fontSize: fontSizeController.fontSize),
         ),
         centerTitle: true,
-        backgroundColor: Colors.blue,
+        backgroundColor: Color.fromARGB(255, 76, 81, 175),
         leading: IconButton(
           icon: Icon(
             Icons.arrow_back,
@@ -38,90 +36,121 @@ class PicUploadScreen extends StatelessWidget {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            ElevatedButton.icon(
-              onPressed: controller
-                  .pickImage, // Call the pickImage method from the controller
-              icon: Icon(Icons.camera_alt),
-              label: Text(
-                'Take Picture',
-                style: TextStyle(fontSize: fontSizeController.fontSize),
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white,
-              ),
-            ),
-            SizedBox(height: 20),
             Expanded(
-              child: Obx(
-                () => GridView.builder(
+              child: Obx(() {
+                return GridView.builder(
                   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
                     crossAxisSpacing: 10,
                     mainAxisSpacing: 10,
                   ),
-                  itemCount: controller.images.length,
+                  itemCount: controller.images.length + 1,
                   itemBuilder: (context, index) {
-                    return GestureDetector(
-                      onLongPress: () {
-                        // Toggle selection on long press
-                        controller.toggleSelection(index);
-                      },
-                      onTap: () {
-                        controller.clearSelection();
-                      },
-                      child: Obx(() {
-                        // Highlight the selected image
-                        bool isSelected =
-                            controller.selectedIndices.contains(index);
+                    if (index == controller.images.length) {
+                      return GestureDetector(
+                        onTap: controller.pickImage,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.grey[200],
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Icon(
+                            Icons.camera_alt,
+                            color: Colors.grey[800],
+                            size: 50,
+                          ),
+                        ),
+                      );
+                    } else {
+                      return GestureDetector(
+                        onTap: () {
+                          // Open the full-screen view of the image
+                          Get.to(() => FullScreenImageView(
+                              image: File(controller.images[index].path)));
+                        },
+                        onLongPress: () {
+                          controller.toggleSelection(index);
+                        },
+                        child: Obx(() {
+                          bool isSelected =
+                          controller.selectedIndices.contains(index);
 
-                        return Stack(
-                          children: [
-                            Container(
-                              decoration: BoxDecoration(
-                                border: Border.all(
-                                  color: isSelected
-                                      ? Colors.red
-                                      : Colors.transparent,
-                                  width: 3,
+                          return Stack(
+                            children: [
+                              Container(
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                    color: isSelected
+                                        ? Colors.red
+                                        : Colors.transparent,
+                                    width: 3,
+                                  ),
+                                  borderRadius: BorderRadius.circular(10),
                                 ),
-                              ),
-                              child: Image.file(
-                                File(controller.images[index].path),
-                                fit: BoxFit.cover,
-                                width: double.infinity,
-                                height: double.infinity,
-                              ),
-                            ),
-                            if (isSelected)
-                              Positioned(
-                                top: 5,
-                                right: 5,
-                                child: GestureDetector(
-                                  onTap: () {
-                                    // Delete the image
-                                    controller.deleteImage(index);
-                                  },
-                                  child: CircleAvatar(
-                                    radius: 15,
-                                    backgroundColor:
-                                        Colors.red.withOpacity(0.7),
-                                    child: Icon(
-                                      Icons.close,
-                                      color: Colors.white,
-                                      size: 18,
-                                    ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(10),
+                                  child: Image.file(
+                                    File(controller.images[index].path),
+                                    fit: BoxFit.cover,
+                                    width: double.infinity,
+                                    height: double.infinity,
                                   ),
                                 ),
                               ),
-                          ],
-                        );
-                      }),
-                    );
+                              if (isSelected)
+                                Positioned(
+                                  top: 5,
+                                  right: 5,
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      controller.deleteImage(index);
+                                    },
+                                    child: CircleAvatar(
+                                      radius: 15,
+                                      backgroundColor:
+                                      Colors.red.withOpacity(0.7),
+                                      child: Icon(
+                                        Icons.close,
+                                        color: Colors.white,
+                                        size: 18,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          );
+                        }),
+                      );
+                    }
                   },
-                ),
-              ),
+                );
+              }),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class FullScreenImageView extends StatelessWidget {
+  final File image;
+
+  FullScreenImageView({required this.image});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: GestureDetector(
+        onTap: () {
+          Navigator.of(context).pop();
+        },
+        child: Center(
+          child: Image.file(
+            image,
+            fit: BoxFit.contain,
+          ),
         ),
       ),
     );

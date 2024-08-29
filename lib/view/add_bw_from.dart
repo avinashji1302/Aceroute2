@@ -14,7 +14,8 @@ class AddBwForm extends StatefulWidget {
 }
 
 class _AddBwFormState extends State<AddBwForm> {
-  final TextEditingController _technicianNameController = TextEditingController();
+  final TextEditingController _technicianNameController =
+      TextEditingController();
   XFile? _image; // To store the selected image
 
   // To store the selected value for radio buttons
@@ -36,9 +37,12 @@ class _AddBwFormState extends State<AddBwForm> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Add BW Form',style: TextStyle(color: Colors.white),),
+        title: Text(
+          'Add BW Form',
+          style: TextStyle(color: Colors.white),
+        ),
         centerTitle: true,
-        backgroundColor: Colors.blue,
+        backgroundColor: Colors.blue[900],
         leading: IconButton(
           icon: Icon(
             Icons.arrow_back,
@@ -194,16 +198,16 @@ class _AddBwFormState extends State<AddBwForm> {
                 ),
                 child: _image == null
                     ? Center(
-                  child: Icon(
-                    Icons.camera_alt,
-                    size: 50,
-                    color: Colors.grey,
-                  ),
-                )
+                        child: Icon(
+                          Icons.camera_alt,
+                          size: 50,
+                          color: Colors.grey,
+                        ),
+                      )
                     : Image.file(
-                  File(_image!.path),
-                  fit: BoxFit.cover,
-                ),
+                        File(_image!.path),
+                        fit: BoxFit.cover,
+                      ),
               ),
             ),
             SizedBox(height: 20),
@@ -213,11 +217,14 @@ class _AddBwFormState extends State<AddBwForm> {
               onPressed: () {
                 // Add submit logic here
               },
-              child: Text('Submit', style: TextStyle(color: Colors.white),),
-              style: ElevatedButton.styleFrom(
-                minimumSize: Size(double.infinity, 50), // Make button full width
-                backgroundColor: Colors.blue
+              child: Text(
+                'Submit',
+                style: TextStyle(color: Colors.white),
               ),
+              style: ElevatedButton.styleFrom(
+                  minimumSize:
+                      Size(double.infinity, 50), // Make button full width
+                  backgroundColor: Colors.blue),
             ),
           ],
         ),

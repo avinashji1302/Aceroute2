@@ -19,6 +19,16 @@ class _AddPartState extends State<AddPart> {
   // Dummy list of categories
   final List<String> _categories = ['Category 1', 'Category 2', 'Category 3'];
   final BarcodeController _barcodeController = Get.put(BarcodeController());
+  // final BarcodeController _barcodeController = Get.find<BarcodeController>();
+
+  @override
+  void initState() {
+    super.initState();
+    // Listen to changes in scannedData
+    ever(_barcodeController.scannedData, (data) {
+      _skuController.text = data;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,7 +39,7 @@ class _AddPartState extends State<AddPart> {
           style: TextStyle(color: Colors.white),
         ),
         centerTitle: true,
-        backgroundColor: Colors.blue,
+         backgroundColor:  Colors.blue[900],
         leading: IconButton(
           icon: Icon(
             Icons.arrow_back,
@@ -99,10 +109,10 @@ class _AddPartState extends State<AddPart> {
                     // Barcode Icon Button
                     IconButton(
                       icon: Icon(Icons.qr_code_scanner),
-                      onPressed: ()  {
-                        // Add your barcode scanning logic here
-                         _barcodeController.scanBarcode();
-                        print('hello barcode ');
+                      onPressed: () {
+                        print('Button pressed'); // Debugging print
+                        print(_skuController.text);
+                        _barcodeController.scanBarcode();
                       },
                     ),
                   ],
@@ -185,7 +195,7 @@ class PartDetailScreen extends StatelessWidget {
           style: TextStyle(color: Colors.white),
         ),
         centerTitle: true,
-        backgroundColor: Colors.blue,
+       backgroundColor: Color.fromARGB(255, 76, 81, 175),
         leading: IconButton(
           icon: Icon(
             Icons.arrow_back,
@@ -196,33 +206,75 @@ class PartDetailScreen extends StatelessWidget {
           },
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Card(
-          elevation: 4,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Category: ${category ?? "Not Selected"}',
-                  style: TextStyle(fontSize: fontSizeController.fontSize),
+      body: Container(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Container(
+            height: 130,
+            width: double.infinity,
+            child: Card(
+              elevation: 4,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Text(
+                          'Category :',
+                          style: TextStyle(
+                              fontSize: fontSizeController.fontSize,
+                              fontWeight: FontWeight.bold),
+                        ),
+                        Text(
+                          '    ${category ?? "Not Selected"}',
+                          style: TextStyle(
+                            fontSize: fontSizeController.fontSize,
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 10),
+                    Row(
+                      children: [
+                        Text(
+                          'SKU :',
+                          style: TextStyle(
+                              fontSize: fontSizeController.fontSize,
+                              fontWeight: FontWeight.bold),
+                        ),
+                        Text(
+                          '             ${sku}',
+                          style: TextStyle(
+                            fontSize: fontSizeController.fontSize,
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 10),
+                    Row(
+                      children: [
+                        Text(
+                          'Quantity :',
+                          style: TextStyle(
+                              fontSize: fontSizeController.fontSize,
+                              fontWeight: FontWeight.bold),
+                        ),
+                        Text(
+                          '      ${quantity}',
+                          style: TextStyle(
+                            fontSize: fontSizeController.fontSize,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
-                SizedBox(height: 10),
-                Text(
-                  'SKU: $sku',
-                  style: TextStyle(fontSize: fontSizeController.fontSize),
-                ),
-                SizedBox(height: 10),
-                Text(
-                  'Quantity: $quantity',
-                  style: TextStyle(fontSize: fontSizeController.fontSize),
-                ),
-              ],
+              ),
             ),
           ),
         ),

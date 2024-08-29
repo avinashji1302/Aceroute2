@@ -25,7 +25,7 @@ class _StatusScreenState extends State<StatusScreen> {
           style: TextStyle(color: Colors.white,fontSize: fontSizeController.fontSize),
         ),
         centerTitle: true,
-        backgroundColor: Colors.blue,
+       backgroundColor:  Colors.blue[900],
         leading: IconButton(
           icon: Icon(
             Icons.arrow_back,

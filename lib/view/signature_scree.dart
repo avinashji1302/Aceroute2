@@ -8,19 +8,20 @@ import 'package:ace_routes/controller/signature_controller.dart';
 class Signature extends StatelessWidget {
   final fontSizeController = Get.find<FontSizeController>();
   final SignatureController signatureController =
-      Get.put(SignatureController());
+  Get.put(SignatureController());
+  final RxInt currentBlock = 0.obs; // Track the current signature block
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Signature here',
+          'Signature',
           style: TextStyle(
               color: Colors.white, fontSize: fontSizeController.fontSize),
         ),
         centerTitle: true,
-        backgroundColor: Colors.blue,
+        backgroundColor: Color.fromARGB(255, 76, 81, 175),
         leading: IconButton(
           icon: Icon(
             Icons.arrow_back,
@@ -33,36 +34,60 @@ class Signature extends StatelessWidget {
       ),
       body: Container(
         width: double.infinity,
-        child: Column(crossAxisAlignment: CrossAxisAlignment.center, children: [
-          SizedBox(
-            height: 10,
-          ),
-          Text(
-            "Sign here",
-            style: TextStyle(
-                color: Colors.black, fontSize: fontSizeController.fontSize),
-          ),
-          GestureDetector(
-              onTap: () {
-                _showSignatureDialog(context);
-              },
-              child: Icon(Icons.edit)),
-          SizedBox(height: 20),
-          Obx(() => signatureController.signatures.isNotEmpty
-              ? Column(
-                  children: signatureController.signatures
-                      .asMap()
-                      .entries
-                      .map((entry) =>
-                          _buildSignatureDisplay(entry.key, entry.value))
-                      .toList())
-              : SizedBox.shrink()),
-        ]),
+        child: Obx(() {
+          return SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: List.generate((currentBlock.value ~/ 2) + 1, (rowIndex) {
+                  return Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: List.generate(2, (index) {
+                      int blockIndex = rowIndex * 2 + index;
+                      return blockIndex <= currentBlock.value
+                          ? _buildSignatureBlock(context, blockIndex)
+                          : SizedBox.shrink();
+                    }),
+                  );
+                }),
+              ),
+            ),
+          );
+        }),
       ),
     );
   }
 
-  void _showSignatureDialog(BuildContext context) {
+  Widget _buildSignatureBlock(BuildContext context, int index) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        GestureDetector(
+          onTap: () {
+            _showSignatureDialog(context, index);
+          },
+          child: Obx(() {
+            return Icon(
+              Icons.edit,
+              size: 30,
+              color: (index == currentBlock.value &&
+                  signatureController.signatures.length <= index)
+                  ? Colors.black
+                  : Colors.transparent,
+            );
+          }),
+        ),
+        SizedBox(height: 5.0),
+        Obx(() => signatureController.signatures.length > index
+            ? _buildSignatureDisplay(index, signatureController.signatures[index])
+            : SizedBox.shrink()),
+        SizedBox(height: 5.0),
+      ],
+    );
+  }
+
+  void _showSignatureDialog(BuildContext context, int index) {
     final _signaturePadKey = GlobalKey<SfSignaturePadState>();
 
     showDialog(
@@ -91,9 +116,10 @@ class Signature extends StatelessWidget {
             TextButton(
               onPressed: () async {
                 final signature =
-                    await _signaturePadKey.currentState?.toImage();
+                await _signaturePadKey.currentState?.toImage();
                 if (signature != null) {
                   signatureController.addSignature(signature);
+                  currentBlock.value++; // Move to the next block
                 }
                 Navigator.of(context).pop();
               },
@@ -112,7 +138,7 @@ class Signature extends StatelessWidget {
         children: [
           Container(
             height: 100,
-            width: 200,
+            width: 150,
             decoration: BoxDecoration(
               border: Border.all(color: Colors.black),
             ),
@@ -127,6 +153,7 @@ class Signature extends StatelessWidget {
               icon: Icon(Icons.delete, color: Colors.red),
               onPressed: () {
                 signatureController.deleteSignature(index);
+                currentBlock.value = index; // Re-enable the block for signing
               },
             ),
           ),

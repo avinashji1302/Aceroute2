@@ -18,11 +18,13 @@ class SignatureController extends GetxController {
     final prefs = await SharedPreferences.getInstance();
     final signatureData = prefs.getStringList('signatures') ?? [];
 
-    for (String data in signatureData) {
-      final bytes = Uint8List.fromList(data.codeUnits);
-      decodeImageFromList(bytes, (ui.Image image) {
-        signatures.add(image);
-      });
+    if (signatures.length <= maxSignatures) {
+      for (String data in signatureData) {
+        final bytes = Uint8List.fromList(data.codeUnits);
+        decodeImageFromList(bytes, (ui.Image image) {
+          signatures.add(image);
+        });
+      }
     }
   }
 
@@ -30,10 +32,13 @@ class SignatureController extends GetxController {
     final prefs = await SharedPreferences.getInstance();
     List<String> signatureData = [];
 
-    for (ui.Image image in signatures) {
-      final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-      final bytes = byteData!.buffer.asUint8List();
-      signatureData.add(String.fromCharCodes(bytes));
+    if (signatures.length <= maxSignatures) {
+      for (ui.Image image in signatures) {
+        final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+        final bytes = byteData!.buffer.asUint8List();
+
+        signatureData.add(String.fromCharCodes(bytes));
+      }
     }
 
     prefs.setStringList('signatures', signatureData);
@@ -41,7 +46,11 @@ class SignatureController extends GetxController {
 
   void addSignature(ui.Image signature) {
     if (signatures.length >= maxSignatures) {
-      signatures.removeAt(0); // Remove the oldest signature
+      // signatures.removeAt(0); // Remove the oldest signature
+    
+      print('Can not accepts');
+    } else {
+      print('Can not accepts');
     }
     signatures.add(signature);
     _saveSignatures(); // Save the updated signatures

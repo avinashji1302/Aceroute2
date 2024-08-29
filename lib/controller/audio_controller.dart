@@ -1,5 +1,3 @@
-// audio_controller.dart
-
 import 'package:flutter_sound/flutter_sound.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
@@ -23,13 +21,12 @@ class AudioController {
     await _player.openPlayer();
     await _loadRecordings();
 
-    // Set up a listener for player state changes
+    // Listener for player state changes
     _player.onProgress!.listen((e) {
       if (e != null && e.duration != null && e.position != null) {
         if (e.position! >= e.duration!) {
-          _isPlaying = false;
-          _playingPath = null;
-        } 
+          _stopPlayback();
+        }
       }
     });
   }
@@ -64,22 +61,36 @@ class AudioController {
     _isRecording = false;
   }
 
-  Future<void> togglePlayback(String path) async {
+  Future<void> togglePlayback(String path, Function updateUI) async {
     if (_isPlaying && _playingPath == path) {
-      await _player.stopPlayer();
-      _isPlaying = false;
-      _playingPath = null;
+      await _stopPlayback();
+      updateUI(); // Update the UI when stopping playback
     } else {
       if (_isPlaying) {
-        await _player.stopPlayer();
+        await _stopPlayback();
       }
-      await _player.startPlayer(
-        fromURI: path,
-        codec: Codec.aacADTS,
-      );
-      _isPlaying = true;
-      _playingPath = path;
+      await _startPlayback(path, updateUI);
     }
+  }
+
+  Future<void> _startPlayback(String path, Function updateUI) async {
+    await _player.startPlayer(
+      fromURI: path,
+      codec: Codec.aacADTS,
+      whenFinished: () {
+        _stopPlayback();
+        updateUI(); // Update the UI when playback finishes
+      },
+    );
+    _isPlaying = true;
+    _playingPath = path;
+    updateUI(); // Update the UI when starting playback
+  }
+
+  Future<void> _stopPlayback() async {
+    await _player.stopPlayer();
+    _isPlaying = false;
+    _playingPath = null;
   }
 
   Future<void> deleteRecording(String path) async {
@@ -90,11 +101,16 @@ class AudioController {
     }
   }
 
-  Future<void> playRecording(String path) async {
-    await _player.startPlayer(
-      fromURI: path,
-      codec: Codec.aacADTS,
-    );
+  Future<void> renameRecording(String oldPath, String newName) async {
+    final directory = await getApplicationDocumentsDirectory();
+    final newPath = '${directory.path}/$newName.aac';
+    final file = File(oldPath);
+
+    if (await file.exists()) {
+      await file.rename(newPath);
+      _recordings.remove(oldPath);
+      _recordings.add(newPath);
+    }
   }
 
   Future<void> dispose() async {

@@ -58,8 +58,8 @@ class DrawerWidget extends StatelessWidget {
         padding: EdgeInsets.zero,
         children: <Widget>[
           DrawerHeader(
-            decoration: const BoxDecoration(
-              color: Colors.blue,
+            decoration:  BoxDecoration(
+              color:  Colors.blue[900],
             ),
             child: SizedBox(
               height: 300,
@@ -210,11 +210,12 @@ class DrawerWidget extends StatelessWidget {
             thickness: 1,
           ),
           ListTile(
-            leading: const Icon(Icons.logout),
+            leading: const Icon(Icons.logout, color: Colors.red,),
             title: Text(
               'Logout',
               style: TextStyle(
                 fontSize: fontSizeController.fontSize,
+                color: Colors.red
               ),
             ),
             onTap: () {

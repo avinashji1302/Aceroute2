@@ -11,7 +11,8 @@ class VehicleDetails extends StatefulWidget {
 }
 
 class _VehicleDetailsState extends State<VehicleDetails> {
-  final TextEditingController _makeModelColorController = TextEditingController();
+  final TextEditingController _makeModelColorController =
+      TextEditingController();
   final TextEditingController _registrationController = TextEditingController();
   final TextEditingController _odometerController = TextEditingController();
   final TextEditingController _faultDescController = TextEditingController();
@@ -23,10 +24,11 @@ class _VehicleDetailsState extends State<VehicleDetails> {
       appBar: AppBar(
         title: Text(
           'Vehicle Details',
-          style: TextStyle(color: Colors.white,fontSize: fontSizeController.fontSize),
+          style: TextStyle(
+              color: Colors.white, fontSize: fontSizeController.fontSize),
         ),
         centerTitle: true,
-        backgroundColor: Colors.blue,
+        backgroundColor: Colors.blue[900],
         leading: IconButton(
           icon: Icon(
             Icons.arrow_back,
@@ -53,7 +55,7 @@ class _VehicleDetailsState extends State<VehicleDetails> {
                 maxLines: 3, // Allows 3 lines of text
               ),
               SizedBox(height: 16),
-        
+
               // Registration TextFormField
               TextFormField(
                 controller: _registrationController,
@@ -63,7 +65,7 @@ class _VehicleDetailsState extends State<VehicleDetails> {
                 ),
               ),
               SizedBox(height: 16),
-        
+
               // Odometer TextFormField
               TextFormField(
                 controller: _odometerController,
@@ -73,7 +75,7 @@ class _VehicleDetailsState extends State<VehicleDetails> {
                 ),
               ),
               SizedBox(height: 16),
-        
+
               // Fault Description TextFormField
               TextFormField(
                 controller: _faultDescController,
@@ -84,7 +86,7 @@ class _VehicleDetailsState extends State<VehicleDetails> {
                 maxLines: 3, // Allows 3 lines of text
               ),
               SizedBox(height: 16),
-        
+
               // Notes TextFormField
               TextFormField(
                 controller: _notesController,
@@ -95,7 +97,7 @@ class _VehicleDetailsState extends State<VehicleDetails> {
                 maxLines: 3, // Allows 3 lines of text
               ),
               SizedBox(height: 20),
-        
+
               // Submit Button
               ElevatedButton(
                 onPressed: () {
@@ -106,7 +108,7 @@ class _VehicleDetailsState extends State<VehicleDetails> {
                   String odometer = _odometerController.text;
                   String faultDesc = _faultDescController.text;
                   String notes = _notesController.text;
-        
+
                   // Perform your submission logic here
                   // For example, print the values or send them to a server
                   print('Make/Model/Color: $makeModelColor');
@@ -117,7 +119,8 @@ class _VehicleDetailsState extends State<VehicleDetails> {
                 },
                 child: Text('Submit', style: TextStyle(color: Colors.white)),
                 style: ElevatedButton.styleFrom(
-                  minimumSize: Size(double.infinity, 50), // Make button full width
+                  minimumSize:
+                      Size(double.infinity, 50), // Make button full width
                   backgroundColor: Colors.blue,
                 ),
               ),
