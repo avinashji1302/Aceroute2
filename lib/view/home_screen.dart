@@ -26,21 +26,151 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final HomeController homeController = Get.put(HomeController());
   final Completer<GoogleMapController> _mapController = Completer();
-  LatLng _currentLocation = LatLng(45.521563, -122.677433); // Default location
+  //LatLng _currentLocation = LatLng(45.521563, -122.677433); // Default location
+  LatLng _currentLocation = LatLng(0, 0); // Initialize with an empty location
+  StreamSubscription<geo.Position>? _positionStreamSubscription;
+
   final TextEditingController _searchController = TextEditingController();
   bool _showSearchBar = false;
   bool _showCard = true;
   final FontSizeController fontSizeController = Get.put(FontSizeController());
 
   List<bool> _showCardDetails = List.generate(6, (_) => false);
+  Set<Marker> _markers = {};
+  BitmapDescriptor? _customIcon;
+  bool _loadingLocation = true;
 
   @override
   void initState() {
     super.initState();
-    _getCurrentLocation();
+    //_getCurrentLocation();
+    //_addMarkers();
+    _loadCustomIcon();
+    _determinePosition();
   }
 
-  
+  @override
+  void dispose() {
+    _positionStreamSubscription?.cancel();
+    super.dispose();
+  }
+
+  void _loadCustomIcon() async {
+    try {
+      final BitmapDescriptor icon = await BitmapDescriptor.fromAssetImage(
+        ImageConfiguration(size: Size(48, 48)), // Adjust size as needed
+        'assets/flag_icon.png',
+      );
+      setState(() {
+        _customIcon = icon;
+        _addMarkers(); // Add markers after icon is loaded
+      });
+    } catch (e) {
+      print("Error loading custom icon: $e");
+    }
+  }
+
+  Future<void> _determinePosition() async {
+    try {
+      geo.Position position = await geo.Geolocator.getCurrentPosition(
+        desiredAccuracy: geo.LocationAccuracy.high,
+      );
+
+      _currentLocation = LatLng(position.latitude, position.longitude);
+      _updateMapLocation(_currentLocation);
+
+      // Start tracking location after initial location is obtained
+      _startLocationTracking();
+
+      setState(() {
+        _loadingLocation = false; // Stop showing loading indicator
+      });
+    } catch (e) {
+      print("Error getting current location: $e");
+    }
+  }
+
+  void _startLocationTracking() {
+    _positionStreamSubscription = geo.Geolocator.getPositionStream(
+      locationSettings: geo.LocationSettings(
+        accuracy: geo.LocationAccuracy.high,
+        distanceFilter: 10, // Update location if user moves 10 meters
+      ),
+    ).listen((geo.Position position) {
+      _currentLocation = LatLng(position.latitude, position.longitude);
+      _updateMapLocation(_currentLocation);
+    });
+  }
+
+  Future<void> _updateMapLocation(LatLng location) async {
+    final GoogleMapController controller = await _mapController.future;
+
+    controller.animateCamera(
+      CameraUpdate.newLatLng(location),
+    );
+
+    setState(() {
+      _markers.clear();
+      _markers.add(
+        Marker(
+          markerId: MarkerId('current_location'),
+          position: location,
+          icon: _customIcon ?? BitmapDescriptor.defaultMarker,
+          infoWindow: InfoWindow(title: 'Current Location'),
+        ),
+      );
+    });
+  }
+
+  void _addMarkers() {
+    final List<LatLng> locations = [
+      LatLng(28.5850, 77.3724), // Example location 1
+      LatLng(28.5860, 77.3730), // Example location 2
+      LatLng(28.5870, 77.3740), // Example location 3
+    ];
+
+    final List<Marker> markers = locations.asMap().entries.map((entry) {
+      int index = entry.key;
+      LatLng location = entry.value;
+
+      return Marker(
+        markerId: MarkerId('marker_$index'),
+        position: location,
+        icon: _customIcon ??
+            BitmapDescriptor.defaultMarker, // Use custom icon if available
+        infoWindow: InfoWindow(title: 'Location $index'),
+        onTap: () {
+          print('Marker $index tapped!');
+        },
+      );
+    }).toList();
+
+    setState(() {
+      _markers.addAll(markers); // Add all new markers
+    });
+  }
+
+  /* void _addMarkers(List<LatLng> locations) {
+    final Set<Marker> newMarkers = {};
+
+    for (int i = 0; i < locations.length; i++) {
+      newMarkers.add(
+        Marker(
+          markerId: MarkerId('marker_$i'),
+          position: locations[i],
+          infoWindow: InfoWindow(title: 'Location $i'),
+          onTap: () {
+            // Handle marker tap
+            print('Marker $i tapped!');
+          },
+        ),
+      );
+    }
+
+    setState(() {
+      _markers.addAll(newMarkers); // Add all new markers
+    });
+  }*/
 
   Future<void> _getCurrentLocation() async {
     print('up');
@@ -76,14 +206,10 @@ class _HomeScreenState extends State<HomeScreen> {
         print('set');
 
         _currentLocation = LatLng(position.latitude, position.longitude);
-         print(_currentLocation);
       });
 
       final GoogleMapController controller = await _mapController.future;
       controller.animateCamera(CameraUpdate.newLatLng(_currentLocation));
-
-        print('set');
-          print(controller);
     } catch (e) {
       print('Error getting location: $e');
     }
@@ -117,42 +243,41 @@ class _HomeScreenState extends State<HomeScreen> {
       'number': '1'
     },
     {
-      'time': '2:30 pm',
+      'time': '12:30 pm',
       'location': 'Sector 59 noida near city',
-      'details': 'Some other details\nAdditional info here',
+      'details': 'there is some text\nDelivery : p5 : Normal',
       'number': '2'
     },
 
     {
       'time': '2:30 pm',
       'location': 'Sector 72 noida near city',
-      'details': 'Some other details\nAdditional info here',
+      'details': 'Must be something \nDelivery : p5 : Normal',
       'number': '3'
     },
 
     {
-      'time': '2:30 pm',
+      'time': '3:30 am',
       'location': 'Sector 63 noida near city',
-      'details': 'Some other details\nAdditional info here',
+      'details': 'Should show Voltage from\nDelivery : p5 : Normal',
       'number': '4'
     },
 
     {
-      'time': '2:30 pm',
+      'time': '7:50 pm',
       'location': 'Sector 37 noida near city',
-      'details': 'Some other details\nAdditional info here',
+      'details': 'Should show Voltage from\nDelivery : p5 : Normal',
       'number': '5'
     },
 
     {
-      'time': '2:30 pm',
+      'time': '5:30 pm',
       'location': 'Sector 61 noida near city',
-      'details': 'Some other details\nAdditional info here',
+      'details': 'Must be something show Voltage from\nDelivery : p5 : Normal',
       'number': '6'
     },
     // Add more entries as needed
   ];
-
 
   @override
   Widget build(BuildContext context) {
@@ -197,7 +322,10 @@ class _HomeScreenState extends State<HomeScreen> {
       body: _showCard
           ? ListView.builder(
               itemCount: _showCardDetails.length, // Number of cards
+
               itemBuilder: (context, index) {
+                List<String> detailsParts =
+                    cardData[index]['details']!.split('\n');
                 return Card(
                   elevation: 5,
                   margin: const EdgeInsets.all(8.0),
@@ -235,7 +363,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                 TextSpan(
                                   text: _showCardDetails[index]
                                       ? ''
-                                      : cardData[index]['location']!,
+                                      : detailsParts.length > 1
+                                          ? '${detailsParts[0]}...' // Show the first part with dots
+                                          : cardData[index]['details']!,
                                   style: TextStyle(
                                     color: Colors.white,
                                     fontSize: fontSizeController.fontSize,
@@ -249,7 +379,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 TextSpan(
                                   text: _showCardDetails[index]
                                       ? '  '
-                                      : cardData[index]['time']!,
+                                      : cardData[index]['location']!,
                                   style: TextStyle(
                                     color: Colors.white,
                                     fontSize: fontSizeController.fontSize,
@@ -263,7 +393,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 TextSpan(
                                   text: _showCardDetails[index]
                                       ? ''
-                                      : cardData[index]['details']!,
+                                      : cardData[index]['time']!,
                                   style: TextStyle(
                                     color: Colors.white,
                                     fontSize: fontSizeController.fontSize,
@@ -310,7 +440,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                             ),
                                             child: Center(
                                               child: Text(
-                                                ' ${cardData[index]['time']}', // Example data
+                                                "${cardData[index]['time']}.",
                                                 style: TextStyle(
                                                     color: Colors.white,
                                                     fontSize: fontSizeController
@@ -346,7 +476,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                         ),
                                         child: Center(
                                           child: Text(
-                                            '1',
+                                            "${cardData[index]['number']}.",
                                             style: TextStyle(
                                                 color: Colors.white,
                                                 fontSize: fontSizeController
@@ -406,7 +536,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                               children: [
                                                 TextSpan(
                                                   text:
-                                                      ' ${cardData[index]['location']}!',
+                                                      "${cardData[index]['location']}.",
                                                   style: TextStyle(
                                                       color: Colors.black),
                                                 ),
@@ -583,18 +713,32 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                   ),
+                /* Expanded(
+            child: GoogleMap(
+              onMapCreated: (GoogleMapController controller) {
+                _mapController.complete(controller);
+              },
+              initialCameraPosition: CameraPosition(
+                target: _currentLocation,
+                zoom: 11.0,
+              ),
+              myLocationEnabled: true,
+            ),
+          ),*/
                 Expanded(
+                  // height: 400, // Adjust as needed
                   child: GoogleMap(
-                    onMapCreated: (GoogleMapController controller) {
-                      _mapController.complete(controller);
-                    },
                     initialCameraPosition: CameraPosition(
-                      target: _currentLocation,
-                      zoom: 11.0,
+                      target: LatLng(28.5724,
+                          77.3644), // Center the map at one of the markers
+                      zoom: 14,
                     ),
-                    myLocationEnabled: true,
+                    markers: _markers, // Set markers here
+                    onMapCreated: (GoogleMapController controller) {
+                      // Optionally use the controller
+                    },
                   ),
-                ),
+                )
               ],
             ),
       bottomNavigationBar: Obx(() => BottomNavigationBar(
@@ -634,7 +778,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   // Search tab
                   _showCard = false; // Hide card
                   //_showSearchBar = !_showSearchBar; // Toggle search bar
-                  print('objecfdfdt');
                   _getCurrentLocation(); // Up
                 } else if (index == 2) {
                   // Map tab

@@ -77,8 +77,9 @@ class AudioController {
     await _player.startPlayer(
       fromURI: path,
       codec: Codec.aacADTS,
-      whenFinished: () {
-        _stopPlayback();
+      whenFinished: () async{
+      await  _stopPlayback();
+        print('playback finished');
         updateUI(); // Update the UI when playback finishes
       },
     );

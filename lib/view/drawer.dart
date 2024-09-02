@@ -58,8 +58,8 @@ class DrawerWidget extends StatelessWidget {
         padding: EdgeInsets.zero,
         children: <Widget>[
           DrawerHeader(
-            decoration:  BoxDecoration(
-              color:  Colors.blue[900],
+            decoration: BoxDecoration(
+              color: Colors.blue[900],
             ),
             child: SizedBox(
               height: 300,
@@ -110,6 +110,28 @@ class DrawerWidget extends StatelessWidget {
             ),
           ),
           ListTile(
+            leading: const Icon(Icons.sync_outlined),
+            title: Text(
+              'Sync Now',
+              style: TextStyle(
+                fontSize: fontSizeController.fontSize,
+              ),
+            ),
+            onTap: () {
+              Navigator.pop(context);
+              showDialog(
+                context: context,
+                barrierDismissible: false,
+                builder: (BuildContext context) {
+                  return const SyncPopup();
+                },
+              );
+            },
+          ),
+          Divider(
+            thickness: 1,
+          ),
+          ListTile(
             leading: const Icon(Icons.home),
             title: Text(
               'About',
@@ -135,28 +157,6 @@ class DrawerWidget extends StatelessWidget {
             onTap: () {
               Navigator.pop(context);
               _openGoogleMaps();
-            },
-          ),
-          Divider(
-            thickness: 1,
-          ),
-          ListTile(
-            leading: const Icon(Icons.sync_outlined),
-            title: Text(
-              'Sync Now',
-              style: TextStyle(
-                fontSize: fontSizeController.fontSize,
-              ),
-            ),
-            onTap: () {
-              Navigator.pop(context);
-              showDialog(
-                context: context,
-                barrierDismissible: false,
-                builder: (BuildContext context) {
-                  return const SyncPopup();
-                },
-              );
             },
           ),
           Divider(
@@ -210,13 +210,14 @@ class DrawerWidget extends StatelessWidget {
             thickness: 1,
           ),
           ListTile(
-            leading: const Icon(Icons.logout, color: Colors.red,),
+            leading: const Icon(
+              Icons.logout,
+              color: Colors.red,
+            ),
             title: Text(
               'Logout',
               style: TextStyle(
-                fontSize: fontSizeController.fontSize,
-                color: Colors.red
-              ),
+                  fontSize: fontSizeController.fontSize, color: Colors.red),
             ),
             onTap: () {
               Get.to(LoginScreen());

@@ -91,7 +91,6 @@ class _AudioRecordState extends State<AudioRecord> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Container(
-             
                 child: _controller.isRecording
                     ? SiriWaveform.ios9(
                         options: IOS9SiriWaveformOptions(
@@ -150,7 +149,10 @@ class _AudioRecordState extends State<AudioRecord> {
                           onPressed: () async {
                             await _controller.togglePlayback(
                               recordingPath,
-                              () => setState(() {}),
+                              () => setState(() {
+                                print('setState');
+                               
+                              }),
                             );
                           },
                         ),
