@@ -145,7 +145,7 @@ class _AddPartState extends State<AddPart> {
             ElevatedButton(
               onPressed: () {
                 // Navigate to PartDetailScreen and pass the entered data
-                Navigator.push(
+                /*Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (context) => PartDetailScreen(
@@ -154,7 +154,7 @@ class _AddPartState extends State<AddPart> {
                       quantity: _quantityController.text,
                     ),
                   ),
-                );
+                );*/
               },
               child: Text(
                 'Submit',
@@ -191,7 +191,7 @@ class PartDetailScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Part Details',
+          'Part ',
           style: TextStyle(color: Colors.white),
         ),
         centerTitle: true,

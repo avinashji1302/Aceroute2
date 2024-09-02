@@ -58,8 +58,8 @@ class DrawerWidget extends StatelessWidget {
         padding: EdgeInsets.zero,
         children: <Widget>[
           DrawerHeader(
-            decoration: BoxDecoration(
-              color: Colors.blue[900],
+            decoration:  BoxDecoration(
+              color:  Colors.blue[900],
             ),
             child: SizedBox(
               height: 300,
@@ -162,6 +162,7 @@ class DrawerWidget extends StatelessWidget {
           Divider(
             thickness: 1,
           ),
+
           ListTile(
             leading: const Icon(Icons.lock),
             title: Text(
@@ -210,14 +211,13 @@ class DrawerWidget extends StatelessWidget {
             thickness: 1,
           ),
           ListTile(
-            leading: const Icon(
-              Icons.logout,
-              color: Colors.red,
-            ),
+            leading: const Icon(Icons.logout, color: Colors.red,),
             title: Text(
               'Logout',
               style: TextStyle(
-                  fontSize: fontSizeController.fontSize, color: Colors.red),
+                fontSize: fontSizeController.fontSize,
+                color: Colors.red
+              ),
             ),
             onTap: () {
               Get.to(LoginScreen());

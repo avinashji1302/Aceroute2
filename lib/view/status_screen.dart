@@ -11,9 +11,12 @@ class StatusScreen extends StatefulWidget {
 }
 
 class _StatusScreenState extends State<StatusScreen> {
-  // Variables to store the selected job and job change option
+  // Variables to store the selected options for each section
   String? _selectedJob;
-  String? _selectedJobChange;
+  String? _selectedJobException;
+  String? _selectedFieldException;
+  String? _selectedPlan;
+
   final fontSizeController = Get.find<FontSizeController>();
 
   @override
@@ -22,10 +25,10 @@ class _StatusScreenState extends State<StatusScreen> {
       appBar: AppBar(
         title: Text(
           'Status',
-          style: TextStyle(color: Colors.white,fontSize: fontSizeController.fontSize),
+          style: TextStyle(color: Colors.white, fontSize: fontSizeController.fontSize),
         ),
         centerTitle: true,
-       backgroundColor:  Colors.blue[900],
+        backgroundColor: Colors.blue[900],
         leading: IconButton(
           icon: Icon(
             Icons.arrow_back,
@@ -36,123 +39,92 @@ class _StatusScreenState extends State<StatusScreen> {
           },
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Job Selection
-            Text(
-              'Select Job:',
-              style: TextStyle(fontSize: fontSizeController.fontSize, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 10),
-            RadioListTile<String>(
-              title: Text('Job 1',style: TextStyle(fontSize: fontSizeController.fontSize),),
-              value: 'Job 1',
-              groupValue: _selectedJob,
-              onChanged: (value) {
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildSection('Job', _selectedJob, (value) {
                 setState(() {
                   _selectedJob = value;
                 });
-              },
-            ),
-            RadioListTile<String>(
-              title: Text('Job 2',style: TextStyle(fontSize: fontSizeController.fontSize),),
-              value: 'Job 2',
-              groupValue: _selectedJob,
-              onChanged: (value) {
+              }, ['Enroute', 'Start' , 'Comleted' , 'Pending Comletion']),
+              _buildSection('Job Exception', _selectedJobException, (value) {
                 setState(() {
-                  _selectedJob = value;
+                  _selectedJobException = value;
                 });
-              },
-            ),
-            RadioListTile<String>(
-              title: Text('Job 3',style: TextStyle(fontSize: fontSizeController.fontSize),),
-              value: 'Job 3',
-              groupValue: _selectedJob,
-              onChanged: (value) {
+              }, ['Cancel', 'Cancel with charge' , 'Follow up']),
+              _buildSection('Field Exception', _selectedFieldException, (value) {
                 setState(() {
-                  _selectedJob = value;
+                  _selectedFieldException = value;
                 });
-              },
-            ),
-            RadioListTile<String>(
-              title: Text('Job 4',style: TextStyle(fontSize: fontSizeController.fontSize),),
-              value: 'Job 4',
-              groupValue: _selectedJob,
-              onChanged: (value) {
+              }, ['Left Message ', 'No Access', 'Wrong Address']), // Update as needed
+              _buildSection('Plan', _selectedPlan, (value) {
                 setState(() {
-                  _selectedJob = value;
+                  _selectedPlan = value;
                 });
-              },
-            ),
-            SizedBox(height: 20),
+              }, ['Scheduled', 'Confirmed', 'Rescheduled']), // Update as needed
 
-            // Job Change Options
-            if (_selectedJob != null) ...[
-              Text(
-                'Change Job Option:',
-                style: TextStyle(fontSize: fontSizeController.fontSize, fontWeight: FontWeight.bold),
-              ),
-              SizedBox(height: 10),
-              RadioListTile<String>(
-                title: Text('Change Option 1',style: TextStyle(fontSize: fontSizeController.fontSize),),
-                value: 'Change Option 1',
-                groupValue: _selectedJobChange,
-                onChanged: (value) {
-                  setState(() {
-                    _selectedJobChange = value;
-                  });
+              SizedBox(height: 20.0,),
+              ElevatedButton(
+                onPressed: () {
+                  // Add submit logic here
                 },
+                child: Text(
+                  'Submit',
+                  style: TextStyle(color: Colors.white),
+                ),
+                style: ElevatedButton.styleFrom(
+                    minimumSize:
+                    Size(double.infinity, 50), // Make button full width
+                    backgroundColor: Colors.blue),
               ),
-              RadioListTile<String>(
-                title: Text('Change Option 2',style: TextStyle(fontSize: fontSizeController.fontSize),),
-                value: 'Change Option 2',
-                groupValue: _selectedJobChange,
-                onChanged: (value) {
-                  setState(() {
-                    _selectedJobChange = value;
-                  });
-                },
-              ),
-              RadioListTile<String>(
-                title: Text('Change Option 3',style: TextStyle(fontSize: fontSizeController.fontSize),),
-                value: 'Change Option 3',
-                groupValue: _selectedJobChange,
-                onChanged: (value) {
-                  setState(() {
-                    _selectedJobChange = value;
-                  });
-                },
-              ),
-              SizedBox(height: 20),
+              SizedBox(height: 20.0,),
             ],
-
-            // Change Button
-            ElevatedButton(
-              onPressed: () {
-                // Handle change action here
-                if (_selectedJob != null && _selectedJobChange != null) {
-                  // Do something with the selected job and job change options
-                  print('Selected Job: $_selectedJob');
-                  print('Selected Change Option: $_selectedJobChange');
-                } else {
-                  // Show a message if either selection is missing
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Please select both job and change option.')),
-                  );
-                }
-              },
-              child: Text('Change', style: TextStyle(color: Colors.white),),
-              style: ElevatedButton.styleFrom(
-                minimumSize: Size(double.infinity, 50), // Full width button
-                backgroundColor: Colors.blue,
-              ),
-            ),
-          ],
+          ),
         ),
       ),
+
+    );
+  }
+
+  // Method to build each section with a header and radio buttons
+  Widget _buildSection(String header, String? groupValue, ValueChanged<String?> onChanged, List<String> options) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: double.infinity,
+          color: Colors.grey[300],
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Text(
+              header,
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20.0 ,),
+            ),
+          ),
+        ),
+        Divider(thickness: 1),
+        for (int i = 0; i < options.length; i++)
+          Column(
+            children: [
+              ListTile(
+                title: Text(options[i]),
+                trailing: Radio<String>(
+                  value: options[i],
+                  groupValue: groupValue,
+                  onChanged: onChanged,
+                ),
+                onTap: () {
+                  onChanged(options[i]);
+                },
+              ),
+              // Add a divider after each option except the last one
+              if (i < options.length - 1) Divider(thickness: 1),
+            ],
+          ),
+      ],
     );
   }
 }

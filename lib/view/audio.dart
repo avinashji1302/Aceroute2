@@ -47,17 +47,17 @@ class _AudioRecordState extends State<AudioRecord> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Microphone Permission Denied'),
-        content: Text(
+        title: const Text('Microphone Permission Denied'),
+        content: const Text(
             'This app needs microphone access to record audio. Please enable microphone permissions in your device settings.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: Text('OK'),
+            child:const Text('OK'),
           ),
           TextButton(
             onPressed: () => openAppSettings(),
-            child: Text('Open Settings'),
+            child: const Text('Open Settings'),
           ),
         ],
       ),
@@ -68,14 +68,14 @@ class _AudioRecordState extends State<AudioRecord> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
+        title: const Text(
           'Audio',
           style: TextStyle(color: Colors.white),
         ),
         centerTitle: true,
         backgroundColor: Colors.blue[900],
         leading: IconButton(
-          icon: Icon(
+          icon: const Icon(
             Icons.arrow_back,
             color: Colors.white,
           ),
@@ -91,6 +91,7 @@ class _AudioRecordState extends State<AudioRecord> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Container(
+
                 child: _controller.isRecording
                     ? SiriWaveform.ios9(
                         options: IOS9SiriWaveformOptions(
@@ -149,10 +150,7 @@ class _AudioRecordState extends State<AudioRecord> {
                           onPressed: () async {
                             await _controller.togglePlayback(
                               recordingPath,
-                              () => setState(() {
-                                print('setState');
-                               
-                              }),
+                              () => setState(() {}),
                             );
                           },
                         ),
