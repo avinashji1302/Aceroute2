@@ -1,4 +1,6 @@
 import 'dart:io';
+import 'package:ace_routes/core/colors/Constants.dart';
+import 'package:ace_routes/view/appbar.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
@@ -14,7 +16,7 @@ class AddBwForm extends StatefulWidget {
 
 class _AddBwFormState extends State<AddBwForm> {
   final TextEditingController _technicianNameController =
-  TextEditingController();
+      TextEditingController();
   XFile? _image; // To store the selected image
 
   // Separate selected values for customer and dealer payment options
@@ -37,23 +39,10 @@ class _AddBwFormState extends State<AddBwForm> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Add BW Form',
-          style: TextStyle(color: Colors.white),
-        ),
-        centerTitle: true,
-        backgroundColor: Colors.blue[900],
-        leading: IconButton(
-          icon: Icon(
-            Icons.arrow_back,
-            color: Colors.white,
-          ),
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
-        ),
-      ),
+      appBar: myAppBar(
+          context: context,
+          titleText: 'Add BW Form.',
+          backgroundColor: MyColors.blueColor),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: SingleChildScrollView(
@@ -91,8 +80,7 @@ class _AddBwFormState extends State<AddBwForm> {
                           },
                         ),
                         Expanded(
-                          child: Text(
-                              'Yes I have added\nPayment for checking'),
+                          child: Text('Yes I have added\nPayment for checking'),
                         ),
                       ],
                     ),
@@ -111,8 +99,7 @@ class _AddBwFormState extends State<AddBwForm> {
                           },
                         ),
                         Expanded(
-                          child: Text(
-                              'No Covered by\nNMA and approved'),
+                          child: Text('No Covered by\nNMA and approved'),
                         ),
                       ],
                     ),
@@ -202,16 +189,16 @@ class _AddBwFormState extends State<AddBwForm> {
                   ),
                   child: _image == null
                       ? Center(
-                    child: Icon(
-                      Icons.camera_alt,
-                      size: 50,
-                      color: Colors.grey,
-                    ),
-                  )
+                          child: Icon(
+                            Icons.camera_alt,
+                            size: 50,
+                            color: Colors.grey,
+                          ),
+                        )
                       : Image.file(
-                    File(_image!.path),
-                    fit: BoxFit.cover,
-                  ),
+                          File(_image!.path),
+                          fit: BoxFit.cover,
+                        ),
                 ),
               ),
               SizedBox(height: 20),
@@ -257,8 +244,7 @@ class _AddBwFormState extends State<AddBwForm> {
                           },
                         ),
                         Expanded(
-                          child: Text(
-                              'No Covered by\nNMA and approved'),
+                          child: Text('No Covered by\nNMA and approved'),
                         ),
                       ],
                     ),
@@ -343,7 +329,7 @@ class _AddBwFormState extends State<AddBwForm> {
                 ),
                 style: ElevatedButton.styleFrom(
                     minimumSize:
-                    Size(double.infinity, 50), // Make button full width
+                        Size(double.infinity, 50), // Make button full width
                     backgroundColor: Colors.blue),
               ),
             ],

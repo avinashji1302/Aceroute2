@@ -1,3 +1,5 @@
+import 'package:ace_routes/core/colors/Constants.dart';
+import 'package:ace_routes/view/appbar.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -21,24 +23,7 @@ class _VehicleDetailsState extends State<VehicleDetails> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Vehicle Details',
-          style: TextStyle(
-              color: Colors.white, fontSize: fontSizeController.fontSize),
-        ),
-        centerTitle: true,
-        backgroundColor: Colors.blue[900],
-        leading: IconButton(
-          icon: Icon(
-            Icons.arrow_back,
-            color: Colors.white,
-          ),
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
-        ),
-      ),
+     appBar:myAppBar(context: context, titleText: 'Vehicle Details', backgroundColor:MyColors.blueColor ),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),

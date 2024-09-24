@@ -1,4 +1,6 @@
 import 'package:ace_routes/controller/barcode_controller.dart';
+import 'package:ace_routes/core/colors/Constants.dart';
+import 'package:ace_routes/view/appbar.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -33,23 +35,7 @@ class _AddPartState extends State<AddPart> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'ADD PART',
-          style: TextStyle(color: Colors.white),
-        ),
-        centerTitle: true,
-         backgroundColor:  Colors.blue[900],
-        leading: IconButton(
-          icon: Icon(
-            Icons.arrow_back,
-            color: Colors.white,
-          ),
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
-        ),
-      ),
+      appBar:myAppBar(context: context, titleText: 'Add Part', backgroundColor:MyColors.blueColor ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(

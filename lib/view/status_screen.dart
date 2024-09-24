@@ -1,3 +1,5 @@
+import 'package:ace_routes/core/colors/Constants.dart';
+import 'package:ace_routes/view/appbar.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -22,23 +24,10 @@ class _StatusScreenState extends State<StatusScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Status',
-          style: TextStyle(color: Colors.white, fontSize: fontSizeController.fontSize),
-        ),
-        centerTitle: true,
-        backgroundColor: Colors.blue[900],
-        leading: IconButton(
-          icon: Icon(
-            Icons.arrow_back,
-            color: Colors.white,
-          ),
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
-        ),
-      ),
+      appBar: myAppBar(
+          context: context,
+          titleText: 'Status',
+          backgroundColor: MyColors.blueColor),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(12.0),
@@ -49,24 +38,31 @@ class _StatusScreenState extends State<StatusScreen> {
                 setState(() {
                   _selectedJob = value;
                 });
-              }, ['Enroute', 'Start' , 'Comleted' , 'Pending Comletion']),
+              }, ['Enroute', 'Start', 'Comleted', 'Pending Comletion']),
               _buildSection('Job Exception', _selectedJobException, (value) {
                 setState(() {
                   _selectedJobException = value;
                 });
-              }, ['Cancel', 'Cancel with charge' , 'Follow up']),
-              _buildSection('Field Exception', _selectedFieldException, (value) {
+              }, ['Cancel', 'Cancel with charge', 'Follow up']),
+              _buildSection('Field Exception', _selectedFieldException,
+                  (value) {
                 setState(() {
                   _selectedFieldException = value;
                 });
-              }, ['Left Message ', 'No Access', 'Wrong Address']), // Update as needed
+              }, [
+                'Left Message ',
+                'No Access',
+                'Wrong Address'
+              ]), // Update as needed
               _buildSection('Plan', _selectedPlan, (value) {
                 setState(() {
                   _selectedPlan = value;
                 });
               }, ['Scheduled', 'Confirmed', 'Rescheduled']), // Update as needed
 
-              SizedBox(height: 20.0,),
+              SizedBox(
+                height: 20.0,
+              ),
               ElevatedButton(
                 onPressed: () {
                   // Add submit logic here
@@ -77,20 +73,22 @@ class _StatusScreenState extends State<StatusScreen> {
                 ),
                 style: ElevatedButton.styleFrom(
                     minimumSize:
-                    Size(double.infinity, 50), // Make button full width
+                        Size(double.infinity, 50), // Make button full width
                     backgroundColor: Colors.blue),
               ),
-              SizedBox(height: 20.0,),
+              SizedBox(
+                height: 20.0,
+              ),
             ],
           ),
         ),
       ),
-
     );
   }
 
   // Method to build each section with a header and radio buttons
-  Widget _buildSection(String header, String? groupValue, ValueChanged<String?> onChanged, List<String> options) {
+  Widget _buildSection(String header, String? groupValue,
+      ValueChanged<String?> onChanged, List<String> options) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -101,7 +99,10 @@ class _StatusScreenState extends State<StatusScreen> {
             padding: const EdgeInsets.all(8.0),
             child: Text(
               header,
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20.0 ,),
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 20.0,
+              ),
             ),
           ),
         ),

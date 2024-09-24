@@ -20,7 +20,7 @@ class PicUploadScreen extends StatelessWidget {
               color: Colors.white, fontSize: fontSizeController.fontSize),
         ),
         centerTitle: true,
-        backgroundColor: Color.fromARGB(255, 76, 81, 175),
+        backgroundColor: Colors.blue[900],
         leading: IconButton(
           icon: Icon(
             Icons.arrow_back,
@@ -73,7 +73,7 @@ class PicUploadScreen extends StatelessWidget {
                         },
                         child: Obx(() {
                           bool isSelected =
-                          controller.selectedIndices.contains(index);
+                              controller.selectedIndices.contains(index);
 
                           return Stack(
                             children: [
@@ -108,7 +108,7 @@ class PicUploadScreen extends StatelessWidget {
                                     child: CircleAvatar(
                                       radius: 15,
                                       backgroundColor:
-                                      Colors.red.withOpacity(0.7),
+                                          Colors.red.withOpacity(0.7),
                                       child: Icon(
                                         Icons.close,
                                         color: Colors.white,

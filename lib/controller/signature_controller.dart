@@ -47,7 +47,7 @@ class SignatureController extends GetxController {
   void addSignature(ui.Image signature) {
     if (signatures.length >= maxSignatures) {
       // signatures.removeAt(0); // Remove the oldest signature
-    
+
       print('Can not accepts');
     } else {
       print('Can not accepts');

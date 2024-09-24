@@ -1,13 +1,25 @@
+import 'dart:ui';
+
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:pubnub/pubnub.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:xml/xml.dart' as xml;
 
 class HomeController extends GetxController {
   // Observables for managing state
   var selectedIndex = 0.obs;
   var counter = 0.obs;
   var selectedDate = Rxn<DateTime>();
+
+  //
+  PubNub? pubnub;
+  String? nsp;
+  String? url;
+  String? subkey;
 
   // Method to handle bottom navigation bar item taps
   void onItemTapped(int index) {
@@ -22,7 +34,8 @@ class HomeController extends GetxController {
   // Method to request permissions
   Future<void> requestPermissions() async {
     final prefs = await SharedPreferences.getInstance();
-    bool hasRequestedPermissions = prefs.getBool('hasRequestedPermissions') ?? false;
+    bool hasRequestedPermissions =
+        prefs.getBool('hasRequestedPermissions') ?? false;
 
     if (!hasRequestedPermissions) {
       // Request location permission
@@ -55,6 +68,7 @@ class HomeController extends GetxController {
       await prefs.setBool('hasRequestedPermissions', true);
     }
   }
+
   void setSelectedDate(DateTime date) {
     selectedDate.value = date;
   }
@@ -62,7 +76,8 @@ class HomeController extends GetxController {
   // Method to get the formatted date
   String getFormattedDate() {
     DateTime date = selectedDate.value ?? DateTime.now();
-    return DateFormat('MMMM d, yyyy').format(date); // Example: "August 21, 2024"
+    return DateFormat('MMMM d, yyyy')
+        .format(date); // Example: "August 21, 2024"
   }
 
   // Method to get the day of the week
@@ -74,8 +89,42 @@ class HomeController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    pubNubInitialization();
     requestPermissions(); // Request permissions when the controller is initialized
   }
 
+    
 
+  // intialization of pub nub
+
+  Future<void> pubNubInitialization() async {
+    // Mocking the API call for login
+    final xmlResponse =
+        '''<data><nsp>demo.com</nsp><url>portal.aceroute.com</url><subkey>sub-c-424c2436-49c8-11e5-b018-0619f8945a4f</subkey></data>''';
+
+    try {
+      // Parse XML response
+      final document = xml.XmlDocument.parse(xmlResponse);
+      nsp = document.findAllElements('nsp').first.text;
+      url = document.findAllElements('url').first.text;
+      subkey = document.findAllElements('subkey').first.text;
+
+      print("sub key $subkey $url nsp $nsp");
+
+      // Initialize PubNub
+      if (subkey != null) {
+        pubnub = PubNub(
+          defaultKeyset: Keyset(
+            subscribeKey: subkey!,
+            uuid: UUID('user-1234'),
+          ),
+        );
+        print('PubNub initialized with subkey: $subkey');
+      } else {
+        print('Subkey is missing!');
+      }
+    } catch (e) {
+      print('Error parsing XML or initializing PubNub: $e');
+    }
+  }
 }

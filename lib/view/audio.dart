@@ -1,4 +1,6 @@
 import 'package:ace_routes/controller/audio_controller.dart';
+import 'package:ace_routes/core/colors/Constants.dart';
+import 'package:ace_routes/view/appbar.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:siri_wave/siri_wave.dart';
@@ -53,7 +55,7 @@ class _AudioRecordState extends State<AudioRecord> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child:const Text('OK'),
+            child: const Text('OK'),
           ),
           TextButton(
             onPressed: () => openAppSettings(),
@@ -67,23 +69,10 @@ class _AudioRecordState extends State<AudioRecord> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Audio',
-          style: TextStyle(color: Colors.white),
-        ),
-        centerTitle: true,
-        backgroundColor: Colors.blue[900],
-        leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back,
-            color: Colors.white,
-          ),
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
-        ),
-      ),
+      appBar: myAppBar(
+          context: context,
+          titleText: 'Audio',
+          backgroundColor: MyColors.blueColor),
       body: Container(
         width: double.infinity,
         padding: EdgeInsets.all(0.0),
@@ -91,7 +80,6 @@ class _AudioRecordState extends State<AudioRecord> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Container(
-
                 child: _controller.isRecording
                     ? SiriWaveform.ios9(
                         options: IOS9SiriWaveformOptions(

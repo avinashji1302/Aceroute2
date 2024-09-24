@@ -1,3 +1,5 @@
+import 'package:ace_routes/core/colors/Constants.dart';
+import 'package:ace_routes/view/appbar.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
@@ -26,23 +28,7 @@ class _PartDetailScreenState extends State<PartDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Part Details',
-          style: TextStyle(color: Colors.white,fontSize: fontSizeController.fontSize),
-        ),
-        centerTitle: true,
-        backgroundColor: Colors.blue,
-        leading: IconButton(
-          icon: Icon(
-            Icons.arrow_back,
-            color: Colors.white,
-          ),
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
-        ),
-      ),
+        appBar:myAppBar(context: context, titleText: 'Part Details', backgroundColor:MyColors.blueColor ),
       body: Container(
         width: double.infinity,
         height: 100.0,

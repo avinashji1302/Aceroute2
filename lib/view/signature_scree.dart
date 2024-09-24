@@ -1,87 +1,87 @@
+import 'package:ace_routes/core/colors/Constants.dart';
+import 'package:ace_routes/view/appbar.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:syncfusion_flutter_signaturepad/signaturepad.dart';
 import 'dart:ui' as ui;
-import 'package:ace_routes/controller/fontSizeController.dart';
-import 'package:ace_routes/controller/signature_controller.dart';
+import 'package:ace_routes/controller/signature_controller.dart'; // Ensure correct import
 
 class Signature extends StatelessWidget {
-  final fontSizeController = Get.find<FontSizeController>();
   final SignatureController signatureController =
-  Get.put(SignatureController());
+      Get.put(SignatureController()); // Correct controller initialization
   final RxInt currentBlock = 0.obs; // Track the current signature block
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Signature',
-          style: TextStyle(
-              color: Colors.white, fontSize: fontSizeController.fontSize),
-        ),
-        centerTitle: true,
-        backgroundColor: Color.fromARGB(255, 76, 81, 175),
-        leading: IconButton(
-          icon: Icon(
-            Icons.arrow_back,
-            color: Colors.white,
+      appBar: myAppBar(
+          context: context,
+          titleText: 'Signature',
+          backgroundColor: MyColors.blueColor),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Wrapping only the widget that will update
+              Obx(() => _buildSignatureGrid(context)),
+              SizedBox(height: 20),
+              _buildAddSignatureButton(context), // No need to wrap this in Obx
+            ],
           ),
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
         ),
       ),
-      body: Container(
-        width: double.infinity,
-        child: Obx(() {
-          return SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: List.generate((currentBlock.value ~/ 2) + 1, (rowIndex) {
-                  return Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: List.generate(2, (index) {
-                      int blockIndex = rowIndex * 2 + index;
-                      return blockIndex <= currentBlock.value
-                          ? _buildSignatureBlock(context, blockIndex)
-                          : SizedBox.shrink();
-                    }),
-                  );
-                }),
-              ),
-            ),
-          );
-        }),
-      ),
+    );
+  }
+
+  // Build the signature grid using Wrap widget
+  Widget _buildSignatureGrid(BuildContext context) {
+    // Wrap only the part that depends on the observable
+    if (signatureController.signatures.isEmpty) {
+      return Center(
+        child: Text('No signatures added yet.'),
+      );
+    }
+
+    // Use Wrap widget to show signatures in a row
+    return Wrap(
+      spacing: 16.0, // Horizontal space between items
+      runSpacing: 16.0, // Vertical space between rows
+      children: List.generate(signatureController.signatures.length, (index) {
+        return _buildSignatureBlock(context, index);
+      }),
     );
   }
 
   Widget _buildSignatureBlock(BuildContext context, int index) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         GestureDetector(
           onTap: () {
-            _showSignatureDialog(context, index);
+            _showSignatureDialog(context, index); // Open signature dialog
           },
           child: Obx(() {
+            // Wrap only the Icon in Obx since it uses an observable
             return Icon(
               Icons.edit,
               size: 30,
               color: (index == currentBlock.value &&
-                  signatureController.signatures.length <= index)
+                      signatureController.signatures.length <= index)
                   ? Colors.black
                   : Colors.transparent,
             );
           }),
         ),
         SizedBox(height: 5.0),
-        Obx(() => signatureController.signatures.length > index
-            ? _buildSignatureDisplay(index, signatureController.signatures[index])
-            : SizedBox.shrink()),
+        Obx(() {
+          // Wrap only the part that depends on observable
+          return signatureController.signatures.length > index
+              ? _buildSignatureDisplay(
+                  index, signatureController.signatures[index])
+              : SizedBox.shrink();
+        }),
         SizedBox(height: 5.0),
       ],
     );
@@ -116,7 +116,7 @@ class Signature extends StatelessWidget {
             TextButton(
               onPressed: () async {
                 final signature =
-                await _signaturePadKey.currentState?.toImage();
+                    await _signaturePadKey.currentState?.toImage();
                 if (signature != null) {
                   signatureController.addSignature(signature);
                   currentBlock.value++; // Move to the next block
@@ -138,7 +138,7 @@ class Signature extends StatelessWidget {
         children: [
           Container(
             height: 100,
-            width: 150,
+            width: 150, // Ensure a fixed width for signature blocks
             decoration: BoxDecoration(
               border: Border.all(color: Colors.black),
             ),
@@ -158,6 +158,27 @@ class Signature extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildAddSignatureButton(BuildContext context) {
+    return Center(
+      child: ElevatedButton(
+        onPressed: () {
+          if (signatureController.signatures.length <
+              signatureController.maxSignatures) {
+            _showSignatureDialog(
+                context, currentBlock.value); // Open dialog to add signature
+          } else {
+            Get.snackbar(
+              'Limit Reached',
+              'You have reached the maximum number of signatures',
+              snackPosition: SnackPosition.BOTTOM,
+            );
+          }
+        },
+        child: Text('Add Signature'),
       ),
     );
   }
