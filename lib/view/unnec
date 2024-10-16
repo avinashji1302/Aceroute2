@@ -1,3 +1,66 @@
   color: Colors.green[500],
   color: MyColors.blueColor,
    color: const Color.fromARGB(255, 242, 255, 243),
+
+
+
+
+
+
+    void _loadCustomIcon() async {
+    // await   homeController.fetchData();
+
+    print('object');
+    try {
+      print('object1');
+      final BitmapDescriptor icon = await BitmapDescriptor.fromAssetImage(
+        ImageConfiguration(size: Size(38, 38)), // Adjust size as needed
+        'assets/maplogo-removebg.png',
+      );
+      setState(() {
+        _customIcon = icon;
+        _addMarkers(); // Add markers after icon is loaded
+      });
+    } catch (e) {
+      print('objec2t');
+      print("Error loading custom icon: $e");
+    }
+  }
+
+
+   void _addMarkers() {
+    final List<LatLng> locations = [
+      LatLng(28.5850, 77.3724), // Example location 1
+      LatLng(28.5860, 77.3730), // Example location 2
+      LatLng(28.5870, 77.3740), // Example location 3
+      LatLng(28.5880, 77.3742), // Example location 4
+      LatLng(28.5890, 77.3741), // Example location 5
+      LatLng(28.5900, 77.3743), // Example location 6
+    ];
+
+    final List<Marker> markers = locations.asMap().entries.map((entry) {
+      int index = entry.key;
+      LatLng location = entry.value;
+
+      // Format the LatLng value as a string for the InfoWindow title
+      String latLngString =
+          'Lat: ${location.latitude}, Lng: ${location.longitude}';
+
+      return Marker(
+        markerId: MarkerId('marker_$index'),
+        position: location,
+        icon: _customIcon ??
+            BitmapDescriptor.defaultMarker, // Use custom icon if available
+        infoWindow: InfoWindow(
+          title: latLngString, // Display the LatLng value in the InfoWindow
+        ),
+        onTap: () {
+          print('Marker $index tapped! LatLng: $latLngString');
+        },
+      );
+    }).toList();
+
+    setState(() {
+      _markers.addAll(markers); // Add all new markers
+    });
+  }

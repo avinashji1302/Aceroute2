@@ -269,7 +269,7 @@ class DrawerWidget extends StatelessWidget {
                       fontSize: fontSizeController.fontSize)),
               onPressed: () {
                 final loginController = Get.find<LoginController>();
-                loginController.clearFields();
+                // loginController.clearFields();
                 Navigator.of(context).pushReplacement(
                   MaterialPageRoute(builder: (context) => LoginScreen()),
                 );
