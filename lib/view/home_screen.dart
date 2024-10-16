@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'package:ace_routes/controller/loginController.dart';
+import 'package:ace_routes/controller/status_controller.dart';
 import 'package:ace_routes/core/colors/Constants.dart';
 import 'package:ace_routes/view/audio.dart';
 import 'package:ace_routes/view/e_from.dart';
@@ -29,12 +31,13 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final HomeController homeController = Get.put(HomeController());
   final Completer<GoogleMapController> _mapController = Completer();
+  final LoginController loginController =
+      Get.find<LoginController>(); // Accessing LoginController
+
   //LatLng _currentLocation = LatLng(45.521563, -122.677433); // Default location
   LatLng _currentLocation = LatLng(0, 0); // Initialize with an empty location
   StreamSubscription<geo.Position>? _positionStreamSubscription;
 
-  final TextEditingController _searchController = TextEditingController();
-  bool _showSearchBar = false;
   bool _showCard = true;
   final FontSizeController fontSizeController = Get.put(FontSizeController());
 
@@ -47,9 +50,38 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-
-    _loadCustomIcon();
+    print("above ");
+    subscribe();
+    // _loadCustomIcon();
     _determinePosition();
+  }
+
+  void subscribe() async {
+    print("Subscribing to status-channel...");
+
+    var subscription = await loginController.pubNub?.subscribe(
+      channels: {'status-channel'}, // Your channel name
+    );
+
+    subscription?.messages.listen((message) {
+      print("Received message: ${message.content}");
+
+      // Ensure message.content is a Map and extract the value
+      if (message != null && message.content is Map<String, dynamic>) {
+        print('map');
+        var messageData =
+            message.content['status']; // Extract 'status' from the map
+        if (messageData is String) {
+          homeController.updateMessage(messageData);
+        } else {
+          print('Received status is not a string: $messageData');
+        }
+      } else {
+        print('Message content is not in the expected format');
+      }
+    });
+
+    print("Subscription established, waiting for messages...");
   }
 
   @override
@@ -58,26 +90,13 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
-  void _loadCustomIcon() async {
-    try {
-      final BitmapDescriptor icon = await BitmapDescriptor.fromAssetImage(
-        ImageConfiguration(size: Size(38, 38)), // Adjust size as needed
-        'assets/maplogo-removebg.png',
-      );
-      setState(() {
-        _customIcon = icon;
-        _addMarkers(); // Add markers after icon is loaded
-      });
-    } catch (e) {
-      print("Error loading custom icon: $e");
-    }
-  }
-
   Future<void> _determinePosition() async {
     try {
       geo.Position position = await geo.Geolocator.getCurrentPosition(
         desiredAccuracy: geo.LocationAccuracy.high,
       );
+
+      // print("deternianton $position");
 
       _currentLocation = LatLng(position.latitude, position.longitude);
       _updateMapLocation(_currentLocation);
@@ -123,106 +142,6 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       );
     });
-  }
-
-  void _addMarkers() {
-    final List<LatLng> locations = [
-      LatLng(28.5850, 77.3724), // Example location 1
-      LatLng(28.5860, 77.3730), // Example location 2
-      LatLng(28.5870, 77.3740), // Example location 3
-      LatLng(28.5880, 77.3742), // Example location 4
-      LatLng(28.5890, 77.3741), // Example location 5
-      LatLng(28.5900, 77.3743), // Example location 6
-    ];
-
-    final List<Marker> markers = locations.asMap().entries.map((entry) {
-      int index = entry.key;
-      LatLng location = entry.value;
-
-      // Format the LatLng value as a string for the InfoWindow title
-      String latLngString =
-          'Lat: ${location.latitude}, Lng: ${location.longitude}';
-
-      return Marker(
-        markerId: MarkerId('marker_$index'),
-        position: location,
-        icon: _customIcon ??
-            BitmapDescriptor.defaultMarker, // Use custom icon if available
-        infoWindow: InfoWindow(
-          title: latLngString, // Display the LatLng value in the InfoWindow
-        ),
-        onTap: () {
-          print('Marker $index tapped! LatLng: $latLngString');
-        },
-      );
-    }).toList();
-
-    setState(() {
-      _markers.addAll(markers); // Add all new markers
-    });
-  }
-
-  Future<void> _getCurrentLocation() async {
-    print('up');
-    try {
-      bool serviceEnabled;
-      geo.LocationPermission permission;
-      print('try');
-
-      serviceEnabled = await geo.Geolocator.isLocationServiceEnabled();
-      if (!serviceEnabled) {
-        print('eror');
-
-        return Future.error('Location services are disabled.');
-      }
-
-      permission = await geo.Geolocator.checkPermission();
-      if (permission == geo.LocationPermission.denied) {
-        permission = await geo.Geolocator.requestPermission();
-        if (permission == geo.LocationPermission.denied) {
-          return Future.error('Location permissions are denied.');
-        }
-      }
-
-      if (permission == geo.LocationPermission.deniedForever) {
-        return Future.error(
-            'Location permissions are permanently denied, we cannot request permissions.');
-      }
-
-      geo.Position position = await geo.Geolocator.getCurrentPosition(
-          desiredAccuracy: geo.LocationAccuracy.high);
-
-      setState(() {
-        print('set');
-
-        _currentLocation = LatLng(position.latitude, position.longitude);
-      });
-
-      final GoogleMapController controller = await _mapController.future;
-      controller.animateCamera(CameraUpdate.newLatLng(_currentLocation));
-    } catch (e) {
-      print('Error getting location: $e');
-    }
-  }
-
-  Future<void> _searchLocation() async {
-    if (_searchController.text.isEmpty) return;
-
-    try {
-      List<Location> locations =
-          await locationFromAddress(_searchController.text);
-      if (locations.isNotEmpty) {
-        LatLng targetLocation =
-            LatLng(locations.first.latitude, locations.first.longitude);
-        final GoogleMapController controller = await _mapController.future;
-        controller
-            .animateCamera(CameraUpdate.newLatLngZoom(targetLocation, 14.0));
-      } else {
-        print('Location not found');
-      }
-    } catch (e) {
-      print('Error searching location: $e');
-    }
   }
 
   List<Map<String, String>> cardData = [
@@ -284,8 +203,12 @@ class _HomeScreenState extends State<HomeScreen> {
       drawer: const DrawerWidget(),
       body: _showCard
           ? ListView.builder(
-              itemCount: _showCardDetails.length, // Number of cards
+              // itemCount: _showCardDetails.length, // Number of cards
+              itemCount: homeController.dataModel.value.customer.length,
               itemBuilder: (context, index) {
+                print(homeController.dataModel.value.customer.length);
+                print("homeController.dataModel.value.customer.length");
+                final customer = homeController.dataModel.value.customer[index];
                 return Card(
                   elevation: 5,
                   margin: const EdgeInsets.all(8.0),
@@ -309,11 +232,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                 // Replace dynamic text with static "Scheduled" text
                                 child: Center(
                                   child: Text(
-                                    temp[index] ? 'SCHEDULED' : "CANCELLED",
+                                    homeController.receivedMessage.isEmpty
+                                        ? "NOT Get"
+                                        : homeController.receivedMessage.value,
                                     style: TextStyle(
-                                      color: temp[index]
-                                          ? Colors.white
-                                          : Colors.white,
+                                      color: Colors.white,
                                       fontSize: 20,
                                       fontWeight: FontWeight.bold,
                                     ),
@@ -434,7 +357,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                           padding:
                                               const EdgeInsets.only(top: 9),
                                           child: Text(
-                                            'Danville',
+                                            '${customer.customerName}',
                                             style: TextStyle(
                                               color: Colors.black,
                                               fontSize:
@@ -453,7 +376,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                           children: [
                                             TextSpan(
                                               text:
-                                                  "${cardData[index]['location']}.",
+                                                  "${customer.customerAddress}.",
                                               style: TextStyle(
                                                   color: Colors.black),
                                             ),
@@ -620,23 +543,6 @@ class _HomeScreenState extends State<HomeScreen> {
             )
           : Column(
               children: [
-                if (_showSearchBar) // Conditionally show the search bar
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: TextField(
-                      controller: _searchController,
-                      decoration: InputDecoration(
-                        hintText: 'Search Location',
-                        suffixIcon: IconButton(
-                          icon: Icon(Icons.search),
-                          onPressed: _searchLocation,
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8.0),
-                        ),
-                      ),
-                    ),
-                  ),
                 Expanded(
                   child: GoogleMap(
                     initialCameraPosition: CameraPosition(
@@ -688,19 +594,22 @@ class _HomeScreenState extends State<HomeScreen> {
                   // Search tab
                   _showCard = false; // Hide card
                   //_showSearchBar = !_showSearchBar; // Toggle search bar
-                  _getCurrentLocation(); // Up
+                  homeController.getCurrentLocation();
+                  // _getCurrentLocation(); // Up
                 } else if (index == 2) {
                   // Map tab
 
                   print('object');
                   _showCard = false; // Hide card
-                  _showSearchBar = false; // Hide search bar
-                  _getCurrentLocation(); // Update map location
+
+                  homeController.getCurrentLocation();
+                  // _getCurrentLocation(); // Up
                 } else if (index == 3) {
                   // Clocked In tab
                   _showCard = false; // Hide card
-                  _showSearchBar = false; // Hide search bar
-                  _getCurrentLocation(); // Update map location
+
+                  homeController.getCurrentLocation();
+                  // _getCurrentLocation(); // Up
                 }
               });
               homeController.onItemTapped(index);

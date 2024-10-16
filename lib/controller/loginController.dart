@@ -1,102 +1,111 @@
-import 'dart:convert';
-import 'dart:io';
-
+import 'package:ace_routes/model/login_model.dart';
 import 'package:ace_routes/view/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:http/http.dart' as http;
 import 'package:pubnub/pubnub.dart';
-import 'package:xml/xml.dart' as xml;
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+
+import 'dart:async';
+import 'package:xml/xml.dart';
 
 class LoginController extends GetxController {
-  var accountName = ''.obs;
+  var accountName = 'demo.com'.obs;
   var workerId = ''.obs;
   var password = ''.obs;
-  var isPasswordVisible = false.obs;
   var rememberMe = false.obs;
-
   var accountNameError = ''.obs;
   var workerIdError = ''.obs;
   var passwordError = ''.obs;
-  final loginUrl =
-      "https://portal.aceroute.com/login?&nsp=demo.com&tid=mobi&token=FoZpRr7ixJ3Ppmmru2ejE%2FBhjBuZp3BTkNbtotGq%2BHXDr%2BdjKRC3zl98mQWfnvDuzlJ9g3Sv1%2B8V17QnoV1xKlnSI4UCgNRgV9JxDh3w094sT9lpHGJb%2BjukeabwtALcInN5hDkjW%2FjxZo7VMjWUoI%2FQrJvTPM9CKgwFpVMY%2BI4%3D&nspace=demo.com&rid=136675&pssCode=fdfs";
+  var isPasswordVisible = false.obs;
 
-//pubnub
-  //
-  PubNub? pubnub;
-  String? nsp;
-  String? url;
-  String? subkey;
+  PubNub? pubNub;
+  String? sessionToken;
 
   void togglePasswordVisibility() {
     isPasswordVisible.value = !isPasswordVisible.value;
   }
 
-  bool validateFields() {
-    bool isValid = true;
-
-    if (accountName.value.isEmpty) {
-      accountNameError.value = 'This field is required';
-      isValid = false;
-    } else {
-      accountNameError.value = '';
-    }
-
-    if (workerId.value.isEmpty) {
-      workerIdError.value = 'This field is required';
-      isValid = false;
-    } else {
-      workerIdError.value = '';
-    }
-
-    if (password.value.isEmpty) {
-      passwordError.value = 'This field is required';
-      isValid = false;
-    } else {
-      passwordError.value = '';
-    }
-
-    return isValid;
-  }
-
-  void login(BuildContext context) async {
-    if (validateFields()) {
+  Future<void> login(BuildContext context) async {
+    if (_validateInputs()) {
       try {
-        final response = await http.get(Uri.parse(loginUrl));
+        final response = await http.get(Uri.parse(
+            'https://portal.aceroute.com/login?&nsp=demo.com&tid=mobi'));
 
         if (response.statusCode == 200) {
-          print('Login successful: ${response.body}');
-          final xmlResponse = response.body;
+          final loginResponse = LoginResponse.fromXml(response.body);
+          // Initialize PubNub with subkey
+          print(' logging in key : ${loginResponse.subkey}');
+          pubNub = PubNub(
+              defaultKeyset: Keyset(
+            subscribeKey: 'sub-c-d9f560e0-4e4c-46ed-9cdd-c81a0242552d',
+            publishKey: 'pub-c-ec0b05d7-0d9c-4fc0-b48f-1e43e7b34486',
+            uuid: UUID(accountName.value),
+          ));
 
-          final document = xml.XmlDocument.parse(xmlResponse);
-          // nsp = document.findAllElements('nsp').first.text;
-          // url = document.findAllElements('url').first.text;
-          subkey = document.findAllElements('subkey').first.text;
+          // Now fetch user-specific data
+          await _fetchUserData();
 
-          print(subkey);
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => HomeScreen()),
-          );
+          // After successful login, navigate to the next screen
+          Get.to(HomeScreen()); //
         } else {
-          print('Failed to login. Status code: ${response.statusCode}');
-          print('Response body: ${response.body}');
+          // Handle error
+          print('Error logging in');
         }
       } catch (e) {
-        print("Error is : $e");
+        print('Exception during login: $e');
       }
     }
   }
 
-  void clearFields() {
-    accountName.value = '';
-    workerId.value = '';
-    password.value = '';
-    isPasswordVisible.value = false;
-    rememberMe.value = false;
+  Future<void> _fetchUserData() async {
+    final prefs = await SharedPreferences.getInstance();
+    try {
+      print('fetching data>>>>:');
 
-    accountNameError.value = '';
-    workerIdError.value = '';
-    passwordError.value = '';
+      final response = await http.get(Uri.parse(
+          'https://portal.aceroute.com/mobi?&geo=0.0,0.0&os=2&pcode=${password.value}&nspace=demo.com&action=mlogin&rid=${workerId.value}&cts=1728382466217'));
+
+      if (response.statusCode == 200) {
+        final xmlResponse = XmlDocument.parse(response.body);
+
+        // Safely check if the elements exist
+        final tokenElement = xmlResponse.findAllElements('token');
+        final ridElement = xmlResponse.findAllElements('rid');
+        final nspaceElement = xmlResponse.findAllElements('nspace');
+
+        print(
+            'Token: $tokenElement, RID: $ridElement, Namespace: $nspaceElement');
+        if (tokenElement.isNotEmpty && ridElement.isNotEmpty) {
+          final token = tokenElement.single.text;
+          final rid = ridElement.single.text;
+          final nspace = "demo.com";
+
+          sessionToken = token;
+          print(' response: ${xmlResponse}');
+          print('Token: $token, RID: $rid, Namespace: $nspace');
+
+          prefs.setString("token", token);
+          prefs.setInt("rid", int.parse(rid)); // Ensure to parse rid to int
+          prefs.setString("nspace", nspace);
+        } else {
+          print('One or more elements are missing: token, rid, or nspace');
+        }
+      } else {
+        print('Error: Status code ${response.statusCode} during fetching data');
+      }
+    } catch (e) {
+      print('Error in e: $e');
+    }
+  }
+
+  bool _validateInputs() {
+    accountNameError.value = accountName.isEmpty ? 'Account name required' : '';
+    workerIdError.value = workerId.isEmpty ? 'Worker ID required' : '';
+    passwordError.value = password.isEmpty ? 'Password required' : '';
+
+    return accountNameError.isEmpty &&
+        workerIdError.isEmpty &&
+        passwordError.isEmpty;
   }
 }

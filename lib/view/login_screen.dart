@@ -12,7 +12,7 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final LoginController loginController = Get.put(LoginController());
-  final HttpConnection _fetchData = HttpConnection();
+  // final HttpConnection _fetchData = HttpConnection();
 
   @override
   Widget build(BuildContext context) {
@@ -128,8 +128,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       print('Data received: fdf');
                       loginController.login(context);
                       print('Data received: ');
-                      // _fetchData.fetchData();
-                      // print(_fetchData.str);
+                      
                     },
                     child: const Text(
                       'Login',
