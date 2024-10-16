@@ -38,9 +38,9 @@ class HomeController extends GetxController {
 
   // Function to update the message
   void updateMessage(String message) {
-    print("home messaee $message")
+    print("home messaee $message");
     receivedMessage.value = message;
-      print("home messaee here  ${receivedMessage.value}")
+    print("home messaee here  ${receivedMessage.value}");
   }
 
   Future<void> getCurrentLocation() async {
