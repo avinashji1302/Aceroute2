@@ -32,11 +32,11 @@ class _StatusScreenState extends State<StatusScreen> {
   }
 
   void publishTestMessage(message) async {
-    print("publised message is $message");
+    print("Published message is $message");
     await loginController.pubNub?.publish(
-        'status-channel', // Channel name
-        {'status': '$message'} // Message payload
-        );
+      'status-channel', // Channel name
+      {'status': message}, // Message payload
+    );
     print("Test message published to status-channel.");
   }
 
@@ -59,18 +59,20 @@ class _StatusScreenState extends State<StatusScreen> {
                   setState(() {
                     _deselectAll(); // Deselect everything
                     _selectedJob = value;
-                    print("Selected Job: $_selectedJob");
-                    loginController.pubNub
-                        ?.publish('status-channel', {'status': value});
+                    print("Selected Plan: $_selectedPlan  ");
+                    publishTestMessage(value);
+
+                    Get.to(HomeScreen());
                   });
                 }, statusController.jobStatusOptions),
                 _buildSection('Job Exception', _selectedJobException, (value) {
                   setState(() {
                     _deselectAll(); // Deselect everything
                     _selectedJobException = value;
-                    print("Selected Job Exception: $_selectedJobException");
-                    loginController.pubNub
-                        ?.publish('status-channel', {'status': value});
+                    print("Selected Plan: $_selectedPlan  ");
+                    publishTestMessage(value);
+
+                    Get.to(HomeScreen());
                   });
                 }, statusController.jobExceptionOptions),
                 _buildSection('Field Exception', _selectedFieldException,
@@ -79,20 +81,21 @@ class _StatusScreenState extends State<StatusScreen> {
                     _deselectAll(); // Deselect everything
                     _selectedFieldException = value;
 
-                    print("Selected Field Exception: $_selectedFieldException");
-                    loginController.pubNub
-                        ?.publish('status-channel', {'status': value});
+                    print("Selected Plan: $_selectedPlan  ");
+                    publishTestMessage(value);
+
+                    Get.to(HomeScreen());
                   });
                 }, statusController.fieldExceptionOptions),
                 _buildSection('Plan', _selectedPlan, (value) {
                   setState(() {
-                    _deselectAll(); // Deselect everything
                     _selectedPlan = value;
                     // selectedJob = _selectedPlan! ;
                     print("Selected Plan: $_selectedPlan  ");
                     publishTestMessage(value);
 
                     Get.to(HomeScreen());
+                    _deselectAll(); // Deselect everything
                   });
                 }, statusController.planOptions),
                 SizedBox(

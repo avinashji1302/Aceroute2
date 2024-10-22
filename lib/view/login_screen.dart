@@ -12,6 +12,7 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final LoginController loginController = Get.put(LoginController());
+
   // final HttpConnection _fetchData = HttpConnection();
 
   @override
@@ -120,27 +121,31 @@ class _LoginScreenState extends State<LoginScreen> {
                     )),
                 const SizedBox(height: 16.0),
                 // Login Button
-                SizedBox(
-                  width: double.infinity,
-                  height: 50.0,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      print('Data received: fdf');
-                      loginController.login(context);
-                      print('Data received: ');
-                      
-                    },
-                    child: const Text(
-                      'Login',
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold),
+                Obx(
+                  () => SizedBox(
+                    width: double.infinity,
+                    height: 50.0,
+                    child: ElevatedButton(
+                      onPressed: loginController.isLoading.value
+                          ? null // Disable button if loading
+                          : () {
+                              loginController.login(context);
+                            },
+                      child: loginController.isLoading.value
+                          ? CircularProgressIndicator()
+                          : // Show loading indicator
+                          Text(
+                              'Login',
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold),
+                            ),
+                      style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green),
                     ),
-                    style:
-                        ElevatedButton.styleFrom(backgroundColor: Colors.green),
                   ),
-                ),
+                )
               ],
             ),
           ),
