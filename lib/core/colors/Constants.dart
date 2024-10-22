@@ -6,3 +6,5 @@ class MyColors {
   static final Color blackColor = Colors.blue[900]!;
   static final Color greenColor = Colors.green;
 }
+
+final Url = "";

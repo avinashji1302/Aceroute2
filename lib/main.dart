@@ -7,6 +7,12 @@ import 'package:get/get.dart';
 import 'controller/fontSizeController.dart';
 
 void main() {
+  // Initialize FFI for sqflite
+  // sqfliteFfiInit();
+  // databaseFactory = databaseFactoryFfi; // This is crucial
+  // print("SQLite initialized using FFI");
+
+
   Get.put(FontSizeController());
   runApp(const MyApp());
 }

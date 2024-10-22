@@ -57,31 +57,35 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void subscribe() async {
-    print("Subscribing to status-channel...");
+    try {
+      print("Subscribing to status-channel...");
 
-    var subscription = await loginController.pubNub?.subscribe(
-      channels: {'status-channel'}, // Your channel name
-    );
+      var subscription = await loginController.pubNub?.subscribe(
+        channels: {'status-channel'},
+      );
 
-    subscription?.messages.listen((message) {
-      print("Received message: ${message.content}");
-
-      // Ensure message.content is a Map and extract the value
-      if (message != null && message.content is Map<String, dynamic>) {
-        print('map');
-        var messageData =
-            message.content['status']; // Extract 'status' from the map
-        if (messageData is String) {
-          homeController.updateMessage(messageData);
+      subscription?.messages.listen((message) {
+        print("Received raw message: ${message.content}");
+        if (message.content is Map<String, dynamic>) {
+          print('Message is a Map');
+          var messageData = message.content['status'];
+          if (messageData is String) {
+            print("Status is a string: $messageData");
+            homeController.updateMessage(messageData);
+          } else {
+            print("Status is not a string: $messageData");
+          }
         } else {
-          print('Received status is not a string: $messageData');
+          print("Message content is not a Map");
         }
-      } else {
-        print('Message content is not in the expected format');
-      }
-    });
+      }, onError: (error) {
+        print("Error in subscription: $error");
+      });
 
-    print("Subscription established, waiting for messages...");
+      print("Subscription established, waiting for messages...");
+    } catch (e) {
+      print("Failed to subscribe: $e");
+    }
   }
 
   @override
@@ -231,16 +235,19 @@ class _HomeScreenState extends State<HomeScreen> {
                               Expanded(
                                 // Replace dynamic text with static "Scheduled" text
                                 child: Center(
-                                  child: Text(
-                                    homeController.receivedMessage.isEmpty
-                                        ? "NOT Get"
-                                        : homeController.receivedMessage.value,
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
+                                  child: Obx(() {
+                                    return Text(
+                                      homeController.receivedMessage.isEmpty
+                                          ? "NOT Get"
+                                          : homeController
+                                              .receivedMessage.value,
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    );
+                                  }),
                                 ),
                               ),
                             ],
