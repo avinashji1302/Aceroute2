@@ -1,8 +1,11 @@
 import 'package:ace_routes/Widgets/update_version_dailog.dart';
+import 'package:ace_routes/database/Tables/api_data_table.dart';
+import 'package:ace_routes/database/Tables/login_response_table.dart';
+import 'package:ace_routes/database/Tables/version_api_table.dart';
 import 'package:ace_routes/database/databse_helper.dart';
-import 'package:ace_routes/model/login_model.dart';
+import 'package:ace_routes/model/login_model/login_response.dart';
 import 'package:ace_routes/model/login_model/version_model.dart';
-import 'package:ace_routes/model/token_get_model.dart';
+import 'package:ace_routes/model/login_model/token_get_model.dart';
 import 'package:ace_routes/view/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -40,6 +43,8 @@ class LoginController extends GetxController {
 
   Future<void> login(BuildContext context) async {
     isLoading.value = true; // Start loading
+
+    print('login clicked');
     if (_validateInputs()) {
       print("accountName ${accountName}");
       print("work ${workerId} ${password}");
@@ -65,7 +70,9 @@ class LoginController extends GetxController {
           LoginResponse loginResponse =
               LoginResponse(nsp: nsp, url: url, subkey: subkey);
 
-          await DatabaseHelper().insertLoginResponse(loginResponse);
+          // await DatabaseHelper().insertLoginResponse(loginResponse);
+          await LoginResponseTable.insertLoginResponse(loginResponse);
+
           print(' logging in key : ${subkey}  and ${url} stored successylly');
 
           // Initialize PubNub with subkey
@@ -84,11 +91,11 @@ class LoginController extends GetxController {
         }
       } catch (e) {
         print('Exception during login: $e');
+      } finally {
+        isLoading.value =
+            false; // Stop loading regardless of success or failure
       }
-      finally {
-        isLoading.value = false; // Stop loading regardless of success or failure
-      }
-    }else{
+    } else {
       isLoading.value = false; // Stop loading if validation fails
     }
   }
@@ -120,13 +127,10 @@ class LoginController extends GetxController {
         final mltlegElement = xmlResponse.findAllElements('mltleg');
         final uiconfigElement = xmlResponse.findAllElements('uiconfig');
 
-        print('Token: $tokenElement, RID: $ridElement');
+        print('Token: $tokenElement, RID: $ridElement $resnmElement');
 
-        if (tokenElement.isNotEmpty &&
-            ridElement.isNotEmpty &&
-            resnmElement.isNotEmpty &&
-            geoElement.isNotEmpty) {
-          final token = tokenElement.single.text;
+        if (tokenElement.isNotEmpty && ridElement.isNotEmpty) {
+          final token = tokenElement.single.text; // New token from the API
           final rid = int.parse(ridElement.single.text);
           final responderName = resnmElement.single.text;
           final geoLocation = geoElement.single.text;
@@ -137,14 +141,14 @@ class LoginController extends GetxController {
           final shiftError = shfterrElement.single.text;
           final endValue = ednElement.single.text;
           final speed = spdElement.single.text;
-          final muliLeg = mltlegElement.single.text;
+          final multiLeg = mltlegElement.single.text;
           final uiConfig = uiconfigElement.single.text;
 
-          // Save to SharedPreferences
-          prefs.setString("token", token);
-          prefs.setInt("rid", rid);
-          prefs.setString("responderName", responderName);
-          prefs.setString("geoLocation", geoLocation);
+          // Save to SharedPreferences and update the token
+          await prefs.setString("token", token); // This replaces the old token
+          await prefs.setInt("rid", rid);
+          await prefs.setString("responderName", responderName);
+          await prefs.setString("geoLocation", geoLocation);
 
           // Parse response into ApiResponse model
           TokenApiReponse apiResponse = TokenApiReponse(
@@ -163,8 +167,10 @@ class LoginController extends GetxController {
             token: token,
           );
 
+          print("token in login : $token  rid $rid userid $workerId");
+
           // Store the data in SQLite database
-          await DatabaseHelper().insertData(apiResponse);
+          await ApiDataTable.insertData(apiResponse);
           print('Data successfully stored in the database');
 
           // Perform any additional checks or actions
@@ -220,7 +226,7 @@ class LoginController extends GetxController {
             VersionModel(success: success, id: versionId);
 
         // save to database;
-        await DatabaseHelper().insertVersionData(versionModel);
+        await VersionApiTable.insertVersionData(versionModel);
         print('Data successfully insert versiuo');
 
         // Get the installed app version
@@ -244,8 +250,10 @@ class LoginController extends GetxController {
           print('App is not up to date.');
           // showUpdateDialog();
           // Show the update dialog if an update is available
-          Get.dialog(UpdateDialog(onUpdate: _navigateToPlayStore));
+          // Get.dialog(UpdateDialog(onUpdate: _navigateToPlayStore));
           await displayDataFromDb();
+          Get.to(HomeScreen());
+
           // Database is here storeing the data
         } else {
           print('App is up to date.');
@@ -282,7 +290,7 @@ class LoginController extends GetxController {
   }
 
   Future<void> displayDataFromDb() async {
-    List<TokenApiReponse> dataList = await DatabaseHelper().fetchData();
+    List<TokenApiReponse> dataList = await ApiDataTable.fetchData();
 
     // Convert the list of data to a string representation
     StringBuffer buffer = StringBuffer();
