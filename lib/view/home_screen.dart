@@ -1,7 +1,13 @@
 import 'dart:async';
+import 'package:ace_routes/controller/all_terms_controller.dart';
+import 'package:ace_routes/controller/event_controller.dart';
 import 'package:ace_routes/controller/loginController.dart';
 import 'package:ace_routes/controller/status_controller.dart';
 import 'package:ace_routes/core/colors/Constants.dart';
+import 'package:ace_routes/database/Tables/api_data_table.dart';
+import 'package:ace_routes/database/Tables/event_table.dart';
+import 'package:ace_routes/database/Tables/terms_data_table.dart';
+import 'package:ace_routes/database/Tables/version_api_table.dart';
 import 'package:ace_routes/view/audio.dart';
 import 'package:ace_routes/view/e_from.dart';
 import 'package:ace_routes/view/part.dart';
@@ -19,6 +25,8 @@ import 'package:ace_routes/view/drawer.dart';
 import 'package:ace_routes/controller/homeController.dart';
 import 'package:intl/intl.dart';
 import '../controller/fontSizeController.dart';
+import '../database/Tables/login_response_table.dart';
+import '../model/login_model/login_response.dart';
 import 'add_bw_from.dart';
 import 'add_part.dart';
 import 'directory_screen.dart';
@@ -40,6 +48,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   bool _showCard = true;
   final FontSizeController fontSizeController = Get.put(FontSizeController());
+  final EventController eventController = Get.put(EventController());
 
   List<bool> _showCardDetails = List.generate(2, (_) => false);
   List<bool> temp = [true, false];
@@ -54,6 +63,7 @@ class _HomeScreenState extends State<HomeScreen> {
     subscribe();
     // _loadCustomIcon();
     _determinePosition();
+    Get.put(EventController());
   }
 
   void subscribe() async {
@@ -168,6 +178,19 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      floatingActionButton: GestureDetector(
+          onTap: () {
+            ApiDataTable.clearData();
+            // LoginResponseTable.clearLoginResponse();
+            // VersionApiTable.clearVersionData();
+            // EventTable.clearEvents();
+            //TermsDataTable.clearTermsData();
+            print("API data deleted");
+          },
+          child: Text(
+            'delete Table',
+            style: TextStyle(fontSize: 30),
+          )),
       appBar: AppBar(
         title: Obx(() {
           return Column(
@@ -206,89 +229,151 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       drawer: const DrawerWidget(),
       body: _showCard
-          ? ListView.builder(
-              // itemCount: _showCardDetails.length, // Number of cards
-              itemCount: homeController.dataModel.value.customer.length,
-              itemBuilder: (context, index) {
-                print(homeController.dataModel.value.customer.length);
-                print("homeController.dataModel.value.customer.length");
-                final customer = homeController.dataModel.value.customer[index];
-                return Card(
-                  elevation: 5,
-                  margin: const EdgeInsets.all(8.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Remove toggle and gesture detection
-                      GestureDetector(
-                        onTap: () {
-                          Get.to(StatusScreen());
-                        },
-                        child: Container(
-                          color: temp[index]
-                              ? MyColors.blueColor
-                              : const Color.fromARGB(255, 227, 57, 45),
-                          padding: const EdgeInsets.all(12.0),
-                          width: double.infinity,
-                          child: Row(
-                            children: [
-                              Expanded(
-                                // Replace dynamic text with static "Scheduled" text
-                                child: Center(
-                                  child: Obx(() {
-                                    return Text(
-                                      homeController.receivedMessage.isEmpty
-                                          ? "NOT Get"
-                                          : homeController
-                                              .receivedMessage.value,
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    );
-                                  }),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      // Keep the rest of the details and icons below
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Column(
-                          children: [
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                IconButton(
-                                  icon: Icon(
-                                    Icons.access_time_filled,
-                                    size: 45,
-                                    color: MyColors.blueColor,
+          ? Obx(() {
+              if (eventController.isLoading.value) {
+                return Center(
+                  child: CircularProgressIndicator(), // Display loading spinner
+                );
+              }
+              // Check if eventController.events list is empty
+              if (eventController.events.isEmpty) {
+                return Center(
+                  child: Text(
+                    'No data available',
+                    style: TextStyle(fontSize: 18, color: Colors.grey),
+                  ),
+                );
+              } else {
+                return ListView.builder(
+                  itemCount: homeController.dataModel.value.customer.length,
+                  itemBuilder: (context, index) {
+                    print(homeController.dataModel.value.customer.length);
+                    print("homeController.dataModel.value.customer.length");
+
+                    final customer =
+                        homeController.dataModel.value.customer[index];
+                    final eventController = Get.find<EventController>();
+
+                    return Card(
+                      elevation: 5,
+                      margin: const EdgeInsets.all(8.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          GestureDetector(
+                            onTap: () {
+                              Get.to(StatusScreen());
+                            },
+                            child: Container(
+                              color: temp[index]
+                                  ? MyColors.blueColor
+                                  : const Color.fromARGB(255, 227, 57, 45),
+                              padding: const EdgeInsets.all(12.0),
+                              width: double.infinity,
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: Center(
+                                      child: Obx(() {
+                                        return Text(
+                                          homeController.receivedMessage.isEmpty
+                                              ? "NOT Get"
+                                              : homeController
+                                                  .receivedMessage.value,
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        );
+                                      }),
+                                    ),
                                   ),
-                                  onPressed: () {
-                                    Get.to(SummaryDetails());
-                                  },
-                                ),
-                                SizedBox(width: 10),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Container(
-                                        width: 85,
+                                ],
+                              ),
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Column(
+                              children: [
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    IconButton(
+                                      icon: Icon(
+                                        Icons.access_time_filled,
+                                        size: 45,
+                                        color: MyColors.blueColor,
+                                      ),
+                                      onPressed: () {
+                                        Get.to(SummaryDetails());
+                                      },
+                                    ),
+                                    SizedBox(width: 10),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Container(
+                                            width: 85,
+                                            height: 40,
+                                            decoration: BoxDecoration(
+                                              color: Colors.grey[500],
+                                              borderRadius:
+                                                  BorderRadius.circular(12.0),
+                                            ),
+                                            child: Center(
+                                              child: Text(
+                                                "${cardData[index]['time']}",
+                                                style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: fontSizeController
+                                                      .fontSize,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                          SizedBox(height: 5.0),
+                                          Obx(() {
+                                            if (index <
+                                                eventController.events.length) {
+                                              return Text(
+                                                '${eventController.events[index].name}',
+                                                style: TextStyle(
+                                                  fontSize: fontSizeController
+                                                      .fontSize,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.black,
+                                                ),
+                                              );
+                                            } else {
+                                              return Text(
+                                                  'No event available for this index.');
+                                            }
+                                          }),
+                                        ],
+                                      ),
+                                    ),
+                                    SizedBox(width: 20),
+                                    Padding(
+                                      padding: const EdgeInsets.only(
+                                          left: 7,
+                                          right: 10,
+                                          top: 8,
+                                          bottom: 8),
+                                      child: Container(
+                                        width: 60,
                                         height: 40,
                                         decoration: BoxDecoration(
-                                          color: Colors.grey[500],
+                                          color: Colors.green[500],
                                           borderRadius:
                                               BorderRadius.circular(12.0),
                                         ),
                                         child: Center(
                                           child: Text(
-                                            "${cardData[index]['time']}",
+                                            "1",
                                             style: TextStyle(
                                               color: Colors.white,
                                               fontSize:
@@ -297,257 +382,253 @@ class _HomeScreenState extends State<HomeScreen> {
                                           ),
                                         ),
                                       ),
-                                      SizedBox(height: 5.0),
-                                      Text(
-                                        "${cardData[index]['details']}",
-                                        style: TextStyle(
-                                          fontSize: fontSizeController.fontSize,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.black,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                SizedBox(width: 20),
-                                Padding(
-                                  padding: const EdgeInsets.only(
-                                      left: 7, right: 10, top: 8, bottom: 8),
-                                  child: Container(
-                                    width: 60,
-                                    height: 40,
-                                    decoration: BoxDecoration(
-                                      color: Colors.green[500],
-                                      borderRadius: BorderRadius.circular(12.0),
                                     ),
-                                    child: Center(
-                                      child: Text(
-                                        "1",
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: fontSizeController.fontSize,
-                                        ),
+                                  ],
+                                ),
+                                SizedBox(height: 20.0),
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    IconButton(
+                                      icon: Icon(
+                                        Icons.watch_later_outlined,
+                                        size: 45,
+                                        color: MyColors.blueColor,
                                       ),
+                                      onPressed: () {
+                                        Get.to(DirectoryDetails());
+                                      },
                                     ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            SizedBox(height: 20.0),
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                IconButton(
-                                  icon: Icon(
-                                    Icons.watch_later_outlined,
-                                    size: 45,
-                                    color: MyColors.blueColor,
-                                  ),
-                                  onPressed: () {
-                                    Get.to(DirectoryDetails());
-                                  },
-                                ),
-                                SizedBox(width: 10),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Container(
-                                        width: 120,
-                                        height: 40,
-                                        decoration: BoxDecoration(
-                                          borderRadius:
-                                              BorderRadius.circular(12.0),
-                                        ),
-                                        child: Padding(
-                                          padding:
-                                              const EdgeInsets.only(top: 9),
-                                          child: Text(
-                                            '${customer.customerName}',
-                                            style: TextStyle(
-                                              color: Colors.black,
-                                              fontSize:
-                                                  fontSizeController.fontSize,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                      RichText(
-                                        text: TextSpan(
-                                          style: TextStyle(
-                                            fontSize:
-                                                fontSizeController.fontSize,
-                                            color: Colors.black,
-                                          ),
-                                          children: [
-                                            TextSpan(
-                                              text:
-                                                  "${customer.customerAddress}.",
-                                              style: TextStyle(
-                                                  color: Colors.black),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                SizedBox(width: 20),
-                                Container(
-                                  width: 60,
-                                  height: 40,
-                                  decoration: BoxDecoration(
-                                    color: MyColors.blueColor,
-                                    borderRadius: BorderRadius.circular(12.0),
-                                  ),
-                                  child: Center(
-                                    child: Icon(
-                                      Icons.share,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                ),
-                                SizedBox(width: 10.0),
-                              ],
-                            ),
-                            SizedBox(height: 20.0),
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                IconButton(
-                                  icon: Icon(
-                                    Icons.list,
-                                    size: 45,
-                                    color: MyColors.blueColor,
-                                  ),
-                                  onPressed: () {
-                                    Get.to(VehicleDetails());
-                                  },
-                                ),
-                                SizedBox(width: 10),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Container(
-                                        width: 120,
-                                        height: 40,
-                                        decoration: BoxDecoration(
-                                          borderRadius:
-                                              BorderRadius.circular(12.0),
-                                        ),
-                                        child: Padding(
-                                          padding:
-                                              const EdgeInsets.only(top: 9.0),
-                                          child: Text(
-                                            'Danville',
-                                            style: TextStyle(
-                                              color: Colors.black,
-                                              fontSize:
-                                                  fontSizeController.fontSize,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                      RichText(
-                                        text: TextSpan(
-                                          style: TextStyle(
-                                            fontSize: 18,
-                                            color: Colors.black,
-                                          ),
-                                          children: [
-                                            TextSpan(
-                                              text: 't1 upstairs\nt2\nt3',
-                                              style: TextStyle(
-                                                color: Colors.black,
-                                                fontSize:
-                                                    fontSizeController.fontSize,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                            SizedBox(height: 20.0),
-                            Container(
-                              color: Colors.grey[200],
-                              // color: Colors.red,
-                              padding: const EdgeInsets.all(8.0),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceEvenly,
-                                children: [
-                                  IconButton(
-                                    icon: Stack(
-                                      children: [
-                                        Icon(Icons.person_2_sharp, size: 30),
-                                        Positioned(
-                                          top: 0,
-                                          right: 0,
-                                          child: Container(
-                                            padding: EdgeInsets.all(4),
+                                    SizedBox(width: 10),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Container(
+                                            width: 120,
+                                            height: 40,
                                             decoration: BoxDecoration(
-                                              color: Colors.red,
-                                              shape: BoxShape.circle,
+                                              borderRadius:
+                                                  BorderRadius.circular(12.0),
                                             ),
-                                            child: Text(
-                                              '5',
-                                              style: TextStyle(
-                                                color: Colors.white,
-                                                fontSize: 12,
-                                              ),
+                                            child: Padding(
+                                              padding:
+                                                  const EdgeInsets.only(top: 9),
+                                              child: Obx(() {
+                                                if (index <
+                                                    eventController
+                                                        .events.length) {
+                                                  return Text(
+                                                    '${eventController.events[index].cnm}',
+                                                    style: TextStyle(
+                                                      fontSize:
+                                                          fontSizeController
+                                                              .fontSize,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      color: Colors.black,
+                                                    ),
+                                                  );
+                                                } else {
+                                                  return Text(
+                                                      'No event available for this index.');
+                                                }
+                                              }),
                                             ),
                                           ),
-                                        ),
-                                      ],
+                                          Obx(() {
+                                            if (index <
+                                                eventController.events.length) {
+                                              return Text(
+                                                '${eventController.events[index].address}',
+                                                style: TextStyle(
+                                                  fontSize: fontSizeController
+                                                      .fontSize,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.black,
+                                                ),
+                                              );
+                                            } else {
+                                              return Text(
+                                                  'No event available for this index.');
+                                            }
+                                          }),
+                                        ],
+                                      ),
                                     ),
-                                    onPressed: () {
-                                      Get.to(EFormScreen());
-                                    },
+                                    SizedBox(width: 20),
+                                    Container(
+                                      width: 60,
+                                      height: 40,
+                                      decoration: BoxDecoration(
+                                        color: MyColors.blueColor,
+                                        borderRadius:
+                                            BorderRadius.circular(12.0),
+                                      ),
+                                      child: Center(
+                                        child: Icon(
+                                          Icons.share,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ),
+                                    SizedBox(width: 10.0),
+                                  ],
+                                ),
+                                SizedBox(height: 20.0),
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    IconButton(
+                                      icon: Icon(
+                                        Icons.list,
+                                        size: 45,
+                                        color: MyColors.blueColor,
+                                      ),
+                                      onPressed: () {
+                                        Get.to(VehicleDetails());
+                                      },
+                                    ),
+                                    SizedBox(width: 10),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Container(
+                                            width: 120,
+                                            height: 40,
+                                            decoration: BoxDecoration(
+                                              borderRadius:
+                                                  BorderRadius.circular(12.0),
+                                            ),
+                                            child: Padding(
+                                              padding: const EdgeInsets.only(
+                                                  top: 9.0),
+                                              child: Obx(() {
+                                                if (index <
+                                                    eventController
+                                                        .events.length) {
+                                                  return Text(
+                                                    '${eventController.events[index].cnm}',
+                                                    style: TextStyle(
+                                                      fontSize:
+                                                          fontSizeController
+                                                              .fontSize,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      color: Colors.black,
+                                                    ),
+                                                  );
+                                                } else {
+                                                  return Text(
+                                                      'No event available for this index.');
+                                                }
+                                              }),
+                                            ),
+                                          ),
+                                          Obx(() => RichText(
+                                                text: TextSpan(
+                                                  style: TextStyle(
+                                                    fontSize: 18,
+                                                    color: Colors.black,
+                                                  ),
+                                                  children: [
+                                                    TextSpan(
+                                                      text:
+                                                          '${eventController.events[index].alt},\n${eventController.events[index].po}\n${eventController.events[index].inv}',
+                                                      style: TextStyle(
+                                                        color: Colors.black,
+                                                        fontSize:
+                                                            fontSizeController
+                                                                .fontSize,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              )),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(height: 20.0),
+                                Container(
+                                  color: Colors.grey[200],
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceEvenly,
+                                    children: [
+                                      IconButton(
+                                        icon: Stack(
+                                          children: [
+                                            Icon(Icons.person_2_sharp,
+                                                size: 30),
+                                            Positioned(
+                                              top: 0,
+                                              right: 0,
+                                              child: Container(
+                                                padding: EdgeInsets.all(4),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.red,
+                                                  shape: BoxShape.circle,
+                                                ),
+                                                child: Text(
+                                                  '5',
+                                                  style: TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize: 12,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        onPressed: () {
+                                          Get.to(EFormScreen());
+                                        },
+                                      ),
+                                      IconButton(
+                                        icon: Icon(Icons.tips_and_updates,
+                                            size: 30),
+                                        onPressed: () {
+                                          Get.to(PartScreen());
+                                        },
+                                      ),
+                                      IconButton(
+                                        icon: Icon(Icons.camera_alt_outlined,
+                                            size: 30),
+                                        onPressed: () {
+                                          Get.to(PicUploadScreen());
+                                        },
+                                      ),
+                                      IconButton(
+                                        icon: Icon(Icons.mic, size: 30),
+                                        onPressed: () {
+                                          Get.to(AudioRecord());
+                                        },
+                                      ),
+                                      IconButton(
+                                        icon: Icon(Icons.edit, size: 30),
+                                        onPressed: () {
+                                          Get.to(Signature());
+                                        },
+                                      ),
+                                    ],
                                   ),
-                                  IconButton(
-                                    icon:
-                                        Icon(Icons.tips_and_updates, size: 30),
-                                    onPressed: () {
-                                      Get.to(PartScreen());
-                                    },
-                                  ),
-                                  IconButton(
-                                    icon: Icon(Icons.camera_alt_outlined,
-                                        size: 30),
-                                    onPressed: () {
-                                      Get.to(PicUploadScreen());
-                                    },
-                                  ),
-                                  IconButton(
-                                    icon: Icon(Icons.mic, size: 30),
-                                    onPressed: () {
-                                      Get.to(AudioRecord());
-                                    },
-                                  ),
-                                  IconButton(
-                                    icon: Icon(Icons.edit, size: 30),
-                                    onPressed: () {
-                                      Get.to(Signature());
-                                    },
-                                  ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
+                    );
+                  },
                 );
-              },
-            )
+              }
+            })
           : Column(
               children: [
                 Expanded(
@@ -570,10 +651,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 icon: Icon(Icons.mail_rounded, size: 30),
                 label: 'Inbox',
               ),
-              /*BottomNavigationBarItem(
-            icon: Icon(Icons.search, size: 30),
-            label: 'Search',
-          ),*/
               BottomNavigationBarItem(
                 icon: Icon(Icons.location_on_outlined, size: 30),
                 label: 'Map',
@@ -594,16 +671,16 @@ class _HomeScreenState extends State<HomeScreen> {
             onTap: (index) {
               setState(() {
                 if (index == 0) {
-                  // Inbox tab
                   _showCard = true; // Show card
-                  // _showSearchBar = false; // Hide search bar
-                } else if (index == 1) {
+                }
+                /*else if (index == 1) {
                   // Search tab
                   _showCard = false; // Hide card
-                  //_showSearchBar = !_showSearchBar; // Toggle search bar
+
                   homeController.getCurrentLocation();
                   // _getCurrentLocation(); // Up
-                } else if (index == 2) {
+                } */
+                else if (index == 1) {
                   // Map tab
 
                   print('object');
@@ -611,10 +688,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
                   homeController.getCurrentLocation();
                   // _getCurrentLocation(); // Up
-                } else if (index == 3) {
+                } else if (index == 2) {
                   // Clocked In tab
                   _showCard = false; // Hide card
-
                   homeController.getCurrentLocation();
                   // _getCurrentLocation(); // Up
                 }
