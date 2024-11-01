@@ -1,3 +1,4 @@
+import 'package:ace_routes/Widgets/error_handling_login.dart';
 import 'package:ace_routes/Widgets/update_version_dailog.dart';
 import 'package:ace_routes/database/Tables/api_data_table.dart';
 import 'package:ace_routes/database/Tables/login_response_table.dart';
@@ -5,7 +6,7 @@ import 'package:ace_routes/database/Tables/version_api_table.dart';
 import 'package:ace_routes/database/databse_helper.dart';
 import 'package:ace_routes/model/login_model/login_response.dart';
 import 'package:ace_routes/model/login_model/version_model.dart';
-import 'package:ace_routes/model/login_model/token_get_model.dart';
+import 'package:ace_routes/model/login_model/token_api_response.dart';
 import 'package:ace_routes/view/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -60,11 +61,6 @@ class LoginController extends GetxController {
           final url = xmlResponse.findAllElements("url").single.text;
           final subkey = xmlResponse.findAllElements('subkey').single.text;
 
-          // Now fetch user-specific data
-          await _fetchUserData(url);
-
-          print(' logging in key : ${subkey}  and ${url}');
-
           // storing in database;
 
           LoginResponse loginResponse =
@@ -73,24 +69,30 @@ class LoginController extends GetxController {
           // await DatabaseHelper().insertLoginResponse(loginResponse);
           await LoginResponseTable.insertLoginResponse(loginResponse);
 
-          print(' logging in key : ${subkey}  and ${url} stored successylly');
+          // Now fetch user-specific data
+          await _fetchUserData(context, url);
 
-          // Initialize PubNub with subkey
-          pubNub = PubNub(
-              defaultKeyset: Keyset(
-            subscribeKey: 'sub-c-d9f560e0-4e4c-46ed-9cdd-c81a0242552d',
-            publishKey: 'pub-c-ec0b05d7-0d9c-4fc0-b48f-1e43e7b34486',
-            uuid: UUID(accountName.value),
-          ));
-
-          // After successful login, navigate to the next screen
-          // Get.to(HomeScreen()); //
+          print(' logging in key : ${subkey}  and ${url} $nsp');
         } else {
-          // Handle error
-          print('Error logging in');
+          // Navigate to ErrorPage for handling error
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => ErrorHandlingLogin(
+                errorMessage: 'Error logging in. Please try again.',
+              ),
+            ),
+          );
         }
       } catch (e) {
         print('Exception during login: $e');
+        // Navigate to ErrorPage with exception message
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => ErrorHandlingLogin(
+              errorMessage: 'An error occurred: $e',
+            ),
+          ),
+        );
       } finally {
         isLoading.value =
             false; // Stop loading regardless of success or failure
@@ -100,14 +102,16 @@ class LoginController extends GetxController {
     }
   }
 
-  Future<void> _fetchUserData(String url) async {
+  Future<void> _fetchUserData(BuildContext context, String url) async {
     final prefs = await SharedPreferences.getInstance();
     try {
       print('Fetching data>>>>:');
 
       // API call
       final response = await http.get(Uri.parse(
-          'https://portal.aceroute.com/mobi?&geo=0.0,0.0&os=2&pcode=${password.value}&nspace=${accountName}&action=mlogin&rid=${workerId.value}&cts=1728382466217'));
+
+        // Question: Geo is okk or we need to fetch the current geo  and what is cts and how can we get it it just 2nd api
+          'https://${url}/mobi?&geo=0.0,0.0&os=2&pcode=${password.value}&nspace=${accountName}&action=mlogin&rid=${workerId.value}&cts=1728382466217'));
 
       if (response.statusCode == 200) {
         final xmlResponse = XmlDocument.parse(response.body);
@@ -131,7 +135,8 @@ class LoginController extends GetxController {
 
         if (tokenElement.isNotEmpty && ridElement.isNotEmpty) {
           final token = tokenElement.single.text; // New token from the API
-          final rid = int.parse(ridElement.single.text);
+          // final rid = int.parse(ridElement.single.text);
+          final rid =ridElement.single.text;
           final responderName = resnmElement.single.text;
           final geoLocation = geoElement.single.text;
           final nspId = nspidElement.single.text;
@@ -146,7 +151,7 @@ class LoginController extends GetxController {
 
           // Save to SharedPreferences and update the token
           await prefs.setString("token", token); // This replaces the old token
-          await prefs.setInt("rid", rid);
+          await prefs.setString("rid", rid);
           await prefs.setString("responderName", responderName);
           await prefs.setString("geoLocation", geoLocation);
 
@@ -156,33 +161,60 @@ class LoginController extends GetxController {
             responderName: responderName,
             geoLocation: geoLocation,
             nspId: nspId, // Example value (replace as needed)
-            gpsSync: 10, // Example value (replace as needed)
-            locationChange: 500, // Example value (replace as needed)
-            shiftDateLock: 0, // Example value (replace as needed)
-            shiftError: 0, // Example value (replace as needed)
-            endValue: 500, // Example value (replace as needed)
-            speed: 45, // Example value (replace as needed)
-            multiLeg: 0, // Example value (replace as needed)
+            gpsSync: gpsSync, // Example value (replace as needed)
+            locationChange: locationChange, // Example value (replace as needed)
+            shiftDateLock: shiftDateLock, // Example value (replace as needed)
+            shiftError: shiftError, // Example value (replace as needed)
+            endValue: endValue, // Example value (replace as needed)
+            speed: speed, // Example value (replace as needed)
+            multiLeg: multiLeg, // Example value (replace as needed)
             uiConfig: uiConfig, // Example value (replace as needed)
             token: token,
           );
 
-          print("token in login : $token  rid $rid userid $workerId");
+          print("token in login : $token  rid $rid userid $workerId get $geoLocation");
 
           // Store the data in SQLite database
           await ApiDataTable.insertData(apiResponse);
           print('Data successfully stored in the database');
 
           // Perform any additional checks or actions
-          await checkTheLatestVersion(url, token);
+          await checkTheLatestVersion(url, token , geoLocation);
         } else {
-          print('One or more elements are missing: token, rid, resnm, or geo');
+          // Handle missing elements error
+          print('Error: Missing essential XML elements.');
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => ErrorHandlingLogin(
+                errorMessage:
+                    'Failed to retrieve necessary login information. Please try again later.',
+              ),
+            ),
+          );
         }
       } else {
         print('Error: Status code ${response.statusCode} during fetching data');
+        // Handle HTTP error
+        print('Error: Status code ${response.statusCode} during data fetch.');
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => ErrorHandlingLogin(
+              errorMessage:
+                  'Failed to fetch data from server. Please try again.',
+            ),
+          ),
+        );
       }
     } catch (e) {
       print('Error: $e');
+      print('Error: $e');
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => ErrorHandlingLogin(
+            errorMessage: 'An unexpected error occurred: $e',
+          ),
+        ),
+      );
     }
   }
 
@@ -197,15 +229,15 @@ class LoginController extends GetxController {
         passwordError.isEmpty;
   }
 
-  Future<void> checkTheLatestVersion(String url, String token) async {
+  Future<void> checkTheLatestVersion(String url, String token, String geoLocation  ) async {
     try {
-      // Construct the API URL with token
-      // final apiUrl = '$url?token=$token';
+      // Construct the API URL with dynamic token and geoLocation
+      final apiUrl = "https://$url/mobi?token=$token&nspace=${accountName.value}&geo=$geoLocation&rid=${workerId.value}&action=getmversion";
+
+      print("Geo location: $geoLocation");
 
       // Make the API request
-      final response = await http.get(Uri.parse(
-          "https://${url}/mobi?token=${token}&nspace=demo.com&geo=<lat,lon>&rid=136675&action=getmversion"));
-
+      final response = await http.get(Uri.parse(apiUrl));
       // Check if the response is successful
       if (response.statusCode == 200) {
         // Parse the XML response
@@ -251,8 +283,8 @@ class LoginController extends GetxController {
           // showUpdateDialog();
           // Show the update dialog if an update is available
           // Get.dialog(UpdateDialog(onUpdate: _navigateToPlayStore));
-          await displayDataFromDb();
-          Get.to(HomeScreen());
+          // await displayDataFromDb();
+          Get.to(()=>HomeScreen());
 
           // Database is here storeing the data
         } else {
@@ -291,20 +323,6 @@ class LoginController extends GetxController {
 
   Future<void> displayDataFromDb() async {
     List<TokenApiReponse> dataList = await ApiDataTable.fetchData();
-
-    // Convert the list of data to a string representation
-    StringBuffer buffer = StringBuffer();
-    buffer.writeln('--- Start of Table ---');
-
-    for (var data in dataList) {
-      buffer.writeln(
-          'ID: ${data.requestId}, Responder Name: ${data.responderName}, GeoLocation: ${data.geoLocation}, Speed: ${data.speed}, Other Field 2: ${data.multiLeg}');
-    }
-
-    buffer.writeln('--- End of Table ---');
-
-    // Print the whole table at once
-    print(buffer.toString());
 
     for (var data in dataList) {
       print('Responder Name:  ${data.responderName}');

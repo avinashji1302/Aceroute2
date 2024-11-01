@@ -60,42 +60,13 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     print("above ");
-    subscribe();
+
     // _loadCustomIcon();
     _determinePosition();
-    Get.put(EventController());
-  }
+    // Get.put(EventController());
+    print("last");
 
-  void subscribe() async {
-    try {
-      print("Subscribing to status-channel...");
-
-      var subscription = await loginController.pubNub?.subscribe(
-        channels: {'status-channel'},
-      );
-
-      subscription?.messages.listen((message) {
-        print("Received raw message: ${message.content}");
-        if (message.content is Map<String, dynamic>) {
-          print('Message is a Map');
-          var messageData = message.content['status'];
-          if (messageData is String) {
-            print("Status is a string: $messageData");
-            homeController.updateMessage(messageData);
-          } else {
-            print("Status is not a string: $messageData");
-          }
-        } else {
-          print("Message content is not a Map");
-        }
-      }, onError: (error) {
-        print("Error in subscription: $error");
-      });
-
-      print("Subscription established, waiting for messages...");
-    } catch (e) {
-      print("Failed to subscribe: $e");
-    }
+    print(_showCard);
   }
 
   @override
@@ -181,10 +152,10 @@ class _HomeScreenState extends State<HomeScreen> {
       floatingActionButton: GestureDetector(
           onTap: () {
             ApiDataTable.clearData();
-            // LoginResponseTable.clearLoginResponse();
-            // VersionApiTable.clearVersionData();
-            // EventTable.clearEvents();
-            //TermsDataTable.clearTermsData();
+            LoginResponseTable.clearLoginResponse();
+            VersionApiTable.clearVersionData();
+            EventTable.clearEvents();
+            TermsDataTable.clearTermsData();
             print("API data deleted");
           },
           child: Text(
@@ -230,11 +201,13 @@ class _HomeScreenState extends State<HomeScreen> {
       drawer: const DrawerWidget(),
       body: _showCard
           ? Obx(() {
+              // Check if data is loading
               if (eventController.isLoading.value) {
                 return Center(
                   child: CircularProgressIndicator(), // Display loading spinner
                 );
               }
+
               // Check if eventController.events list is empty
               if (eventController.events.isEmpty) {
                 return Center(
@@ -245,9 +218,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 );
               } else {
                 return ListView.builder(
-                  itemCount: homeController.dataModel.value.customer.length,
+                  itemCount: eventController.events.length,
                   itemBuilder: (context, index) {
-                    print(homeController.dataModel.value.customer.length);
+
                     print("homeController.dataModel.value.customer.length");
 
                     final customer =
