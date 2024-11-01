@@ -1,33 +1,45 @@
 import 'package:ace_routes/database/Tables/api_data_table.dart';
 import 'package:ace_routes/database/Tables/event_table.dart';
+import 'package:ace_routes/database/Tables/login_response_table.dart';
 import 'package:ace_routes/model/event_model.dart';
+import 'package:ace_routes/model/login_model/login_response.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:xml/xml.dart' as xml;
 
-import '../model/login_model/token_get_model.dart';
+import '../model/login_model/token_api_response.dart';
 
 class EventController extends GetxController {
   var events = <Event>[].obs;
   var isLoading = false.obs;
 
+  String token1 = "";
+  String rid = "";
+  String nspace = "";
+  String geo = "";
+  String time = "";
+  String webUrl = "";
+  String timeZone = "";
+
   @override
   void onInit() {
     super.onInit();
     fetchEvents();
-    loadEventsFromDatabase();
+    // loadEventsFromDatabase();
   }
-
 
   // Fetch events from the local database and populate the events list
   Future<void> loadEventsFromDatabase() async {
+
+    print('I am here in loadeventDatabase');
     isLoading(true);
     try {
       List<Event> localEvents = await EventTable.fetchEvents();
       events.assignAll(localEvents); // Populate the events list
 
-      print(" databse data is here ::::$localEvents" );
+      print(" databse data is here ::::${events.length}");
     } catch (e) {
       print("Error loading events from database: $e");
     } finally {
@@ -36,34 +48,30 @@ class EventController extends GetxController {
   }
 
   Future<void> fetchEvents() async {
-    final prefs = await SharedPreferences.getInstance();
-    String? savedToken = prefs.getString("token");
-    if (savedToken == null || savedToken.isEmpty) {
-      List<TokenApiReponse> dataList = await ApiDataTable.fetchData();
-      if (dataList.isNotEmpty) {
-        savedToken = dataList.first.token;
-        await prefs.setString("token", savedToken);
-      }
-    }
 
-    print("$savedToken saved token ");
-
-// URL encoding for token and other sensitive parameters
-//     String encodedToken = Uri.encodeComponent(savedToken ?? "");
-//     final prefs = await SharedPreferences.getInstance();
-//     //String? token = prefs.getString("token");
-    String token1 = "";
     List<TokenApiReponse> dataList = await ApiDataTable.fetchData();
+    List<LoginResponse> loginDataList =
+        await LoginResponseTable.fetchLoginResponses();
     for (var data in dataList) {
       token1 = data.token;
+      // rid=data.requestId;
+      geo = data.geoLocation;
+
+      print("$geo $rid $token1");
     }
 
-    token1=token1.trim();
-    print("token1");
+    for (var data in loginDataList) {
+      webUrl = data.url;
+      nspace = data.nsp;
+    }
+
+    token1 = token1.trim();
+    print("token1  geo location $rid $geo  $token1 $webUrl $nspace");
     print(token1);
 
-    String? nspace = prefs.getString("nspace");
-    int? rid = prefs.getInt("rid");
+    // String? nspace = prefs.getString("nspace");
+    // int? rid = prefs.getInt("rid");
+
     print("---------------------------------------------------------");
 
     print(nspace);
@@ -71,9 +79,9 @@ class EventController extends GetxController {
     print("---------------------------------------------------------");
     isLoading(true);
     var url =
-        'https://portal.aceroute.com/mobi?token=$token1&nspace=demo.com&geo=<lat,lon>&rid=$rid&action=getorders&tz=Asia/Kolkata&from=2024-10-29&to=2024-10-30';
+        'https://${webUrl}/mobi?token=$token1&nspace=${nspace}&geo=$geo&rid=$rid&action=getorders&tz=Asia/Kolkata&from=2024-10-29&to=2024-10-30';
     print('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx');
-    print('${url}');
+
     print('xxxxxxxxxxxxxxxxxxxxxxxxxxxx');
     try {
       var request = http.Request('GET', Uri.parse(url));
@@ -164,7 +172,7 @@ class EventController extends GetxController {
     for (Event event in fetchedEvents) {
       EventTable.insertEvent(event);
 
-      print("Evernt added in databse");
+      print("Evernt added in databse ${event}");
     }
 
     events.assignAll(fetchedEvents);
@@ -275,7 +283,59 @@ class Event {
     required this.znid,
   });
 
-  static fromJson(Map<String, dynamic> map) {}
+  /// Implemented the `fromJson` function to create an `Event` from JSON
+  factory Event.fromJson(Map<String, dynamic> map) {
+    return Event(
+      id: map['id'] ?? '',
+      cid: map['cid'] ?? '',
+      startDate: map['start_date'] ?? '',
+      etm: map['etm'] ?? '',
+      endDate: map['end_date'] ?? '',
+      name: map['name'] ?? '',
+      wkf: map['wkf'] ?? '',
+      alt: map['alt'] ?? '',
+      po: map['po'] ?? '',
+      inv: map['inv'] ?? '',
+      tid: map['tid'] ?? '',
+      pid: map['pid'] ?? '',
+      rid: map['rid'] ?? '',
+      ridcmt: map['ridcmt'] ?? '',
+      detail: map['detail'] ?? '',
+      lid: map['lid'] ?? '',
+      cntid: map['cntid'] ?? '',
+      flg: map['flg'] ?? '',
+      est: map['est'] ?? '',
+      lst: map['lst'] ?? '',
+      ctid: map['ctid'] ?? '',
+      ctpnm: map['ctpnm'] ?? '',
+      ltpnm: map['ltpnm'] ?? '',
+      cnm: map['cnm'] ?? '',
+      address: map['address'] ?? '',
+      geo: map['geo'] ?? '',
+      cntnm: map['cntnm'] ?? '',
+      tel: map['tel'] ?? '',
+      ordfld1: map['ordfld1'] ?? '',
+      ttid: map['ttid'] ?? '',
+      cfrm: map['cfrm'] ?? '',
+      cprt: map['cprt'] ?? '',
+      xid: map['xid'] ?? '',
+      cxid: map['cxid'] ?? '',
+      tz: map['tz'] ?? '',
+      zip: map['zip'] ?? '',
+      fmeta: map['fmeta'] ?? '',
+      cimg: map['cimg'] ?? '',
+      caud: map['caud'] ?? '',
+      csig: map['csig'] ?? '',
+      cdoc: map['cdoc'] ?? '',
+      cnot: map['cnot'] ?? '',
+      dur: map['dur'] ?? '',
+      val: map['val'] ?? '',
+      rgn: map['rgn'] ?? '',
+      upd: map['upd'] ?? '',
+      by: map['by'] ?? '',
+      znid: map['znid'] ?? '',
+    );
+  }
 }
 
 extension EventJson on Event {

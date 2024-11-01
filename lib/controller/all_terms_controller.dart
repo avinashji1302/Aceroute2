@@ -1,7 +1,7 @@
 import 'package:ace_routes/database/Tables/login_response_table.dart';
 import 'package:ace_routes/database/Tables/terms_data_table.dart';
 import 'package:ace_routes/model/login_model/login_response.dart';
-import 'package:ace_routes/model/login_model/token_get_model.dart';
+import 'package:ace_routes/model/login_model/token_api_response.dart';
 import 'package:ace_routes/model/terms_model.dart';
 import 'package:http/http.dart' as http;
 import 'package:xml/xml.dart' as xml;
