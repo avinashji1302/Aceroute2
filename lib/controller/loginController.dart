@@ -1,5 +1,7 @@
+import 'dart:convert';
 import 'package:ace_routes/Widgets/error_handling_login.dart';
-import 'package:ace_routes/Widgets/update_version_dailog.dart';
+import 'package:ace_routes/controller/all_terms_controller.dart';
+import 'package:ace_routes/core/Constants.dart';
 import 'package:ace_routes/database/Tables/api_data_table.dart';
 import 'package:ace_routes/database/Tables/login_response_table.dart';
 import 'package:ace_routes/database/Tables/version_api_table.dart';
@@ -17,13 +19,14 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:url_launcher/url_launcher.dart';
-
 import 'dart:async';
 import 'package:xml/xml.dart';
-// import 'package:xml/xml.dart';
 import 'package:xml/xml.dart' as xml;
 
+import '../core/xml_to_json_converter.dart';
+
 class LoginController extends GetxController {
+  final allTermsController = Get.put(AllTermsController());
   var accountName = ''.obs;
   var workerId = ''.obs;
   var password = ''.obs;
@@ -45,34 +48,19 @@ class LoginController extends GetxController {
   Future<void> login(BuildContext context) async {
     isLoading.value = true; // Start loading
 
-    print('login clicked');
+    print('Login button clicked:');
     if (_validateInputs()) {
-      print("accountName ${accountName}");
-      print("work ${workerId} ${password}");
+      // Construct the login URL
+      final String loginUrl = '$BaseURL/login?&nsp=$accountName&tid=mobi';
+      print("Step 1 - Login URL: $loginUrl");
 
       try {
-        final response = await http.get(Uri.parse(
-            'https://portal.aceroute.com/login?&nsp=${accountName}&tid=mobi'));
-
+        final response = await http.get(Uri.parse(loginUrl));
         if (response.statusCode == 200) {
-          final xmlResponse = XmlDocument.parse(response.body);
+          Map<String, dynamic> jsonResponse = xmlToJson(response.body);
+          print(' Converted JSON Response: ${jsonEncode(jsonResponse)}');
 
-          final nsp = xmlResponse.findAllElements('nsp').single.text;
-          final url = xmlResponse.findAllElements("url").single.text;
-          final subkey = xmlResponse.findAllElements('subkey').single.text;
-
-          // storing in database;
-
-          LoginResponse loginResponse =
-              LoginResponse(nsp: nsp, url: url, subkey: subkey);
-
-          // await DatabaseHelper().insertLoginResponse(loginResponse);
-          await LoginResponseTable.insertLoginResponse(loginResponse);
-
-          // Now fetch user-specific data
-          await _fetchUserData(context, url);
-
-          print(' logging in key : ${subkey}  and ${url} $nsp');
+          await _handleLoginResponse(context, jsonResponse);
         } else {
           // Navigate to ErrorPage for handling error
           Navigator.of(context).push(
@@ -94,107 +82,107 @@ class LoginController extends GetxController {
           ),
         );
       } finally {
-        isLoading.value =
-            false; // Stop loading regardless of success or failure
+        isLoading.value = false;
       }
     } else {
-      isLoading.value = false; // Stop loading if validation fails
+      isLoading.value = false;
     }
+  }
+
+// Helper function to handle the login response
+  Future<void> _handleLoginResponse(
+      BuildContext context, Map<String, dynamic> jsonResponse) async {
+    final nsp = jsonResponse['nsp'];
+    final url = jsonResponse['url'];
+    final subkey = jsonResponse['subkey'];
+
+    // Save `nsp` to SharedPreferences
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setString('nsp', nsp);
+
+    // Store in database
+    LoginResponse loginResponse =
+        LoginResponse(nsp: nsp, url: url, subkey: subkey);
+    await LoginResponseTable.insertLoginResponse(loginResponse);
+    print('Login response saved to database.');
+
+    // Now fetch user-specific data
+    await _fetchUserData(context, url);
   }
 
   Future<void> _fetchUserData(BuildContext context, String url) async {
     final prefs = await SharedPreferences.getInstance();
     try {
-      print('Fetching data>>>>:');
+      final String fetchUrl =
+          '$BaseURL/mobi?&geo=0.0,0.0&os=2&pcode=${password.value}&nspace=${accountName}&action=mlogin&rid=${workerId.value}&cts=1728382466217';
 
-      // API call
-      final response = await http.get(Uri.parse(
+      print("Step-2 Login  User Api URL: $fetchUrl");
 
-        // Question: Geo is okk or we need to fetch the current geo  and what is cts and how can we get it it just 2nd api
-          'https://${url}/mobi?&geo=0.0,0.0&os=2&pcode=${password.value}&nspace=${accountName}&action=mlogin&rid=${workerId.value}&cts=1728382466217'));
+      final response = await http.get(Uri.parse(fetchUrl));
 
       if (response.statusCode == 200) {
-        final xmlResponse = XmlDocument.parse(response.body);
+        final jsonResponse = xmlToJson(response.body);
 
-        // Safely check if the elements exist
-        final tokenElement = xmlResponse.findAllElements('token');
-        final ridElement = xmlResponse.findAllElements('rid');
-        final resnmElement = xmlResponse.findAllElements('resnm');
-        final geoElement = xmlResponse.findAllElements('geo');
-        final nspidElement = xmlResponse.findAllElements('nspid');
-        final gpssyncElement = xmlResponse.findAllElements('gpssync');
-        final locchgElement = xmlResponse.findAllElements('locchg');
-        final shfdtlockElement = xmlResponse.findAllElements('shfdtlock');
-        final shfterrElement = xmlResponse.findAllElements('shfterr');
-        final ednElement = xmlResponse.findAllElements('edn');
-        final spdElement = xmlResponse.findAllElements('spd');
-        final mltlegElement = xmlResponse.findAllElements('mltleg');
-        final uiconfigElement = xmlResponse.findAllElements('uiconfig');
+        // final xmlResponse = xml.XmlDocument.parse(response.body);
+        // Map to hold the extracted data
+        // Map<String, dynamic> jsonResponse = {};
 
-        print('Token: $tokenElement, RID: $ridElement $resnmElement');
+        // // Extract elements and add to map
+        // jsonResponse['rid'] = xmlResponse.findAllElements('rid').single.text;
+        // jsonResponse['resnm'] =
+        //     xmlResponse.findAllElements('resnm').single.text;
+        // jsonResponse['geo'] = xmlResponse.findAllElements('geo').single.text;
+        // jsonResponse['nspid'] =
+        //     xmlResponse.findAllElements('nspid').single.text;
+        // jsonResponse['gpssync'] =
+        //     xmlResponse.findAllElements('gpssync').single.text;
+        // jsonResponse['locchg'] =
+        //     xmlResponse.findAllElements('locchg').single.text;
+        // jsonResponse['shfdtlock'] =
+        //     xmlResponse.findAllElements('shfdtlock').single.text;
+        // jsonResponse['shfterr'] =
+        //     xmlResponse.findAllElements('shfterr').single.text;
+        // jsonResponse['edn'] = xmlResponse.findAllElements('edn').single.text;
+        // jsonResponse['spd'] = xmlResponse.findAllElements('spd').single.text;
+        // jsonResponse['mltleg'] =
+        //     xmlResponse.findAllElements('mltleg').single.text;
+        // jsonResponse['uiconfig'] =
+        //     xmlResponse.findAllElements('uiconfig').single.text;
+        // jsonResponse['token'] =
+        //     xmlResponse.findAllElements('token').single.text;
 
-        if (tokenElement.isNotEmpty && ridElement.isNotEmpty) {
-          final token = tokenElement.single.text; // New token from the API
-          // final rid = int.parse(ridElement.single.text);
-          final rid =ridElement.single.text;
-          final responderName = resnmElement.single.text;
-          final geoLocation = geoElement.single.text;
-          final nspId = nspidElement.single.text;
-          final gpsSync = gpssyncElement.single.text;
-          final locationChange = locchgElement.single.text;
-          final shiftDateLock = shfdtlockElement.single.text;
-          final shiftError = shfterrElement.single.text;
-          final endValue = ednElement.single.text;
-          final speed = spdElement.single.text;
-          final multiLeg = mltlegElement.single.text;
-          final uiConfig = uiconfigElement.single.text;
+        // Print JSON representation
+        print('Converted JSON Response ${jsonResponse['rid']}: ${jsonEncode(jsonResponse)}   ');
 
-          // Save to SharedPreferences and update the token
-          await prefs.setString("token", token); // This replaces the old token
-          await prefs.setString("rid", rid);
-          await prefs.setString("responderName", responderName);
-          await prefs.setString("geoLocation", geoLocation);
+        // Store in SharedPreferences or database as needed
+        final token = jsonResponse['token'];
+        await prefs.setString("token", token);
+        await prefs.setString("rid", jsonResponse['rid']);
+        await prefs.setString("responderName", jsonResponse['resnm']);
+        await prefs.setString("geoLocation", jsonResponse['geo']);
 
-          // Parse response into ApiResponse model
-          TokenApiReponse apiResponse = TokenApiReponse(
-            requestId: rid,
-            responderName: responderName,
-            geoLocation: geoLocation,
-            nspId: nspId, // Example value (replace as needed)
-            gpsSync: gpsSync, // Example value (replace as needed)
-            locationChange: locationChange, // Example value (replace as needed)
-            shiftDateLock: shiftDateLock, // Example value (replace as needed)
-            shiftError: shiftError, // Example value (replace as needed)
-            endValue: endValue, // Example value (replace as needed)
-            speed: speed, // Example value (replace as needed)
-            multiLeg: multiLeg, // Example value (replace as needed)
-            uiConfig: uiConfig, // Example value (replace as needed)
-            token: token,
-          );
+        // Parse response into ApiResponse model and store in database
+        TokenApiReponse apiResponse = TokenApiReponse(
+          requestId: jsonResponse['rid'],
+          responderName: jsonResponse['resnm'],
+          geoLocation: jsonResponse['geo'],
+          nspId: jsonResponse['nspid'],
+          gpsSync: jsonResponse['gpssync'],
+          locationChange: jsonResponse['locchg'],
+          shiftDateLock: jsonResponse['shfdtlock'],
+          shiftError: jsonResponse['shfterr'],
+          endValue: jsonResponse['edn'],
+          speed: jsonResponse['spd'],
+          multiLeg: jsonResponse['mltleg'],
+          uiConfig: jsonResponse['uiconfig'],
+          token: jsonResponse['token'],
+        );
 
-          print("token in login : $token  rid $rid userid $workerId get $geoLocation");
+        await ApiDataTable.insertData(apiResponse);
+        print(' User Data successfully stored in the database.');
 
-          // Store the data in SQLite database
-          await ApiDataTable.insertData(apiResponse);
-          print('Data successfully stored in the database');
-
-          // Perform any additional checks or actions
-          await checkTheLatestVersion(url, token , geoLocation);
-        } else {
-          // Handle missing elements error
-          print('Error: Missing essential XML elements.');
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) => ErrorHandlingLogin(
-                errorMessage:
-                    'Failed to retrieve necessary login information. Please try again later.',
-              ),
-            ),
-          );
-        }
+        await checkTheLatestVersion(url, token, jsonResponse['geo']);
       } else {
-        print('Error: Status code ${response.statusCode} during fetching data');
-        // Handle HTTP error
         print('Error: Status code ${response.statusCode} during data fetch.');
         Navigator.of(context).push(
           MaterialPageRoute(
@@ -206,7 +194,6 @@ class LoginController extends GetxController {
         );
       }
     } catch (e) {
-      print('Error: $e');
       print('Error: $e');
       Navigator.of(context).push(
         MaterialPageRoute(
@@ -229,29 +216,41 @@ class LoginController extends GetxController {
         passwordError.isEmpty;
   }
 
-  Future<void> checkTheLatestVersion(String url, String token, String geoLocation  ) async {
+  Future<void> checkTheLatestVersion(
+      String url, String token, String geoLocation) async {
     try {
       // Construct the API URL with dynamic token and geoLocation
-      final apiUrl = "https://$url/mobi?token=$token&nspace=${accountName.value}&geo=$geoLocation&rid=${workerId.value}&action=getmversion";
-
-      print("Geo location: $geoLocation");
+      final apiUrl =
+          "$BaseURL/mobi?token=$token&nspace=${accountName.value}&geo=$geoLocation&rid=${workerId.value}&action=getmversion";
 
       // Make the API request
       final response = await http.get(Uri.parse(apiUrl));
+
       // Check if the response is successful
       if (response.statusCode == 200) {
         // Parse the XML response
+        print("Step-3 Feched Login Version data ,  Api URL: $apiUrl");
         final xmlDocument = xml.XmlDocument.parse(response.body);
 
         // Extract the version (id) from the XML
         String versionId = xmlDocument.findAllElements('id').single.text.trim();
         final success = xmlDocument.findAllElements('success').single.text;
 
-        print(versionId);
-        print(success);
+        // Print the extracted XML data
+        // print("Extracted Version ID: $versionId");
+        // print("Extracted Success Status: $success");
 
         // String versionId = versionIdElement.text.trim();
         // bool success = successElement.single.text;
+
+        // Convert XML data to JSON format
+        Map<String, dynamic> jsonResponse = {
+          'success': success,
+          'id': versionId,
+        };
+
+        // Print the JSON data
+        print("Converted version JSON Response: ${jsonEncode(jsonResponse)}");
 
         // Parse response into ApiResponse model
         VersionModel versionModel =
@@ -259,14 +258,14 @@ class LoginController extends GetxController {
 
         // save to database;
         await VersionApiTable.insertVersionData(versionModel);
-        print('Data successfully insert versiuo');
+        print('Version data successfully inserted into database.');
 
         // Get the installed app version
         PackageInfo packageInfo = await PackageInfo.fromPlatform();
         String currentVersion = packageInfo.version;
 
-        print('Fetched version from API: $versionId');
-        print('Current installed version: $currentVersion');
+        // print('Fetched version from API: $versionId');
+        // print('Current installed version: $currentVersion');
 
         // Normalize versions to ensure they have a minor and patch version
         versionId = _normalizeVersion(versionId);
@@ -279,12 +278,13 @@ class LoginController extends GetxController {
         // Compare the API version with the installed version
         if (apiVersion > installedVersion) {
           // If the API version is greater, prompt the user to update the app
-          print('App is not up to date.');
+          //  print('App is not up to date.');
           // showUpdateDialog();
           // Show the update dialog if an update is available
           // Get.dialog(UpdateDialog(onUpdate: _navigateToPlayStore));
           // await displayDataFromDb();
-          Get.to(()=>HomeScreen());
+
+          Get.to(() => HomeScreen());
 
           // Database is here storeing the data
         } else {
@@ -329,4 +329,8 @@ class LoginController extends GetxController {
       print('GeoLocation: ${data.geoLocation}');
     }
   }
+
+
+
+
 }

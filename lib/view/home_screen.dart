@@ -24,8 +24,13 @@ import 'package:geolocator/geolocator.dart' as geo;
 import 'package:ace_routes/view/drawer.dart';
 import 'package:ace_routes/controller/homeController.dart';
 import 'package:intl/intl.dart';
+import 'package:sqflite/sqflite.dart';
 import '../controller/fontSizeController.dart';
+import '../database/Tables/OrderTypeDataTable.dart';
+import '../database/Tables/PartTypeDataTable.dart';
 import '../database/Tables/login_response_table.dart';
+import '../database/Tables/status_table.dart';
+import '../database/databse_helper.dart';
 import '../model/login_model/login_response.dart';
 import 'add_bw_from.dart';
 import 'add_part.dart';
@@ -45,7 +50,7 @@ class _HomeScreenState extends State<HomeScreen> {
   //LatLng _currentLocation = LatLng(45.521563, -122.677433); // Default location
   LatLng _currentLocation = LatLng(0, 0); // Initialize with an empty location
   StreamSubscription<geo.Position>? _positionStreamSubscription;
-
+  final AllTermsController allTermsController = Get.put(AllTermsController());
   bool _showCard = true;
   final FontSizeController fontSizeController = Get.put(FontSizeController());
   final EventController eventController = Get.put(EventController());
@@ -59,14 +64,11 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    print("above ");
 
     // _loadCustomIcon();
     _determinePosition();
     // Get.put(EventController());
-    print("last");
 
-    print(_showCard);
   }
 
   @override
@@ -156,6 +158,8 @@ class _HomeScreenState extends State<HomeScreen> {
             VersionApiTable.clearVersionData();
             EventTable.clearEvents();
             TermsDataTable.clearTermsData();
+            PartTypeDataTable.clearPartTypeData();
+            OrderTypeDataTable.clearOrderTypeData();
             print("API data deleted");
           },
           child: Text(
@@ -199,7 +203,7 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: Colors.white,
       ),
       drawer: const DrawerWidget(),
-      body: _showCard
+      /* body: _showCard
           ? Obx(() {
               // Check if data is loading
               if (eventController.isLoading.value) {
@@ -218,7 +222,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 );
               } else {
                 return ListView.builder(
-                  itemCount: eventController.events.length,
+                 // itemCount: eventController.events.length,
+                  itemCount: homeController.dataModel.value.customer.length,
                   itemBuilder: (context, index) {
 
                     print("homeController.dataModel.value.customer.length");
@@ -601,6 +606,324 @@ class _HomeScreenState extends State<HomeScreen> {
                   },
                 );
               }
+            })*/
+      body: _showCard
+          ? Obx(() {
+              // Check if data is loading
+              if (eventController.isLoading.value) {
+                return Center(
+                  child: CircularProgressIndicator(), // Display loading spinner
+                );
+              }
+
+              // Check if eventController.events list is empty
+              if (eventController.events.isEmpty) {
+                return Center(
+                  child: Text(
+                    'No data available',
+                    style: TextStyle(fontSize: 18, color: Colors.grey),
+                  ),
+                );
+              }
+
+              // Display events in a list
+              return ListView.builder(
+                itemCount: eventController.events.length,
+                itemBuilder: (context, index) {
+                  final event = eventController.events[index];
+
+                  return Card(
+                    elevation: 5,
+                    margin: const EdgeInsets.all(8.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        GestureDetector(
+                          onTap: () {
+                            Get.to(StatusScreen());
+                          },
+                          child: Container(
+                            color: MyColors.blueColor,
+                            padding: const EdgeInsets.all(12.0),
+                            width: double.infinity,
+                            child: Center(
+                              child: Text(
+                                event.name ?? "No Name",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Column(
+                            children: [
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  IconButton(
+                                    icon: Icon(
+                                      Icons.access_time_filled,
+                                      size: 45,
+                                      color: MyColors.blueColor,
+                                    ),
+                                    onPressed: () {
+                                      Get.to(SummaryDetails());
+                                    },
+                                  ),
+                                  SizedBox(width: 10),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Container(
+                                          width: 95,
+                                          height: 50,
+                                          decoration: BoxDecoration(
+                                            color: Colors.grey[500],
+                                            borderRadius:
+                                                BorderRadius.circular(10.0),
+                                          ),
+                                          child: Padding(
+                                            padding: const EdgeInsets.all(2.0),
+                                            child: Center(
+                                              child: Text(
+                                                event.startDate ?? "No Time",
+                                                style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: fontSizeController
+                                                      .fontSize,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        SizedBox(height: 5.0),
+                                        Text(
+                                          event.address ?? "No Address",
+                                          style: TextStyle(
+                                            fontSize:
+                                                fontSizeController.fontSize,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.black,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  SizedBox(width: 20),
+                                  Container(
+                                    width: 60,
+                                    height: 40,
+                                    decoration: BoxDecoration(
+                                      color: Colors.green[500],
+                                      borderRadius: BorderRadius.circular(12.0),
+                                    ),
+                                    child: Center(
+                                      child: Text(
+                                        "1",
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: fontSizeController.fontSize,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: 20.0),
+                              // Additional event details row
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  IconButton(
+                                    icon: Icon(
+                                      Icons.watch_later_outlined,
+                                      size: 45,
+                                      color: MyColors.blueColor,
+                                    ),
+                                    onPressed: () {
+                                      Get.to(DirectoryDetails());
+                                    },
+                                  ),
+                                  SizedBox(width: 10),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          event.cnm ?? "No Name",
+                                          style: TextStyle(
+                                            fontSize:
+                                                fontSizeController.fontSize,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.black,
+                                          ),
+                                        ),
+                                        SizedBox(height: 5.0),
+                                        Text(
+                                          event.alt ?? "No Alt",
+                                          style: TextStyle(
+                                            fontSize:
+                                                fontSizeController.fontSize,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.black,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  SizedBox(width: 20),
+                                  Container(
+                                    width: 60,
+                                    height: 40,
+                                    decoration: BoxDecoration(
+                                      color: MyColors.blueColor,
+                                      borderRadius: BorderRadius.circular(12.0),
+                                    ),
+                                    child: Center(
+                                      child: Icon(
+                                        Icons.share,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: 20.0),
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  IconButton(
+                                    icon: Icon(
+                                      Icons.list,
+                                      size: 45,
+                                      color: MyColors.blueColor,
+                                    ),
+                                    onPressed: () {
+                                      Get.to(VehicleDetails());
+                                    },
+                                  ),
+                                  SizedBox(width: 10),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Container(
+                                          width: 120,
+                                          height: 40,
+                                          decoration: BoxDecoration(
+                                            borderRadius:
+                                                BorderRadius.circular(12.0),
+                                          ),
+                                          child: Padding(
+                                            padding:
+                                                const EdgeInsets.only(top: 9.0),
+                                            child: Obx(() {
+                                              if (index <
+                                                  eventController
+                                                      .events.length) {
+                                                return Text(
+                                                  '${eventController.events[index].cnm}',
+                                                  style: TextStyle(
+                                                    fontSize: fontSizeController
+                                                        .fontSize,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Colors.black,
+                                                  ),
+                                                );
+                                              } else {
+                                                return Text(
+                                                    'No event available for this index.');
+                                              }
+                                            }),
+                                          ),
+                                        ),
+                                        Obx(() => RichText(
+                                              text: TextSpan(
+                                                style: TextStyle(
+                                                  fontSize: 18,
+                                                  color: Colors.black,
+                                                ),
+                                                children: [
+                                                  TextSpan(
+                                                    text:
+                                                        '${eventController.events[index].alt},\n${eventController.events[index].po}\n${eventController.events[index].inv}',
+                                                    style: TextStyle(
+                                                      color: Colors.black,
+                                                      fontSize:
+                                                          fontSizeController
+                                                              .fontSize,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            )),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: 10.0),
+                              // Actions row
+                              Container(
+                                color: Colors.grey[200],
+                                padding: const EdgeInsets.all(8.0),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceEvenly,
+                                  children: [
+                                    IconButton(
+                                      icon:
+                                          Icon(Icons.person_2_sharp, size: 30),
+                                      onPressed: () {
+                                        Get.to(EFormScreen());
+                                      },
+                                    ),
+                                    IconButton(
+                                      icon: Icon(Icons.tips_and_updates,
+                                          size: 30),
+                                      onPressed: () {
+                                        Get.to(PartScreen());
+                                      },
+                                    ),
+                                    IconButton(
+                                      icon: Icon(Icons.camera_alt_outlined,
+                                          size: 30),
+                                      onPressed: () {
+                                        Get.to(PicUploadScreen());
+                                      },
+                                    ),
+                                    IconButton(
+                                      icon: Icon(Icons.mic, size: 30),
+                                      onPressed: () {
+                                        Get.to(AudioRecord());
+                                      },
+                                    ),
+                                    IconButton(
+                                      icon: Icon(Icons.edit, size: 30),
+                                      onPressed: () {
+                                        Get.to(Signature());
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              );
             })
           : Column(
               children: [
