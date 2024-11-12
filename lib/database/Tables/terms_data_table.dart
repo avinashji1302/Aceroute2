@@ -9,7 +9,7 @@ class TermsDataTable {
 
   // Create the table
   static Future<void> onCreate(Database db) async {
-    print("oldVersionxxx");
+
     await db.execute('''
       CREATE TABLE $tableName (
         namespace TEXT,

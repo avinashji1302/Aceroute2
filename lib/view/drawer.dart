@@ -1,17 +1,18 @@
 import 'package:ace_routes/controller/homeController.dart';
 import 'package:ace_routes/controller/loginController.dart';
+import 'package:ace_routes/database/databse_helper.dart';
 import 'package:ace_routes/view/change_pass_screen.dart';
 import 'package:ace_routes/view/home_screen.dart';
 import 'package:ace_routes/view/login_screen.dart';
-import 'package:ace_routes/view/map_screen.dart';
 import 'package:ace_routes/view/sync_popup.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:ace_routes/controller/drawerController.dart';
+import 'package:sqflite/sqlite_api.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/services.dart';
 import 'package:location/location.dart' as loc;
-
+import '../controller/all_terms_controller.dart';
 import '../controller/fontSizeController.dart';
 
 class DrawerWidget extends StatelessWidget {
@@ -52,6 +53,7 @@ class DrawerWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final drawerController = Get.put(DrawerControllers());
     final fontSizeController = Get.find<FontSizeController>();
+    final allTermsController = Get.put(AllTermsController());
 
     return Drawer(
       child: ListView(
@@ -117,8 +119,11 @@ class DrawerWidget extends StatelessWidget {
                 fontSize: fontSizeController.fontSize,
               ),
             ),
-            onTap: () {
+            onTap: () async{
+              print('sync now');
               Navigator.pop(context);
+
+
               showDialog(
                 context: context,
                 barrierDismissible: false,
@@ -139,8 +144,26 @@ class DrawerWidget extends StatelessWidget {
                 fontSize: fontSizeController.fontSize,
               ),
             ),
-            onTap: () {
-              _showAboutDialog(context);
+            onTap: ()async {
+              print('about');
+              print('GetAllTerms  =============>>>>>');
+              print('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx');
+              allTermsController.GetAllTerms();
+              print('GetAllPartTypes  =============>>>>>');
+              print('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx');
+              allTermsController.GetAllPartTypes();
+
+              print('displayLoginResponseData  =============>>>>>');
+              print('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx');
+              allTermsController.displayLoginResponseData();
+              Database db = await DatabaseHelper().database;
+              print('fetchAndStoreOrderTypes  =============>>>>>');
+              print('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx');
+              await allTermsController.fetchAndStoreOrderTypes(db);
+              print('fetchAndStoreGTypes  =============>>>>>');
+              print('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx');
+              await allTermsController.fetchAndStoreGTypes(db);
+              //_showAboutDialog(context);
             },
           ),
           Divider(
@@ -571,4 +594,6 @@ class DrawerWidget extends StatelessWidget {
       },
     );
   }
+
+
 }

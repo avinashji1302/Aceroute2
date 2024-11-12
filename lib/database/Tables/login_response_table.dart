@@ -8,9 +8,10 @@ class LoginResponseTable {
   static Future<void> onCreate(Database db) async {
     await db.execute('''
       CREATE TABLE $tableName (
-       
-        subkey TEXT,
-        UNIQUE(nsp, url)
+   subkey TEXT,
+    nsp TEXT,
+    url TEXT,
+    UNIQUE(nsp, url)
       )
     ''');
   }

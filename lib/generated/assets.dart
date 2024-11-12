@@ -2,20 +2,52 @@
 class Assets {
   Assets._();
 
+  static const String colorsConstants = 'lib/core/colors/Constants.dart';
+  static const String controllerAllTermsController = 'lib/controller/all_terms_controller.dart';
   static const String controllerAudioController = 'lib/controller/audio_controller.dart';
   static const String controllerBarcodeController = 'lib/controller/barcode_controller.dart';
   static const String controllerChangePassController = 'lib/controller/changePassController.dart';
   static const String controllerDrawerController = 'lib/controller/drawerController.dart';
+  static const String controllerEventController = 'lib/controller/event_controller.dart';
   static const String controllerFontSizeController = 'lib/controller/fontSizeController.dart';
   static const String controllerHomeController = 'lib/controller/homeController.dart';
+  static const String controllerHttpConnection = 'lib/controller/http_connection.dart';
   static const String controllerLoginController = 'lib/controller/loginController.dart';
   static const String controllerPicUploadController = 'lib/controller/picUploadController.dart';
   static const String controllerSignatureController = 'lib/controller/signature_controller.dart';
+  static const String controllerStatusController = 'lib/controller/status_controller.dart';
+  static const String coreConstants = 'lib/core/Constants.dart';
+  static const String coreXmlToJsonConverter = 'lib/core/xml_to_json_converter.dart';
+  static const String databaseDatabseHelper = 'lib/database/databse_helper.dart';
   static const String generatedAssets = 'lib/generated/assets.dart';
+  static const String homeCityModel = 'lib/model/home/city_model.dart';
+  static const String homeContactModel = 'lib/model/home/contact_model.dart';
+  static const String homeHomeModel = 'lib/model/home/home_model.dart';
+  static const String homeLocationModel = 'lib/model/home/location_model.dart';
+  static const String imagesJuggler = 'assets/images/juggler.png';
   static const String imagesLogo = 'assets/images/logo.png';
   static const String libMain = 'lib/main.dart';
+  static const String loginModelLoginResponse = 'lib/model/login_model/login_response.dart';
+  static const String loginModelTokenApiResponse = 'lib/model/login_model/token_api_response.dart';
+  static const String loginModelVersionModel = 'lib/model/login_model/version_model.dart';
+  static const String modelEventModel = 'lib/model/event_model.dart';
+  static const String modelGTypeModel = 'lib/model/GTypeModel.dart';
+  static const String modelOrderDataModel = 'lib/model/order_data_model.dart';
+  static const String modelOrderTypeModel = 'lib/model/OrderTypeModel.dart';
+  static const String modelPtype = 'lib/model/Ptype.dart';
+  static const String modelStatusModel = 'lib/model/status_model.dart';
+  static const String modelTermsModel = 'lib/model/terms_model.dart';
+  static const String tablesApiDataTable = 'lib/database/Tables/api_data_table.dart';
+  static const String tablesEventTable = 'lib/database/Tables/event_table.dart';
+  static const String tablesGTypeTable = 'lib/database/Tables/GTypeTable.dart';
+  static const String tablesLoginResponseTable = 'lib/database/Tables/login_response_table.dart';
+  static const String tablesOrderTypeDataTable = 'lib/database/Tables/OrderTypeDataTable.dart';
+  static const String tablesPartTypeDataTable = 'lib/database/Tables/PartTypeDataTable.dart';
+  static const String tablesTermsDataTable = 'lib/database/Tables/terms_data_table.dart';
+  static const String tablesVersionApiTable = 'lib/database/Tables/version_api_table.dart';
   static const String viewAddBwFrom = 'lib/view/add_bw_from.dart';
   static const String viewAddPart = 'lib/view/add_part.dart';
+  static const String viewAppbar = 'lib/view/appbar.dart';
   static const String viewAudio = 'lib/view/audio.dart';
   static const String viewChangePassScreen = 'lib/view/change_pass_screen.dart';
   static const String viewDatePickerDialog = 'lib/view/DatePickerDialog.dart';
@@ -35,5 +67,7 @@ class Assets {
   static const String viewSyncPopup = 'lib/view/sync_popup.dart';
   static const String viewUnnec = 'lib/view/unnec';
   static const String viewVehicleDetails = 'lib/view/vehicle_details.dart';
+  static const String widgetsErrorHandlingLogin = 'lib/Widgets/error_handling_login.dart';
+  static const String widgetsUpdateVersionDailog = 'lib/Widgets/update_version_dailog.dart';
 
 }

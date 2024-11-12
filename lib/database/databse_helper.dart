@@ -1,11 +1,17 @@
 import 'dart:async';
-import 'package:ace_routes/database/Tables/api_data_table.dart';
-import 'package:ace_routes/database/Tables/login_response_table.dart';
-import 'package:ace_routes/database/Tables/terms_data_table.dart';
-import 'package:ace_routes/database/Tables/version_api_table.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
-import 'package:ace_routes/database/Tables/event_table.dart';
+
+// Import all required tables
+import 'Tables/GTypeTable.dart';
+import 'Tables/OrderTypeDataTable.dart';
+import 'Tables/PartTypeDataTable.dart';
+import 'Tables/api_data_table.dart';
+import 'Tables/login_response_table.dart';
+import 'Tables/terms_data_table.dart';
+import 'Tables/version_api_table.dart';
+import 'Tables/event_table.dart';
+import 'Tables/status_table.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper._internal();
@@ -23,9 +29,13 @@ class DatabaseHelper {
 
   Future<Database> _initDatabase() async {
     String path = join(await getDatabasesPath(), 'api_data.db');
+
+    // Optionally delete the existing database for a fresh start
+    await deleteDatabase(path);
+
     return await openDatabase(
       path,
-      version: 5, // Increment the version if you've added new tables or fields
+      version: 8, // Increment version to ensure `statuses` table is created
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -37,14 +47,31 @@ class DatabaseHelper {
       VersionApiTable.onCreate(db),
       LoginResponseTable.onCreate(db),
       TermsDataTable.onCreate(db),
-      EventTable.onCreate(db) // Ensure EventTable is created
+      EventTable.onCreate(db),
+      PartTypeDataTable.onCreate(db),
+      OrderTypeDataTable.onCreate(db),
+      GTypeTable.onCreate(db),
+      StatusTable.onCreate(db) // Create statuses table
     ]);
+    // print("All tables created successfully.");
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
-    if (oldVersion < 5) {
-      await EventTable.onUpgrade(db); // Handle EventTable upgrade
+    // print("Upgrading database...");
+
+    if (oldVersion < 8) {
+      await StatusTable.onCreate(
+          db); // Create statuses table if upgrading from older version
     }
-    // Add upgrade logic for other tables if needed
+    if (oldVersion < 7) {
+      await OrderTypeDataTable.onCreate(db);
+    }
+    if (oldVersion < 6) {
+      await PartTypeDataTable.onCreate(db);
+    }
+    if (oldVersion < 5) {
+      await EventTable.onUpgrade(db);
+    }
+    // print("Database upgrade complete.");
   }
 }

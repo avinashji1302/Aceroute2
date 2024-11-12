@@ -1,3 +1,6 @@
+import 'dart:convert';
+
+import 'package:ace_routes/core/Constants.dart';
 import 'package:ace_routes/database/Tables/api_data_table.dart';
 import 'package:ace_routes/database/Tables/event_table.dart';
 import 'package:ace_routes/database/Tables/login_response_table.dart';
@@ -7,39 +10,61 @@ import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sqflite/sqflite.dart';
 import 'package:xml/xml.dart' as xml;
+import 'package:intl/intl.dart';
 
+import '../core/xml_to_json_converter.dart';
+import '../database/databse_helper.dart';
 import '../model/login_model/token_api_response.dart';
+import 'all_terms_controller.dart';
 
 class EventController extends GetxController {
+  final allTermsController = Get.put(AllTermsController());
+
   var events = <Event>[].obs;
   var isLoading = false.obs;
 
-  String token1 = "";
+  String token = "";
   String rid = "";
   String nspace = "";
   String geo = "";
   String time = "";
   String webUrl = "";
   String timeZone = "";
+  int daysToAdd = 1;
 
   @override
   void onInit() {
     super.onInit();
     fetchEvents();
     // loadEventsFromDatabase();
+    loadAllTerms();
+  }
+
+  Future<void> loadAllTerms() async {
+    print("Loading all terms....");
+
+    await allTermsController.displayLoginResponseData();
+    Database db = await DatabaseHelper().database;
+    await allTermsController.GetAllPartTypes();
+    await allTermsController.fetchAndStoreOrderTypes(db);
+    await allTermsController.fetchStatusList();
+    await allTermsController.fetchAndStoreGTypes(db);
+    await allTermsController.GetAllTerms();
+
+   await AllTerms.getTerm();
   }
 
   // Fetch events from the local database and populate the events list
   Future<void> loadEventsFromDatabase() async {
-
-    print('I am here in loadeventDatabase');
+    //print('I am here in loadeventDatabase');
     isLoading(true);
     try {
       List<Event> localEvents = await EventTable.fetchEvents();
       events.assignAll(localEvents); // Populate the events list
 
-      print(" databse data is here ::::${events.length}");
+      // print(" databse data is here ::::${events.length}");
     } catch (e) {
       print("Error loading events from database: $e");
     } finally {
@@ -48,57 +73,52 @@ class EventController extends GetxController {
   }
 
   Future<void> fetchEvents() async {
-
     List<TokenApiReponse> dataList = await ApiDataTable.fetchData();
     List<LoginResponse> loginDataList =
         await LoginResponseTable.fetchLoginResponses();
     for (var data in dataList) {
-      token1 = data.token;
+      token = data.token;
       // rid=data.requestId;
       geo = data.geoLocation;
 
-      print("$geo $rid $token1");
+      // print("Geo: $geo, Token: $token");
     }
 
     for (var data in loginDataList) {
       webUrl = data.url;
       nspace = data.nsp;
     }
+    token = token.trim();
 
-    token1 = token1.trim();
-    print("token1  geo location $rid $geo  $token1 $webUrl $nspace");
-    print(token1);
+    // Get the current date
+    DateTime currentDate = DateTime.now();
+    // Calculate the second date by adding days (e.g., 1 for tomorrow, 7 for a week from now, etc.)
+    DateTime secondDate = currentDate.add(Duration(days: daysToAdd));
 
-    // String? nspace = prefs.getString("nspace");
-    // int? rid = prefs.getInt("rid");
+    // Format dates to `yyyy-MM-dd`
+    String formattedCurrentDate = DateFormat('yyyy-MM-dd').format(currentDate);
+    String formattedSecondDate = DateFormat('yyyy-MM-dd').format(secondDate);
 
-    print("---------------------------------------------------------");
-
-    print(nspace);
-    print(rid);
-    print("---------------------------------------------------------");
     isLoading(true);
-    var url =
-        'https://${webUrl}/mobi?token=$token1&nspace=${nspace}&geo=$geo&rid=$rid&action=getorders&tz=Asia/Kolkata&from=2024-10-29&to=2024-10-30';
-    print('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx');
+    // var url =
+    //     '$BaseURL/mobi?token=$token&nspace=${nspace}&geo=$geo&rid=$rid&action=getorders&tz=Asia/Kolkata&from=2024-10-29&to=2024-10-30';
 
-    print('xxxxxxxxxxxxxxxxxxxxxxxxxxxx');
+    var url =
+        '$BaseURL/mobi?token=$token&nspace=$nspace&geo=$geo&rid=$rid&action=getorders&tz=Asia/Kolkata&from=$formattedCurrentDate&to=$formattedSecondDate';
+
     try {
       var request = http.Request('GET', Uri.parse(url));
       http.StreamedResponse response = await request.send();
-      print('Response status code: ${response.statusCode}');
-      print('Response headers: ${response.headers}');
+      // Print response status and headers
       if (response.statusCode == 200) {
         String xmlString = await response.stream.bytesToString();
-        print('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx');
-        print('${xmlString}');
-        print('xxxxxxxxxxxxxxxxxxxxxxxxxxxx');
-
+        print("Get order Api URL: $url");
+        // Parse XML and convert to JSON
+        // Map<String, dynamic> jsonResponse = xmlToJson(xmlString);
+        Map<String, dynamic> jsonResponse = parseXmlToJson(xmlString);
+        print("Converted JSON:");
+        print(jsonEncode(jsonResponse));
         parseXmlResponse(xmlString);
-
-        print('xxxxxxxxxxxxx======xxxxxxxxxxxxxxxxxxxxxxxxx');
-        print('${parseXmlResponse}');
-        print('xxxxxxxxxxxxx============xxxxxxxxxxxxxxx');
       } else {
         print("Error: ${response.reasonPhrase}");
       }
@@ -107,6 +127,43 @@ class EventController extends GetxController {
     } finally {
       isLoading(false);
     }
+  }
+
+  Map<String, dynamic> parseXmlToJson(String xmlString) {
+    final document = xml.XmlDocument.parse(xmlString);
+    return _xmlToMap(document.rootElement);
+  }
+
+  Map<String, dynamic> _xmlToMap(xml.XmlElement element) {
+    final map = <String, dynamic>{};
+
+    // Add element attributes to the map
+    for (var attr in element.attributes) {
+      map[attr.name.toString()] = attr.value;
+    }
+
+    // Check if the element has only text as a child node
+    if (element.children.length == 1 && element.children.first is xml.XmlText) {
+      map[element.name.toString()] = element.children.first.text.trim();
+    } else {
+      for (var node in element.children) {
+        if (node is xml.XmlElement) {
+          final childMap = _xmlToMap(node);
+
+          // Handle multiple children with the same name by converting to a list
+          if (map.containsKey(node.name.toString())) {
+            if (map[node.name.toString()] is List) {
+              (map[node.name.toString()] as List).add(childMap);
+            } else {
+              map[node.name.toString()] = [map[node.name.toString()], childMap];
+            }
+          } else {
+            map[node.name.toString()] = childMap;
+          }
+        }
+      }
+    }
+    return map;
   }
 
   void parseXmlResponse(String responseBody) {
@@ -171,8 +228,7 @@ class EventController extends GetxController {
     // Insert each event into the database
     for (Event event in fetchedEvents) {
       EventTable.insertEvent(event);
-
-      print("Evernt added in databse ${event}");
+      print("Event added to database: ${event}");
     }
 
     events.assignAll(fetchedEvents);
@@ -206,8 +262,7 @@ class Event {
   final String ctpnm;
   final String ltpnm;
   final String cnm;
-  final String
-      address; // Updated field name to avoid conflict with reserved keyword
+  final String address;
   final String geo;
   final String cntnm;
   final String tel;
