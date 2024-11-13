@@ -1,5 +1,4 @@
-
-
+import 'package:ace_routes/core/Constants.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
@@ -18,11 +17,15 @@ class _PartScreenState extends State<PartScreen> {
   final fontSizeController = Get.find<FontSizeController>();
   @override
   Widget build(BuildContext context) {
+    AllTerms.getTerm();
     return Scaffold(
       appBar: AppBar(
-        title: Text('Part',style: TextStyle(color: Colors.white),),
+        title: Text(
+         AllTerms.partName.value,
+          style: TextStyle(color: Colors.white),
+        ),
         centerTitle: true,
-        backgroundColor:  Colors.blue[900],
+        backgroundColor: Colors.blue[900],
         leading: IconButton(
           icon: Icon(
             Icons.arrow_back,
@@ -34,9 +37,13 @@ class _PartScreenState extends State<PartScreen> {
         ),
         actions: [
           IconButton(
-            icon: Icon(Icons.add_circle_outline,color: Colors.white,size: 40.0,),
+            icon: Icon(
+              Icons.add_circle_outline,
+              color: Colors.white,
+              size: 40.0,
+            ),
             onPressed: () {
-             Get.to(AddPart());
+              Get.to(AddPart());
               print('Add Part button pressed');
             },
           ),

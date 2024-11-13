@@ -1,4 +1,4 @@
-
+import 'package:ace_routes/core/Constants.dart';
 import 'package:ace_routes/view/add_bw_from.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -16,11 +16,15 @@ class _EFormScreenState extends State<EFormScreen> {
   final fontSizeController = Get.find<FontSizeController>();
   @override
   Widget build(BuildContext context) {
+    AllTerms.getTerm();
     return Scaffold(
       appBar: AppBar(
-        title: Text('EFrom',style: TextStyle(color: Colors.white),),
+        title: Obx(() => Text(
+              AllTerms.formName.value,
+              style: TextStyle(color: Colors.white),
+            )),
         centerTitle: true,
-        backgroundColor:  Colors.blue[900],
+        backgroundColor: Colors.blue[900],
         leading: IconButton(
           icon: Icon(
             Icons.arrow_back,
@@ -32,10 +36,13 @@ class _EFormScreenState extends State<EFormScreen> {
         ),
         actions: [
           IconButton(
-            icon: Icon(Icons.add_circle_outline,color: Colors.white,size: 40.0,),
+            icon: Icon(
+              Icons.add_circle_outline,
+              color: Colors.white,
+              size: 40.0,
+            ),
             onPressed: () {
               Get.to(AddBwForm());
-
             },
           ),
         ],
@@ -62,7 +69,6 @@ class _EFormScreenState extends State<EFormScreen> {
                             fontSize: fontSizeController.fontSize,
                             fontWeight: FontWeight.bold),
                       ),
-
                     ],
                   ),
                   SizedBox(height: 10),
@@ -71,11 +77,9 @@ class _EFormScreenState extends State<EFormScreen> {
                       Text(
                         'tested',
                         style: TextStyle(
-                            fontSize: fontSizeController.fontSize,
-
+                          fontSize: fontSizeController.fontSize,
                         ),
                       ),
-
                     ],
                   ),
                   SizedBox(height: 10),
@@ -84,10 +88,9 @@ class _EFormScreenState extends State<EFormScreen> {
                       Text(
                         'Yes I have added payment for c...',
                         style: TextStyle(
-                            fontSize: fontSizeController.fontSize,
-                            ),
+                          fontSize: fontSizeController.fontSize,
+                        ),
                       ),
-
                     ],
                   ),
                 ],

@@ -1,4 +1,5 @@
 import 'package:ace_routes/controller/loginController.dart';
+import 'package:ace_routes/core/Constants.dart';
 import 'package:ace_routes/core/colors/Constants.dart';
 import 'package:ace_routes/view/appbar.dart';
 import 'package:ace_routes/view/home_screen.dart';
@@ -42,10 +43,12 @@ class _StatusScreenState extends State<StatusScreen> {
 
   @override
   Widget build(BuildContext context) {
+    AllTerms.getTerm(); //getting the lable
     return Scaffold(
       appBar: myAppBar(
         context: context,
-        titleText: 'Status',
+        //not availbel in status in api data
+        titleText: AllTerms.formName,
         backgroundColor: MyColors.blueColor,
       ),
       body: Obx(() {

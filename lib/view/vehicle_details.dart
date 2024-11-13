@@ -1,3 +1,4 @@
+import 'package:ace_routes/core/Constants.dart';
 import 'package:ace_routes/core/colors/Constants.dart';
 import 'package:ace_routes/view/appbar.dart';
 import 'package:flutter/material.dart';
@@ -22,8 +23,9 @@ class _VehicleDetailsState extends State<VehicleDetails> {
   final fontSizeController = Get.find<FontSizeController>();
   @override
   Widget build(BuildContext context) {
+    AllTerms.getTerm();
     return Scaffold(
-     appBar:myAppBar(context: context, titleText: 'Vehicle Details', backgroundColor:MyColors.blueColor ),
+     appBar:myAppBar(context: context, titleText: AllTerms.orderGroupLabel, backgroundColor:MyColors.blueColor ),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),

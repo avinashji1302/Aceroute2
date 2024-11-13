@@ -1,3 +1,4 @@
+import 'package:ace_routes/core/Constants.dart';
 import 'package:ace_routes/core/colors/Constants.dart';
 import 'package:ace_routes/view/appbar.dart';
 import 'package:flutter/material.dart';
@@ -11,6 +12,7 @@ class SummaryDetails extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    AllTerms.getTerm();
     // Define common styles to avoid repetition
     const double spacing = 10.0;
     const EdgeInsets padding = EdgeInsets.all(8.0);
@@ -54,7 +56,7 @@ class SummaryDetails extends StatelessWidget {
     return Scaffold(
       appBar: myAppBar(
           context: context,
-          titleText: 'Summmary Details.',
+          titleText: AllTerms.summaryLabel,
           backgroundColor: MyColors.blueColor),
       body: Container(
         color: Colors.white,

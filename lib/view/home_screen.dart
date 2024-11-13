@@ -3,6 +3,7 @@ import 'package:ace_routes/controller/all_terms_controller.dart';
 import 'package:ace_routes/controller/event_controller.dart';
 import 'package:ace_routes/controller/loginController.dart';
 import 'package:ace_routes/controller/status_controller.dart';
+import 'package:ace_routes/core/Constants.dart';
 import 'package:ace_routes/core/colors/Constants.dart';
 import 'package:ace_routes/database/Tables/api_data_table.dart';
 import 'package:ace_routes/database/Tables/event_table.dart';
@@ -47,6 +48,8 @@ class _HomeScreenState extends State<HomeScreen> {
   final LoginController loginController =
       Get.find<LoginController>(); // Accessing LoginController
 
+  // final AllTerms allTerms = Get.put(AllTerms());
+
   //LatLng _currentLocation = LatLng(45.521563, -122.677433); // Default location
   LatLng _currentLocation = LatLng(0, 0); // Initialize with an empty location
   StreamSubscription<geo.Position>? _positionStreamSubscription;
@@ -68,7 +71,6 @@ class _HomeScreenState extends State<HomeScreen> {
     // _loadCustomIcon();
     _determinePosition();
     // Get.put(EventController());
-
   }
 
   @override
@@ -150,6 +152,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    AllTerms.getTerm();
     return Scaffold(
       floatingActionButton: GestureDetector(
           onTap: () {
@@ -162,10 +165,10 @@ class _HomeScreenState extends State<HomeScreen> {
             OrderTypeDataTable.clearOrderTypeData();
             print("API data deleted");
           },
-          child: Text(
-            'delete Table',
-            style: TextStyle(fontSize: 30),
-          )),
+          child: Obx(() => Text(
+                AllTerms.assetName.value,
+                style: TextStyle(fontSize: 30),
+              ))),
       appBar: AppBar(
         title: Obx(() {
           return Column(
