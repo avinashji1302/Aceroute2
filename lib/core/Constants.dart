@@ -4,7 +4,7 @@ import 'package:get/get_state_manager/src/simple/get_controllers.dart';
 import '../database/Tables/terms_data_table.dart';
 import '../model/terms_model.dart';
 
-var BaseURL = 'https://portal.aceroute.com';
+var initURL = 'https://portal.aceroute.com';
 
 // Future<void> displayDataFromDb() async {
 //   List<TokenApiReponse> dataList = await ApiDataTable.fetchData();
@@ -42,7 +42,7 @@ class AllTerms extends GetxController {
 
   static Future<void> getTerm() async {
     List<TermsDataModel> dataList = await TermsDataTable.fetchTermsData();
-    print("Get terms");
+
     for (var data in dataList) {
       namespace.value = data.namespace;
       locationCode.value = data.locationCode;
@@ -68,9 +68,9 @@ class AllTerms extends GetxController {
       invoiceEmailLabel.value = data.invoiceEmailLabel;
 
       // Print each label to confirm
-      print("Namespace: ${namespace.value}");
-      print("Location Code: ${locationCode.value}");
-      print("Form Name: ${formName.value}");
+      // print("Namespace: ${namespace.value}");
+      // print("Location Code: ${locationCode.value}");
+      // print("Form Name: ${formName.value}");
       // Add more print statements if needed
     }
   }

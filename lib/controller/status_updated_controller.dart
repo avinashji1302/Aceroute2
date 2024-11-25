@@ -38,6 +38,7 @@ class StatusControllers extends GetxController {
 
       if (group != null) {
         organizedDataTemp[group.name]?.add(item);
+
       }
     }
 

@@ -7,4 +7,14 @@ class MyColors {
   static final Color greenColor = Colors.green;
 }
 
-final Url = "";
+/*String baseUrlDb = "";
+String nspDb = "";
+String token = "";
+String ridDb = "";
+String geoDb = "";*/
+
+String baseUrl = "";
+String nsp = "";
+String token = "";
+String rid = "";
+String geo = "";

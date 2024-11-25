@@ -133,22 +133,7 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  List<Map<String, String>> cardData = [
-    {
-      'time': '1:20 pm',
-      'location': 'Sector 62 noida near city',
-      'details': 'Should show Voltage from\nDelivery : p5 : Normal',
-      'number': '1'
-    },
-    {
-      'time': '12:30 pm',
-      'location': 'Sector 59 noida near city',
-      'details': 'there is some text\nDelivery : p5 : Normal',
-      'number': '2'
-    },
 
-    // Add more entries as needed
-  ];
 
   @override
   Widget build(BuildContext context) {
@@ -197,7 +182,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   color: Colors.red,
                 ),
                 child: Text(
-                  '${homeController.counter.value}',
+                  '${eventController.events.length}',
                   style: const TextStyle(color: Colors.white),
                 ),
               )),
@@ -206,7 +191,6 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: Colors.white,
       ),
       drawer: const DrawerWidget(),
-
       body: _showCard
           ? Obx(() {
               // Check if data is loading
@@ -305,7 +289,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                         ),
                                         SizedBox(height: 5.0),
                                         Text(
-                                          event.address ?? "No Address",
+                                          event.name ?? "No name",
                                           style: TextStyle(
                                             fontSize:
                                                 fontSizeController.fontSize,
@@ -368,7 +352,25 @@ class _HomeScreenState extends State<HomeScreen> {
                                         ),
                                         SizedBox(height: 5.0),
                                         Text(
-                                          event.alt ?? "No Alt",
+                                          event.address ?? "No Alt",
+                                          style: TextStyle(
+                                            fontSize:
+                                                fontSizeController.fontSize,
+                                            // fontWeight: FontWeight.bold,
+                                            color: Colors.grey,
+                                          ),
+                                        ),
+                                        Text(
+                                          event.cntnm ?? "No Alt",
+                                          style: TextStyle(
+                                            fontSize:
+                                                fontSizeController.fontSize,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.black,
+                                          ),
+                                        ),
+                                        Text(
+                                          event.tel ?? "No Alt",
                                           style: TextStyle(
                                             fontSize:
                                                 fontSizeController.fontSize,
@@ -417,34 +419,29 @@ class _HomeScreenState extends State<HomeScreen> {
                                           CrossAxisAlignment.start,
                                       children: [
                                         Container(
-                                          width: 120,
-                                          height: 40,
+                                          // width: 140,
+                                          // height: 40,
                                           decoration: BoxDecoration(
                                             borderRadius:
                                                 BorderRadius.circular(12.0),
                                           ),
-                                          child: Padding(
-                                            padding:
-                                                const EdgeInsets.only(top: 9.0),
-                                            child: Obx(() {
-                                              if (index <
-                                                  eventController
-                                                      .events.length) {
-                                                return Text(
-                                                  '${eventController.events[index].cnm}',
-                                                  style: TextStyle(
-                                                    fontSize: fontSizeController
-                                                        .fontSize,
-                                                    fontWeight: FontWeight.bold,
-                                                    color: Colors.black,
-                                                  ),
-                                                );
-                                              } else {
-                                                return Text(
-                                                    'No event available for this index.');
-                                              }
-                                            }),
-                                          ),
+                                          child: Obx(() {
+                                            if (index <
+                                                eventController.events.length) {
+                                              return Text(
+                                                '${eventController.events[index].detail}',
+                                                style: TextStyle(
+                                                  fontSize: fontSizeController
+                                                      .fontSize,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.black,
+                                                ),
+                                              );
+                                            } else {
+                                              return Text(
+                                                  'No event available for this index.');
+                                            }
+                                          }),
                                         ),
                                         Obx(() => RichText(
                                               text: TextSpan(
@@ -455,7 +452,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 children: [
                                                   TextSpan(
                                                     text:
-                                                        '${eventController.events[index].alt},\n${eventController.events[index].po}\n${eventController.events[index].inv}',
+                                                        '${eventController.events[index].po}\n${eventController.events[index].inv}',
                                                     style: TextStyle(
                                                       color: Colors.black,
                                                       fontSize:

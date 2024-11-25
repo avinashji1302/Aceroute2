@@ -1,3 +1,4 @@
+import 'package:ace_routes/core/colors/Constants.dart';
 import 'package:http/http.dart' as http;
 import 'package:xml/xml.dart' as xml;
 
@@ -6,7 +7,7 @@ class HttpConnection {
 
   
   void fetchData() async {
-    final url = 'https://portal.aceroute.com/mobi?action=getterm';
+    final url = 'https://$baseUrl/mobi?action=getterm';
     print('Fetching data...');
 
     try {

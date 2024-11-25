@@ -15,6 +15,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:xml/xml.dart' as xml;
 import 'package:xml/xml.dart';
+import '../core/colors/Constants.dart';
 import '../database/Tables/GTypeTable.dart';
 import '../database/Tables/PartTypeDataTable.dart';
 import '../database/Tables/api_data_table.dart';
@@ -42,12 +43,12 @@ class AllTermsController {
   }
 
   Future<void> GetAllTerms() async {
-    final prefs = await SharedPreferences.getInstance();
+   /* final prefs = await SharedPreferences.getInstance();
     final String token = prefs.getString("token") ?? '';
-    final String rid = prefs.getString("rid") ?? '';
+    final String rid = prefs.getString("rid") ?? '';*/
 
     final requestUrl =
-        "$BaseURL/mobi?token=$token&nspace=${accountName}&geo=<lat,lon>&rid=$rid&action=getterm";
+        "https://$baseUrl/mobi?token=$token&nspace=${nsp}&geo=$geo&rid=$rid&action=getterm";
     print(" Step 4 call 1 Default label : get term URL: ${requestUrl}");
 
     final response = await http.get(Uri.parse(requestUrl));
@@ -126,13 +127,13 @@ class AllTermsController {
   /// getparttype API to save the data ----------------------------
 
   Future<void> GetAllPartTypes() async {
-    final prefs = await SharedPreferences.getInstance();
+   /* final prefs = await SharedPreferences.getInstance();
     final String token = prefs.getString("token") ?? '';
     final String rid = prefs.getString("rid") ?? '';
-    final String nsp = prefs.getString("nsp") ?? '';
+    final String nsp = prefs.getString("nsp") ?? '';*/
 
     final requestUrl =
-        "$BaseURL/mobi?token=$token&nspace=$nsp&geo=<lat,lon>&rid=$rid&action=getparttype";
+        "https://$baseUrl/mobi?token=$token&nspace=$nsp&geo=<lat,lon>&rid=$rid&action=getparttype";
     final response = await http.get(Uri.parse(requestUrl));
 
     if (response.statusCode == 200) {
@@ -173,12 +174,12 @@ class AllTermsController {
   /// getStoreOrderTypes API to save the data ----------------------------
 
   Future<void> fetchAndStoreOrderTypes(Database db) async {
-    final prefs = await SharedPreferences.getInstance();
+   /* final prefs = await SharedPreferences.getInstance();
     final String token = prefs.getString("token") ?? '';
     final String rid = prefs.getString("rid") ?? '';
-    final String nsp = prefs.getString("nsp") ?? '';
+    final String nsp = prefs.getString("nsp") ?? '';*/
 
-    final requestUrl = '$BaseURL/mobi?token=$token&nspace=$nsp&geo=<lat,lon>&rid=$rid&action=getordertype';
+    final requestUrl = 'https://$baseUrl/mobi?token=$token&nspace=$nsp&geo=<lat,lon>&rid=$rid&action=getordertype';
     var request = http.Request(
       'GET',
       Uri.parse(
@@ -238,21 +239,23 @@ class AllTermsController {
 
   //--------------status type--------------
   Future<void> fetchStatusList() async {
-    final prefs = await SharedPreferences.getInstance();
+   /* final prefs = await SharedPreferences.getInstance();
     final String token = prefs.getString("token") ?? '';
     final String rid = prefs.getString("rid") ?? '';
-    final String nsp = prefs.getString("nsp") ?? '';
+    final String nsp = prefs.getString("nsp") ?? '';*/
 
     final String url =
-        '$BaseURL/mobi?token=$token&nspace=$nsp&geo=<lat,lon>&rid=$rid&action=getstatuslist';
+        'https://$baseUrl/mobi?token=$token&nspace=$nsp&geo=<lat,lon>&rid=$rid&action=getstatuslist';
 
     try {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
-        print(" Step 4 call 5 Default Get Order Type :  URL: $url");
+        print(" Step 4 call 5  status Type :  URL: $url");
         // Convert XML response to JSON list
         final statusJsonList = parseStatusListToJson(response.body);
 
+
+        print("Converted json::: $statusJsonList");
         // Save JSON data to database
         await StatusTable.insertStatusList(statusJsonList);
 
@@ -269,13 +272,13 @@ class AllTermsController {
   /// getStoreGTypes API to save the data ----------------------------
 
   Future<void> fetchAndStoreGTypes(Database db) async {
-    final prefs = await SharedPreferences.getInstance();
+   /* final prefs = await SharedPreferences.getInstance();
     final String token = prefs.getString("token") ?? '';
     final String rid = prefs.getString("rid") ?? '';
-    final String nsp = prefs.getString("nsp") ?? '';
+    final String nsp = prefs.getString("nsp") ?? '';*/
 
 
-    final requestUrl ='$BaseURL/mobi?token=$token&nspace=${nsp}&geo=<lat,lon>&rid=$rid&action=getgentype';
+    final requestUrl ='https://$baseUrl/mobi?token=$token&nspace=${nsp}&geo=<lat,lon>&rid=$rid&action=getgentype';
     var request = http.Request(
       'GET',
       Uri.parse(

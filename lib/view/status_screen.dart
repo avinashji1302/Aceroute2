@@ -24,7 +24,7 @@ class _StatusScreenState extends State<StatusScreen> {
   String? _selectedPlan;
   // String selectedJob = ''.obs as String;
 
-  final statusController = Get.put(StatusController());
+  // final statusController = Get.put(StatusController());
   final LoginController loginController =
       Get.find<LoginController>(); // Accessing LoginController
 
@@ -35,7 +35,7 @@ class _StatusScreenState extends State<StatusScreen> {
   void initState() {
     super.initState();
     // Fetch the status list when the screen initializes
-    statusController.fetchStatusList();
+    // statusController.fetchStatusList();
     statusControllers.organizeData();
   }
 
@@ -49,80 +49,7 @@ class _StatusScreenState extends State<StatusScreen> {
         titleText: AllTerms.formName,
         backgroundColor: MyColors.blueColor,
       ),
-      // body: Obx(() {
-      //   return SingleChildScrollView(
-      //     child: Padding(
-      //       padding: const EdgeInsets.all(12.0),
-      //       child: Column(
-      //         crossAxisAlignment: CrossAxisAlignment.start,
-      //         children: [
-      //           _buildSection('Job', _selectedJob, (value) {
-      //             setState(() {
-      //               _deselectAll(); // Deselect everything
-      //               _selectedJob = value;
-      //               print("Selected Plan: $_selectedPlan  ");
-      //               publishTestMessage(value);
-      //
-      //               Get.to(HomeScreen());
-      //             });
-      //           }, statusController.jobStatusOptions),
-      //           _buildSection('Job Exception', _selectedJobException, (value) {
-      //             setState(() {
-      //               _deselectAll(); // Deselect everything
-      //               _selectedJobException = value;
-      //               print("Selected Plan: $_selectedPlan  ");
-      //               publishTestMessage(value);
-      //
-      //               Get.to(HomeScreen());
-      //             });
-      //           }, statusController.jobExceptionOptions),
-      //           _buildSection('Field Exception', _selectedFieldException,
-      //               (value) {
-      //             setState(() {
-      //               _deselectAll(); // Deselect everything
-      //               _selectedFieldException = value;
-      //
-      //               print("Selected Plan: $_selectedPlan  ");
-      //               publishTestMessage(value);
-      //
-      //               Get.to(HomeScreen());
-      //             });
-      //           }, statusController.fieldExceptionOptions),
-      //           _buildSection('Plan', _selectedPlan, (value) {
-      //             setState(() {
-      //               _selectedPlan = value;
-      //               // selectedJob = _selectedPlan! ;
-      //               print("Selected Plan: $_selectedPlan  ");
-      //               publishTestMessage(value);
-      //
-      //               Get.to(HomeScreen());
-      //               _deselectAll(); // Deselect everything
-      //             });
-      //           }, statusController.planOptions),
-      //           SizedBox(
-      //             height: 20.0,
-      //           ),
-      //           ElevatedButton(
-      //             onPressed: () {
-      //               // Add submit logic here
-      //             },
-      //             child: Text(
-      //               'Submit',
-      //               style: TextStyle(color: Colors.white),
-      //             ),
-      //             style: ElevatedButton.styleFrom(
-      //                 minimumSize:
-      //                     Size(double.infinity, 50), // Make button full width
-      //                 backgroundColor: Colors.blue),
-      //           ),
-      //           SizedBox(
-      //             height: 20.0,
-      //           ),
-      //         ],
-      //       ),
-      //     ),
-      //   );
-      // }),
+
 
       body: Obx(() {
         return ListView.builder(

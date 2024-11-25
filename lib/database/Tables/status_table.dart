@@ -53,4 +53,23 @@ class StatusTable {
     final List<Map<String, dynamic>> maps = await db.query(tableName);
     return List.generate(maps.length, (i) => Status.fromJson(maps[i]));
   }
+
+
+  // Fetch statuses with id
+
+  static Future<List<String>> fetchNamesById(String id) async {
+    final db = await DatabaseHelper().database;
+
+    // Query the table for rows where id matches
+    final List<Map<String, dynamic>> maps = await db.query(
+      tableName,
+      columns: ['name'], // Ensure 'name' is the correct column name
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+
+    // Extract names into a list, ensuring the column name is correct
+    return maps.map((map) => map['name'] as String).toList();  // Corrected here
+  }
+
 }
