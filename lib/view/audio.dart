@@ -1,4 +1,5 @@
 import 'package:ace_routes/controller/audio_controller.dart';
+import 'package:ace_routes/core/Constants.dart';
 import 'package:ace_routes/core/colors/Constants.dart';
 import 'package:ace_routes/view/appbar.dart';
 import 'package:flutter/material.dart';
@@ -68,11 +69,10 @@ class _AudioRecordState extends State<AudioRecord> {
 
   @override
   Widget build(BuildContext context) {
+    AllTerms.getTerm();
     return Scaffold(
       appBar: myAppBar(
-          context: context,
-          titleText: 'Audio',
-          backgroundColor: MyColors.blueColor),
+          context: context, titleText: AllTerms.audioLabel, backgroundColor: MyColors.blueColor),
       body: Container(
         width: double.infinity,
         padding: EdgeInsets.all(0.0),

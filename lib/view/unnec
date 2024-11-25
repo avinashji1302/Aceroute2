@@ -2,11 +2,6 @@
   color: MyColors.blueColor,
    color: const Color.fromARGB(255, 242, 255, 243),
 
-
-
-
-
-
     void _loadCustomIcon() async {
     // await   homeController.fetchData();
 

@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:ace_routes/controller/getOrderPart_controller.dart';
 import 'package:ace_routes/core/Constants.dart';
 import 'package:ace_routes/database/Tables/api_data_table.dart';
 import 'package:ace_routes/database/Tables/event_table.dart';
@@ -14,36 +15,46 @@ import 'package:sqflite/sqflite.dart';
 import 'package:xml/xml.dart' as xml;
 import 'package:intl/intl.dart';
 
+import '../core/colors/Constants.dart';
 import '../core/xml_to_json_converter.dart';
+import '../database/Tables/status_table.dart';
 import '../database/databse_helper.dart';
 import '../model/login_model/token_api_response.dart';
 import 'all_terms_controller.dart';
+import 'orderNoteConroller.dart';
+
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:http/http.dart' as http;
+import 'package:xml/xml.dart' as xml;
+import 'package:intl/intl.dart';
 
 class EventController extends GetxController {
   final allTermsController = Get.put(AllTermsController());
+  final controller = Get.put(OrderNoteController());
+  final getOrderPart = Get.put(GetOrderPartController());
 
   var events = <Event>[].obs;
   var isLoading = false.obs;
+  String pid = "";
 
   String token = "";
   String rid = "";
   String nspace = "";
   String geo = "";
-  String time = "";
   String webUrl = "";
-  String timeZone = "";
   int daysToAdd = 1;
 
   @override
   void onInit() {
     super.onInit();
-    fetchEvents();
-    // loadEventsFromDatabase();
     loadAllTerms();
+    fetchEvents();
+
   }
 
   Future<void> loadAllTerms() async {
-    print("Loading all terms....");
+    print("Loading all terms...");
 
     await allTermsController.displayLoginResponseData();
     Database db = await DatabaseHelper().database;
@@ -53,23 +64,11 @@ class EventController extends GetxController {
     await allTermsController.fetchAndStoreGTypes(db);
     await allTermsController.GetAllTerms();
 
-   await AllTerms.getTerm();
-  }
+    await AllTerms.getTerm();
+    await getOrderPart.fetchOrderData();
 
-  // Fetch events from the local database and populate the events list
-  Future<void> loadEventsFromDatabase() async {
-    //print('I am here in loadeventDatabase');
-    isLoading(true);
-    try {
-      List<Event> localEvents = await EventTable.fetchEvents();
-      events.assignAll(localEvents); // Populate the events list
-
-      // print(" databse data is here ::::${events.length}");
-    } catch (e) {
-      print("Error loading events from database: $e");
-    } finally {
-      isLoading(false);
-    }
+    await controller.fetchDetailsfromDb();
+    await controller.fetchOrderNotesFromApi();
   }
 
   Future<void> fetchEvents() async {
@@ -78,10 +77,8 @@ class EventController extends GetxController {
         await LoginResponseTable.fetchLoginResponses();
     for (var data in dataList) {
       token = data.token;
-      // rid=data.requestId;
+      rid = data.requestId;
       geo = data.geoLocation;
-
-      // print("Geo: $geo, Token: $token");
     }
 
     for (var data in loginDataList) {
@@ -90,37 +87,29 @@ class EventController extends GetxController {
     }
     token = token.trim();
 
-    // Get the current date
     DateTime currentDate = DateTime.now();
-    // Calculate the second date by adding days (e.g., 1 for tomorrow, 7 for a week from now, etc.)
     DateTime secondDate = currentDate.add(Duration(days: daysToAdd));
-
-    // Format dates to `yyyy-MM-dd`
     String formattedCurrentDate = DateFormat('yyyy-MM-dd').format(currentDate);
     String formattedSecondDate = DateFormat('yyyy-MM-dd').format(secondDate);
 
     isLoading(true);
-    // var url =
-    //     '$BaseURL/mobi?token=$token&nspace=${nspace}&geo=$geo&rid=$rid&action=getorders&tz=Asia/Kolkata&from=2024-10-29&to=2024-10-30';
-
     var url =
-        '$BaseURL/mobi?token=$token&nspace=$nspace&geo=$geo&rid=$rid&action=getorders&tz=Asia/Kolkata&from=$formattedCurrentDate&to=$formattedSecondDate';
+        'https://$baseUrl/mobi?token=$token&nspace=$nspace&geo=$geo&rid=$rid&action=getorders&tz=Asia/Kolkata&from=$formattedCurrentDate&to=$formattedSecondDate';
+
+    print("Fetching events from URL: $url");
 
     try {
       var request = http.Request('GET', Uri.parse(url));
       http.StreamedResponse response = await request.send();
-      // Print response status and headers
+
       if (response.statusCode == 200) {
         String xmlString = await response.stream.bytesToString();
-        print("Get order Api URL: $url");
-        // Parse XML and convert to JSON
-        // Map<String, dynamic> jsonResponse = xmlToJson(xmlString);
-        Map<String, dynamic> jsonResponse = parseXmlToJson(xmlString);
-        print("Converted JSON:");
-        print(jsonEncode(jsonResponse));
+        print("Raw XML response: $xmlString");
+
+        // Parse and store the events
         parseXmlResponse(xmlString);
       } else {
-        print("Error: ${response.reasonPhrase}");
+        print("Error fetching events: ${response.reasonPhrase}");
       }
     } catch (e) {
       print("Error fetching events: $e");
@@ -129,111 +118,103 @@ class EventController extends GetxController {
     }
   }
 
-  Map<String, dynamic> parseXmlToJson(String xmlString) {
-    final document = xml.XmlDocument.parse(xmlString);
-    return _xmlToMap(document.rootElement);
-  }
-
-  Map<String, dynamic> _xmlToMap(xml.XmlElement element) {
-    final map = <String, dynamic>{};
-
-    // Add element attributes to the map
-    for (var attr in element.attributes) {
-      map[attr.name.toString()] = attr.value;
-    }
-
-    // Check if the element has only text as a child node
-    if (element.children.length == 1 && element.children.first is xml.XmlText) {
-      map[element.name.toString()] = element.children.first.text.trim();
-    } else {
-      for (var node in element.children) {
-        if (node is xml.XmlElement) {
-          final childMap = _xmlToMap(node);
-
-          // Handle multiple children with the same name by converting to a list
-          if (map.containsKey(node.name.toString())) {
-            if (map[node.name.toString()] is List) {
-              (map[node.name.toString()] as List).add(childMap);
-            } else {
-              map[node.name.toString()] = [map[node.name.toString()], childMap];
-            }
-          } else {
-            map[node.name.toString()] = childMap;
-          }
-        }
-      }
-    }
-    return map;
-  }
-
   void parseXmlResponse(String responseBody) {
     final document = xml.XmlDocument.parse(responseBody);
     final eventElements = document.findAllElements('event');
 
     List<Event> fetchedEvents = eventElements.map((eventElement) {
       return Event(
-        id: eventElement.findElements('id').single.text ?? '',
-        cid: eventElement.findElements('cid').single.text ?? '',
-        startDate: eventElement.findElements('start_date').single.text ?? '',
-        etm: eventElement.findElements('etm').single.text ?? '',
-        endDate: eventElement.findElements('end_date').single.text ?? '',
-        name: eventElement.findElements('nm').single.text ?? '',
-        wkf: eventElement.findElements('wkf').single.text ?? '',
-        alt: eventElement.findElements('alt').single.text ?? '',
-        po: eventElement.findElements('po').single.text ?? '',
-        inv: eventElement.findElements('inv').single.text ?? '',
-        tid: eventElement.findElements('tid').single.text ?? '',
-        pid: eventElement.findElements('pid').single.text ?? '',
-        rid: eventElement.findElements('rid').single.text ?? '',
-        ridcmt: eventElement.findElements('ridcmt').single.text ?? '',
-        detail: eventElement.findElements('dtl').single.text ?? '',
-        lid: eventElement.findElements('lid').single.text ?? '',
-        cntid: eventElement.findElements('cntid').single.text ?? '',
-        flg: eventElement.findElements('flg').single.text ?? '',
-        est: eventElement.findElements('est').single.text ?? '',
-        lst: eventElement.findElements('lst').single.text ?? '',
-        ctid: eventElement.findElements('ctid').single.text ?? '',
-        ctpnm: eventElement.findElements('ctpnm').single.text ?? '',
-        ltpnm: eventElement.findElements('ltpnm').single.text ?? '',
-        cnm: eventElement.findElements('cnm').single.text ?? '',
-        address: eventElement.findElements('adr').single.text ?? '',
-        geo: eventElement.findElements('geo').single.text ?? '',
-        cntnm: eventElement.findElements('cntnm').single.text ?? '',
-        tel: eventElement.findElements('tel').single.text ?? '',
-        ordfld1: eventElement.findElements('ordfld1').single.text ?? '',
-        ttid: eventElement.findElements('ttid').single.text ?? '',
-        cfrm: eventElement.findElements('cfrm').single.text ?? '',
-        cprt: eventElement.findElements('cprt').single.text ?? '',
-        xid: eventElement.findElements('xid').single.text ?? '',
-        cxid: eventElement.findElements('cxid').single.text ?? '',
-        tz: eventElement.findElements('tz').single.text ?? '',
-        zip: eventElement.findElements('zip').single.text ?? '',
-        fmeta: eventElement.findElements('fmeta').single.text ?? '',
-        cimg: eventElement.findElements('cimg').single.text ?? '',
-        caud: eventElement.findElements('caud').single.text ?? '',
-        csig: eventElement.findElements('csig').single.text ?? '',
-        cdoc: eventElement.findElements('cdoc').single.text ?? '',
-        cnot: eventElement.findElements('cnot').single.text ?? '',
-        dur: eventElement.findElements('dur').single.text ?? '',
-        val: eventElement.findElements('val').single.text ?? '',
-        rgn: eventElement.findElements('rgn').single.text ?? '',
-        upd: eventElement.findElements('upd').single.text ?? '',
-        by: eventElement.findElements('by').single.text ?? '',
-        znid: eventElement.findElements('znid').single.text ?? '',
+        id: _getText(eventElement, 'id'),
+        cid: _getText(eventElement, 'cid'),
+        startDate: _getText(eventElement, 'start_date'),
+        etm: _getText(eventElement, 'etm'),
+        endDate: _getText(eventElement, 'end_date'),
+        name: _getText(eventElement, 'nm'),
+        wkf: _getText(eventElement, 'wkf'),
+        alt: _getText(eventElement, 'alt'),
+        po: _getText(eventElement, 'po'),
+        inv: _getText(eventElement, 'inv'),
+        tid: _getText(eventElement, 'tid'),
+        pid: _getText(eventElement, 'pid'),
+        rid: _getText(eventElement, 'rid'),
+        ridcmt: _getText(eventElement, 'ridcmt'),
+        detail: _getText(eventElement, 'dtl'),
+        lid: _getText(eventElement, 'lid'),
+        cntid: _getText(eventElement, 'cntid'),
+        flg: _getText(eventElement, 'flg'),
+        est: _getText(eventElement, 'est'),
+        lst: _getText(eventElement, 'lst'),
+        ctid: _getText(eventElement, 'ctid'),
+        ctpnm: _getText(eventElement, 'ctpnm'),
+        ltpnm: _getText(eventElement, 'ltpnm'),
+        cnm: _getText(eventElement, 'cnm'),
+        address: _getText(eventElement, 'adr'),
+        geo: _getText(eventElement, 'geo'),
+        cntnm: _getText(eventElement, 'cntnm'),
+        tel: _getText(eventElement, 'tel'),
+        ordfld1: _getText(eventElement, 'ordfld1'),
+        ttid: _getText(eventElement, 'ttid'),
+        cfrm: _getText(eventElement, 'cfrm'),
+        cprt: _getText(eventElement, 'cprt'),
+        xid: _getText(eventElement, 'xid'),
+        cxid: _getText(eventElement, 'cxid'),
+        tz: _getText(eventElement, 'tz'),
+        zip: _getText(eventElement, 'zip'),
+        fmeta: _getText(eventElement, 'fmeta'),
+        cimg: _getText(eventElement, 'cimg'),
+        caud: _getText(eventElement, 'caud'),
+        csig: _getText(eventElement, 'csig'),
+        cdoc: _getText(eventElement, 'cdoc'),
+        cnot: _getText(eventElement, 'cnot'),
+        dur: _getText(eventElement, 'dur'),
+        val: _getText(eventElement, 'val'),
+        rgn: _getText(eventElement, 'rgn'),
+        upd: _getText(eventElement, 'upd'),
+        by: _getText(eventElement, 'by'),
+        znid: _getText(eventElement, 'znid'),
       );
-
-      // Insert each event into the database
     }).toList();
 
-    // Insert each event into the database
     for (Event event in fetchedEvents) {
       EventTable.insertEvent(event);
-      print("Event added to database: ${event}");
+      print("Event added to database: ${event.toJson()}");
     }
 
     events.assignAll(fetchedEvents);
-    print("here is data from somethign");
+    print("Fetched and stored ${fetchedEvents.length} events");
+    print(jsonEncode("${fetchedEvents[0]}"));
+    print("${events}");
     loadEventsFromDatabase();
+  }
+
+  String _getText(xml.XmlElement element, String tagName) {
+    return element.findElements(tagName).isNotEmpty
+        ? element.findElements(tagName).single.text
+        : '';
+  }
+
+  Future<void> loadEventsFromDatabase() async {
+    isLoading(true);
+    try {
+      List<Event> localEvents = await EventTable.fetchEvents();
+      events.assignAll(localEvents);
+      print("Loaded ${localEvents.length} events from database");
+
+      for (var data in localEvents) {
+        pid = data.pid;
+        print("pid ${data.pid}");
+        print("pid ${pid}");
+      }
+
+      List<String> names = await StatusTable.fetchNamesById(pid);
+
+      print("name is $names");
+
+    } catch (e) {
+      print("Error loading events from database: $e");
+    } finally {
+      isLoading(false);
+    }
   }
 }
 

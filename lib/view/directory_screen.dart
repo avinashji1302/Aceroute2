@@ -1,3 +1,4 @@
+import 'package:ace_routes/core/Constants.dart';
 import 'package:ace_routes/core/colors/Constants.dart';
 import 'package:ace_routes/view/appbar.dart';
 import 'package:flutter/material.dart';
@@ -11,11 +12,13 @@ class DirectoryDetails extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    AllTerms.getTerm();
     final fontSizeController = Get.find<FontSizeController>();
     return Scaffold(
         appBar: myAppBar(
             context: context,
-            titleText: 'Directory Details',
+            //"Directory in app which is not availbe in api data"
+            titleText:AllTerms.detailsLabel,
             backgroundColor: MyColors.blueColor),
         body: Padding(
           padding: const EdgeInsets.only(top: 10.0 , left: 10 , right: 10),

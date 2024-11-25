@@ -8,6 +8,8 @@ import 'Tables/OrderTypeDataTable.dart';
 import 'Tables/PartTypeDataTable.dart';
 import 'Tables/api_data_table.dart';
 import 'Tables/login_response_table.dart';
+import 'Tables/getOrderPart_table.dart';
+import 'Tables/order_note_table.dart';
 import 'Tables/terms_data_table.dart';
 import 'Tables/version_api_table.dart';
 import 'Tables/event_table.dart';
@@ -51,13 +53,18 @@ class DatabaseHelper {
       PartTypeDataTable.onCreate(db),
       OrderTypeDataTable.onCreate(db),
       GTypeTable.onCreate(db),
-      StatusTable.onCreate(db) // Create statuses table
+      StatusTable.onCreate(db), // Create statuses table
+      OrderNoteTable.onCreate(db),
+      GetOrderPartTable.onCreate(db)
     ]);
     // print("All tables created successfully.");
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
     // print("Upgrading database...");
+    if (oldVersion < 9) {
+      await GetOrderPartTable.onCreate(db); // Add OrderDataTable if upgrading
+    }
 
     if (oldVersion < 8) {
       await StatusTable.onCreate(

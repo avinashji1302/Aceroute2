@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:ace_routes/core/Constants.dart';
 import 'package:ace_routes/core/colors/Constants.dart';
 import 'package:ace_routes/view/appbar.dart';
 import 'package:flutter/material.dart';
@@ -38,11 +39,26 @@ class _AddBwFormState extends State<AddBwForm> {
 
   @override
   Widget build(BuildContext context) {
+    AllTerms.getTerm();
     return Scaffold(
-      appBar: myAppBar(
-          context: context,
-          titleText: 'Add BW Form.',
-          backgroundColor: MyColors.blueColor),
+      appBar: AppBar(
+        //did not exist in terms api data
+        title: Text(
+          "Add DW Form",
+          style: TextStyle(color: Colors.white),
+        ),
+        backgroundColor: MyColors.blueColor,
+        centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(
+            Icons.arrow_back,
+            color: Colors.white,
+          ),
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+        ),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: SingleChildScrollView(

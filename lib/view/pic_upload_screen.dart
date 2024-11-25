@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:ace_routes/core/Constants.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controller/fontSizeController.dart';
@@ -12,10 +13,11 @@ class PicUploadScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    AllTerms.getTerm();
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Picture Upload',
+          AllTerms.pictureLabel.value,
           style: TextStyle(
               color: Colors.white, fontSize: fontSizeController.fontSize),
         ),

@@ -1,3 +1,4 @@
+import 'package:ace_routes/core/Constants.dart';
 import 'package:ace_routes/core/colors/Constants.dart';
 import 'package:ace_routes/view/appbar.dart';
 import 'package:flutter/material.dart';
@@ -13,10 +14,11 @@ class Signature extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    AllTerms.getTerm();
     return Scaffold(
       appBar: myAppBar(
           context: context,
-          titleText: 'Signature',
+          titleText: AllTerms.signatureLabel,
           backgroundColor: MyColors.blueColor),
       body: SingleChildScrollView(
         child: Padding(

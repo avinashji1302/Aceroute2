@@ -1,3 +1,4 @@
+import 'package:ace_routes/core/Constants.dart';
 import 'package:ace_routes/core/colors/Constants.dart';
 import 'package:ace_routes/view/appbar.dart';
 import 'package:flutter/material.dart';
@@ -27,8 +28,9 @@ class _PartDetailScreenState extends State<PartDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    AllTerms.getTerm();
     return Scaffold(
-        appBar:myAppBar(context: context, titleText: 'Part Details', backgroundColor:MyColors.blueColor ),
+        appBar:myAppBar(context: context, titleText: AllTerms.detailsLabel, backgroundColor:MyColors.blueColor ),
       body: Container(
         width: double.infinity,
         height: 100.0,
