@@ -70,6 +70,7 @@ class EventTable {
   // Insert event into the events table
   static Future<void> insertEvent(Event event) async {
     final db = await DatabaseHelper().database;
+    fetchEvents();
     await db.insert(
       tableName,
       event.toJson(),
@@ -83,6 +84,25 @@ class EventTable {
     final List<Map<String, dynamic>> maps = await db.query(tableName);
     return List.generate(maps.length, (i) => Event.fromJson(maps[i]));
   }
+
+  // Fetch event by ID
+  static Future<Event?> fetchEventById(String id) async {
+    final db = await DatabaseHelper().database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      tableName,
+      where: 'id = ?', // SQL WHERE clause
+      whereArgs: [id], // Arguments for the WHERE clause
+    );
+
+    // If data exists, return the first record as an Event object
+    if (maps.isNotEmpty) {
+      return Event.fromJson(maps.first);
+    }
+
+    // If no data found, return null
+    return null;
+  }
+
 
   // Clear all events
   static Future<void> clearEvents() async {

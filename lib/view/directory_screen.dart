@@ -1,3 +1,4 @@
+import 'package:ace_routes/controller/directory_controller.dart';
 import 'package:ace_routes/core/Constants.dart';
 import 'package:ace_routes/core/colors/Constants.dart';
 import 'package:ace_routes/view/appbar.dart';
@@ -8,24 +9,37 @@ import 'package:get/get_core/src/get_main.dart';
 import '../controller/fontSizeController.dart';
 
 class DirectoryDetails extends StatelessWidget {
-  const DirectoryDetails({super.key});
+  final String id;
+  const DirectoryDetails({super.key, required this.id});
 
   @override
   Widget build(BuildContext context) {
-    AllTerms.getTerm();
     final fontSizeController = Get.find<FontSizeController>();
+    // Initialize controller immediately
+    final DirectoryController directoryController = Get.put(DirectoryController(id));
+
     return Scaffold(
-        appBar: myAppBar(
-            context: context,
-            //"Directory in app which is not availbe in api data"
-            titleText:AllTerms.detailsLabel,
-            backgroundColor: MyColors.blueColor),
-        body: Padding(
-          padding: const EdgeInsets.only(top: 10.0 , left: 10 , right: 10),
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8)
+        appBar: AppBar(
+          title: Text(
+            "Directory",
+            style: TextStyle(color: Colors.white),
+          ),
+          centerTitle: true,
+          backgroundColor: MyColors.blueColor,
+          leading: IconButton(
+            icon: const Icon(
+              Icons.arrow_back,
+              color: Colors.white,
             ),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+        ),
+        body:   Padding(
+          padding: const EdgeInsets.only(top: 10.0, left: 10, right: 10),
+              child: Obx(() => Container(
+            decoration: BoxDecoration(borderRadius: BorderRadius.circular(8)),
             child: ListView(
               children: [
                 Container(
@@ -49,7 +63,7 @@ class DirectoryDetails extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Dana Highlands Ct, Danville',
+                              directoryController.address.value,
                               softWrap: true,
                               style: TextStyle(
                                   color: Colors.black,
@@ -57,7 +71,7 @@ class DirectoryDetails extends StatelessWidget {
                                   fontSize: fontSizeController.fontSize),
                             ),
                             Text(
-                              'Dana Highlands Ct, Danville',
+                              directoryController.address.value,
                               softWrap: true,
                               style: TextStyle(
                                   color: Colors.green[500],
@@ -91,7 +105,7 @@ class DirectoryDetails extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Dan',
+                              directoryController.customerName.value,
                               softWrap: true,
                               style: TextStyle(
                                   fontWeight: FontWeight.bold,
@@ -105,7 +119,7 @@ class DirectoryDetails extends StatelessWidget {
                                   fontSize: fontSizeController.fontSize),
                             ),
                             Text(
-                              '43434324344',
+                                directoryController.customerMobile.value,
                               softWrap: true,
                               style: TextStyle(
                                   color: Colors.green[500],
@@ -180,7 +194,7 @@ class DirectoryDetails extends StatelessWidget {
                         Column(
                           children: [
                             Text(
-                              'Department Store',
+                              directoryController.ctpnm.value,
                               softWrap: true,
                               style: TextStyle(
                                   fontWeight: FontWeight.bold,
@@ -194,7 +208,7 @@ class DirectoryDetails extends StatelessWidget {
                 )
               ],
             ),
-          ),
+          )),
         ));
   }
 }

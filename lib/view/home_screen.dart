@@ -67,7 +67,6 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-
     // _loadCustomIcon();
     _determinePosition();
     // Get.put(EventController());
@@ -133,7 +132,29 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  String formatEventDate(String? startDate) {
+    if (startDate == null || startDate.isEmpty) {
+      return "No Time";
+    }
 
+    try {
+      // Define the expected input format
+      DateFormat inputFormat = DateFormat("yyyy/MM/dd HH:mm Z");
+
+      // Parse the date string into a DateTime object
+      DateTime date = inputFormat.parse(startDate);
+
+      // Format to "MMM" (e.g., Nov)
+      String formattedDate = DateFormat("MMM").format(date);
+
+      // Format local time
+      String localTime = DateFormat.jm().format(date.toLocal());
+
+      return "$formattedDate, $localTime";
+    } catch (e) {
+      return "Invalid date";
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -231,14 +252,17 @@ class _HomeScreenState extends State<HomeScreen> {
                             padding: const EdgeInsets.all(12.0),
                             width: double.infinity,
                             child: Center(
-                              child: Text(
-                                event.name ?? "No Name",
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
+                              child: Obx(() => Text(
+                                    eventController
+                                            .currentStatus.value.isNotEmpty
+                                        ? eventController.currentStatus.value
+                                        : "No Name",
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  )),
                             ),
                           ),
                         ),
@@ -256,7 +280,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                       color: MyColors.blueColor,
                                     ),
                                     onPressed: () {
-                                      Get.to(SummaryDetails());
+                                      Get.to(SummaryDetails(id: event.id));
                                     },
                                   ),
                                   SizedBox(width: 10),
@@ -266,8 +290,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                           CrossAxisAlignment.start,
                                       children: [
                                         Container(
-                                          width: 95,
-                                          height: 50,
+                                          width: 115,
+                                          height: 40,
                                           decoration: BoxDecoration(
                                             color: Colors.grey[500],
                                             borderRadius:
@@ -277,7 +301,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                             padding: const EdgeInsets.all(2.0),
                                             child: Center(
                                               child: Text(
-                                                event.startDate ?? "No Time",
+                                                formatEventDate(
+                                                    event.startDate),
                                                 style: TextStyle(
                                                   color: Colors.white,
                                                   fontSize: fontSizeController
@@ -295,6 +320,22 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 fontSizeController.fontSize,
                                             fontWeight: FontWeight.bold,
                                             color: Colors.black,
+                                          ),
+                                        ),
+
+                                        Obx(
+                                              () => Center(
+                                            child: Row(
+                                              children: [
+                                                Text("${eventController.categoryName.value} :",
+                                                style: TextStyle(
+                                                  fontSize:
+                                                  fontSizeController.fontSize,
+                                                 fontWeight: FontWeight.bold,
+                                                  color: Colors.grey,
+                                                ),)
+                                              ],
+                                            ),
                                           ),
                                         ),
                                       ],
@@ -332,7 +373,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                       color: MyColors.blueColor,
                                     ),
                                     onPressed: () {
-                                      Get.to(DirectoryDetails());
+                                      Get.to(()=>DirectoryDetails( id: event.id,));
                                     },
                                   ),
                                   SizedBox(width: 10),
@@ -350,6 +391,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                             color: Colors.black,
                                           ),
                                         ),
+
                                         SizedBox(height: 5.0),
                                         Text(
                                           event.address ?? "No Alt",
@@ -409,7 +451,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                       color: MyColors.blueColor,
                                     ),
                                     onPressed: () {
-                                      Get.to(VehicleDetails());
+                                      Get.to(VehicleDetails(id: event.id,));
                                     },
                                   ),
                                   SizedBox(width: 10),

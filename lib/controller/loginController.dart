@@ -99,9 +99,9 @@ class LoginController extends GetxController {
     final url = jsonResponse['url'];
     final subKey = jsonResponse['subkey'];
 
-    // Save `nsp` to SharedPreferences
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setString('nsp', nsp);
+    // // Save `nsp` to SharedPreferences
+    // SharedPreferences prefs = await SharedPreferences.getInstance();
+    // await prefs.setString('nsp', nsp);
 
     // Store in database
     LoginResponse loginResponse =
@@ -141,11 +141,11 @@ class LoginController extends GetxController {
             'Converted JSON Response ${jsonResponse['rid']}: ${jsonEncode(jsonResponse)}   ');
 
         // Store in SharedPreferences or database as needed
-        final token = jsonResponse['token'];
-        await prefs.setString("token", token);
-        await prefs.setString("rid", jsonResponse['rid']);
-        await prefs.setString("responderName", jsonResponse['resnm']);
-        await prefs.setString("geoLocation", jsonResponse['geo']);
+
+        // await prefs.setString("token", token);
+        // await prefs.setString("rid", jsonResponse['rid']);
+        // await prefs.setString("responderName", jsonResponse['resnm']);
+        // await prefs.setString("geoLocation", jsonResponse['geo']);
 
         // Parse response into ApiResponse model and store in database
         TokenApiReponse apiResponse = TokenApiReponse(
@@ -167,7 +167,7 @@ class LoginController extends GetxController {
         await ApiDataTable.insertData(apiResponse);
         print(' User Data successfully stored in the database.');
 
-        await checkTheLatestVersion(baseUrl, token, jsonResponse['geo']);
+        await checkTheLatestVersion(baseUrl);
       } else {
         print('Error: Status code ${response.statusCode} during data fetch.');
         Navigator.of(context).push(
@@ -203,7 +203,7 @@ class LoginController extends GetxController {
   }
 
   Future<void> checkTheLatestVersion(
-      String baseUrl, String token, String geoLocation) async {
+      String baseUrl) async {
     List<TokenApiReponse> loginDataList = await ApiDataTable.fetchData();
 
     List<LoginResponse> loginReponse =

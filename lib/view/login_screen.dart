@@ -13,8 +13,6 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final LoginController loginController = Get.put(LoginController());
 
-  // final HttpConnection _fetchData = HttpConnection();
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
