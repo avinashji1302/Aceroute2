@@ -25,17 +25,14 @@ import '../model/Ptype.dart';
 import '../model/Status_model_database.dart';
 
 class AllTermsController {
-  String token = "";
-  String accountName = "";
-  String workerRid = "";
-  String url = "";
-  String rid = "";
+
+   String accountName = "";
+   String workerRid = "";
+   String url = "";
 
 
-  var jobStatusOptions = <String>[].obs;
-  var jobExceptionOptions = <String>[].obs;
-  var fieldExceptionOptions = <String>[].obs;
-  var planOptions = <String>[].obs;
+
+
 
   String getElementText(XmlDocument xml, String tagName) {
     final elements = xml.findAllElements(tagName);
@@ -43,9 +40,6 @@ class AllTermsController {
   }
 
   Future<void> GetAllTerms() async {
-   /* final prefs = await SharedPreferences.getInstance();
-    final String token = prefs.getString("token") ?? '';
-    final String rid = prefs.getString("rid") ?? '';*/
 
     final requestUrl =
         "https://$baseUrl/mobi?token=$token&nspace=${nsp}&geo=$geo&rid=$rid&action=getterm";
@@ -173,11 +167,8 @@ class AllTermsController {
 
   /// getStoreOrderTypes API to save the data ----------------------------
 
-  Future<void> fetchAndStoreOrderTypes(Database db) async {
-   /* final prefs = await SharedPreferences.getInstance();
-    final String token = prefs.getString("token") ?? '';
-    final String rid = prefs.getString("rid") ?? '';
-    final String nsp = prefs.getString("nsp") ?? '';*/
+  Future<void> fetchAndStoreOrderTypes() async {
+
 
     final requestUrl = 'https://$baseUrl/mobi?token=$token&nspace=$nsp&geo=<lat,lon>&rid=$rid&action=getordertype';
     var request = http.Request(
@@ -191,10 +182,13 @@ class AllTermsController {
 
     if (response.statusCode == 200) {
       String responseBody = await response.stream.bytesToString();
-      print(" Step 4 call 4 Default Get Order Type :  URL: $requestUrl");
+      print(" Step 4 call 4  Get Order Type :  URL: $requestUrl");
       // Parse the XML response
       var document = xml.XmlDocument.parse(responseBody);
       var otypes = document.findAllElements('otype');
+
+      print("Document order type : $document");
+      print("Document order otypes : $otypes");
 
       // List to hold JSON representations of each order type
       List<Map<String, dynamic>> orderTypesList = [];
@@ -223,14 +217,14 @@ class AllTermsController {
 
         // Insert into database
         var orderType = OrderTypeModel.fromMap(orderTypeMap);
-        await OrderTypeDataTable.insertOrderTypeData(db, orderType);
+        await OrderTypeDataTable.insertOrderTypeData( orderType);
       }
 
       // Convert list of order types to JSON and print
       final jsonString = jsonEncode(orderTypesList);
       print("Converted JSON:\n$jsonString");
 
-      print('Data inserted successfully');
+      print(' Order type Data inserted successfully');
     } else {
       print('Request failed with status: ${response.reasonPhrase}');
     }
@@ -239,10 +233,6 @@ class AllTermsController {
 
   //--------------status type--------------
   Future<void> fetchStatusList() async {
-   /* final prefs = await SharedPreferences.getInstance();
-    final String token = prefs.getString("token") ?? '';
-    final String rid = prefs.getString("rid") ?? '';
-    final String nsp = prefs.getString("nsp") ?? '';*/
 
     final String url =
         'https://$baseUrl/mobi?token=$token&nspace=$nsp&geo=<lat,lon>&rid=$rid&action=getstatuslist';
@@ -259,7 +249,7 @@ class AllTermsController {
         // Save JSON data to database
         await StatusTable.insertStatusList(statusJsonList);
 
-        print("Data saved to database successfully");
+        print(" status is Data saved to database successfully");
       } else {
         Get.snackbar('Error', 'Failed to fetch status list');
       }
@@ -272,11 +262,6 @@ class AllTermsController {
   /// getStoreGTypes API to save the data ----------------------------
 
   Future<void> fetchAndStoreGTypes(Database db) async {
-   /* final prefs = await SharedPreferences.getInstance();
-    final String token = prefs.getString("token") ?? '';
-    final String rid = prefs.getString("rid") ?? '';
-    final String nsp = prefs.getString("nsp") ?? '';*/
-
 
     final requestUrl ='https://$baseUrl/mobi?token=$token&nspace=${nsp}&geo=<lat,lon>&rid=$rid&action=getgentype';
     var request = http.Request(

@@ -1,5 +1,3 @@
-// status_table.dart
-
 import 'package:sqflite/sqflite.dart';
 import '../../model/Status_model_database.dart';
 import '../databse_helper.dart';
@@ -9,7 +7,7 @@ class StatusTable {
 
   // Create the statuses table
   static Future<void> onCreate(Database db) async {
-    // print("Creating statuses table...");
+    print("Creating statuses table...");
     await db.execute('''
       CREATE TABLE $tableName (
         id TEXT PRIMARY KEY,
@@ -22,10 +20,12 @@ class StatusTable {
         isVisible TEXT
       )
     ''');
-    // print("Statuses table created successfully.");
+    print("Statuses table created successfully.");
   }
 
-  static Future<void> onUpgrade(Database db, int oldVersion, int newVersion) async {
+  // Upgrade the statuses table when schema changes
+  static Future<void> onUpgrade(
+      Database db, int oldVersion, int newVersion) async {
     if (oldVersion < newVersion) {
       await db.execute('DROP TABLE IF EXISTS $tableName');
       await onCreate(db);
@@ -33,7 +33,8 @@ class StatusTable {
   }
 
   // Insert JSON data into the statuses table
-  static Future<void> insertStatusList(List<Map<String, dynamic>> statusList) async {
+  static Future<void> insertStatusList(
+      List<Map<String, dynamic>> statusList) async {
     final db = await DatabaseHelper().database;
     Batch batch = db.batch();
     for (var status in statusList) {
@@ -51,25 +52,35 @@ class StatusTable {
   static Future<List<Status>> fetchStatusData() async {
     final db = await DatabaseHelper().database;
     final List<Map<String, dynamic>> maps = await db.query(tableName);
+    print("Database query result: $maps");
+
     return List.generate(maps.length, (i) => Status.fromJson(maps[i]));
   }
 
-
-  // Fetch statuses with id
-
-  static Future<List<String>> fetchNamesById(String id) async {
+  // Fetch a single name status by ID
+  static Future<String?> fetchNameById(String id) async {
     final db = await DatabaseHelper().database;
 
-    // Query the table for rows where id matches
-    final List<Map<String, dynamic>> maps = await db.query(
-      tableName,
-      columns: ['name'], // Ensure 'name' is the correct column name
-      where: 'id = ?',
-      whereArgs: [id],
-    );
+    try {
+      // Query the statuses table for the given id
+      final List<Map<String, dynamic>> maps = await db.query(
+        tableName,
+        columns: ['name'], // Fetch only the 'name' column
+        where: 'id = ?', // Condition to match the ID
+        whereArgs: [id], // Pass the ID as an argument
+      );
 
-    // Extract names into a list, ensuring the column name is correct
-    return maps.map((map) => map['name'] as String).toList();  // Corrected here
+      // Return the name if it exists
+      if (maps.isNotEmpty) {
+        print("Fetched name for id $id: ${maps.first['name']}");
+        return maps.first['name'] as String?;
+      } else {
+        print("No name found for id $id");
+        return null; // ID does not exist
+      }
+    } catch (e) {
+      print("Error fetching name for id $id: $e");
+      return null;
+    }
   }
-
 }

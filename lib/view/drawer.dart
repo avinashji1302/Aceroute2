@@ -145,24 +145,24 @@ class DrawerWidget extends StatelessWidget {
               ),
             ),
             onTap: ()async {
-              print('about');
-              print('GetAllTerms  =============>>>>>');
-              print('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx');
-              allTermsController.GetAllTerms();
-              print('GetAllPartTypes  =============>>>>>');
-              print('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx');
-              allTermsController.GetAllPartTypes();
-
-              print('displayLoginResponseData  =============>>>>>');
-              print('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx');
-              allTermsController.displayLoginResponseData();
-              Database db = await DatabaseHelper().database;
-              print('fetchAndStoreOrderTypes  =============>>>>>');
-              print('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx');
-              await allTermsController.fetchAndStoreOrderTypes(db);
-              print('fetchAndStoreGTypes  =============>>>>>');
-              print('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx');
-              await allTermsController.fetchAndStoreGTypes(db);
+              // print('about');
+              // print('GetAllTerms  =============>>>>>');
+              // print('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx');
+              // allTermsController.GetAllTerms();
+              // print('GetAllPartTypes  =============>>>>>');
+              // print('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx');
+              // allTermsController.GetAllPartTypes();
+              //
+              // print('displayLoginResponseData  =============>>>>>');
+              // print('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx');
+              // allTermsController.displayLoginResponseData();
+              // Database db = await DatabaseHelper().database;
+              // print('fetchAndStoreOrderTypes  =============>>>>>');
+              // print('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx');
+              // await allTermsController.fetchAndStoreOrderTypes();
+              // print('fetchAndStoreGTypes  =============>>>>>');
+              // print('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx');
+              // await allTermsController.fetchAndStoreGTypes(db);
               //_showAboutDialog(context);
             },
           ),

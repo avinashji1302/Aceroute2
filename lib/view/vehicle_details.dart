@@ -1,31 +1,40 @@
-import 'package:ace_routes/core/Constants.dart';
-import 'package:ace_routes/core/colors/Constants.dart';
-import 'package:ace_routes/view/appbar.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
+import '../controller/vehicle_controller.dart';
 import '../controller/fontSizeController.dart';
+import '../core/Constants.dart';
+import '../core/colors/Constants.dart';
+import '../view/appbar.dart';
 
 class VehicleDetails extends StatefulWidget {
-  const VehicleDetails({super.key});
+  final String id;
+
+  VehicleDetails({super.key, required this.id});
 
   @override
   State<VehicleDetails> createState() => _VehicleDetailsState();
 }
 
 class _VehicleDetailsState extends State<VehicleDetails> {
-  final TextEditingController _makeModelColorController =
-      TextEditingController();
-  final TextEditingController _registrationController = TextEditingController();
-  final TextEditingController _odometerController = TextEditingController();
-  final TextEditingController _faultDescController = TextEditingController();
-  final TextEditingController _notesController = TextEditingController();
   final fontSizeController = Get.find<FontSizeController>();
+  late final VehicleController _vehicleController;
+
+  @override
+  void initState() {
+    super.initState();
+    // Initialize VehicleController with the provided id
+    _vehicleController = Get.put(VehicleController(widget.id));
+  }
+
   @override
   Widget build(BuildContext context) {
     AllTerms.getTerm();
     return Scaffold(
-     appBar:myAppBar(context: context, titleText: AllTerms.orderGroupLabel, backgroundColor:MyColors.blueColor ),
+      appBar: myAppBar(
+        context: context,
+        titleText: AllTerms.orderGroupLabel,
+        backgroundColor: MyColors.blueColor,
+      ),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -33,81 +42,84 @@ class _VehicleDetailsState extends State<VehicleDetails> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Make/Model/Color TextFormField
-              TextFormField(
-                controller: _makeModelColorController,
-                decoration: InputDecoration(
-                  labelText: 'Make/Model/Color',
-                  border: OutlineInputBorder(),
-                ),
-                maxLines: 3, // Allows 3 lines of text
-              ),
+              Obx(() => TextFormField(
+                    controller: TextEditingController(
+                        text: _vehicleController.vehicleDetail.value),
+                    decoration: InputDecoration(
+                      labelText: 'Make/Model/Color',
+                      border: OutlineInputBorder(),
+                    ),
+                    maxLines: 3,
+                    onChanged: (value) =>
+                        _vehicleController.vehicleDetail.value = value,
+                  )),
               SizedBox(height: 16),
 
               // Registration TextFormField
-              TextFormField(
-                controller: _registrationController,
-                decoration: InputDecoration(
-                  labelText: 'Registration',
-                  border: OutlineInputBorder(),
-                ),
-              ),
+              Obx(() => TextFormField(
+                    controller: TextEditingController(
+                        text: _vehicleController.registration.value),
+                    decoration: InputDecoration(
+                      labelText: 'Registration',
+                      border: OutlineInputBorder(),
+                    ),
+                    onChanged: (value) =>
+                        _vehicleController.registration.value = value,
+                  )),
               SizedBox(height: 16),
 
               // Odometer TextFormField
-              TextFormField(
-                controller: _odometerController,
-                decoration: InputDecoration(
-                  labelText: 'Odometer',
-                  border: OutlineInputBorder(),
-                ),
-              ),
+              Obx(() => TextFormField(
+                    controller: TextEditingController(
+                        text: _vehicleController.odometer.value),
+                    decoration: InputDecoration(
+                      labelText: 'Odometer',
+                      border: OutlineInputBorder(),
+                    ),
+                    onChanged: (value) =>
+                        _vehicleController.odometer.value = value,
+                  )),
               SizedBox(height: 16),
 
               // Fault Description TextFormField
-              TextFormField(
-                controller: _faultDescController,
-                decoration: InputDecoration(
-                  labelText: 'Fault Description',
-                  border: OutlineInputBorder(),
-                ),
-                maxLines: 3, // Allows 3 lines of text
-              ),
+              Obx(() => TextFormField(
+                    controller: TextEditingController(
+                        text: _vehicleController.faultDesc.value),
+                    decoration: InputDecoration(
+                      labelText: 'Fault Description',
+                      border: OutlineInputBorder(),
+                    ),
+                    maxLines: 3,
+                    onChanged: (value) =>
+                        _vehicleController.faultDesc.value = value,
+                  )),
               SizedBox(height: 16),
 
               // Notes TextFormField
-              TextFormField(
-                controller: _notesController,
-                decoration: InputDecoration(
-                  labelText: 'Notes',
-                  border: OutlineInputBorder(),
-                ),
-                maxLines: 3, // Allows 3 lines of text
-              ),
+              Obx(() => TextFormField(
+                    controller: TextEditingController(
+                        text: _vehicleController.notes.value),
+                    decoration: InputDecoration(
+                      labelText: 'Notes',
+                      border: OutlineInputBorder(),
+                    ),
+                    maxLines: 3,
+                    onChanged: (value) =>
+                        _vehicleController.notes.value = value,
+                  )),
               SizedBox(height: 20),
 
               // Submit Button
               ElevatedButton(
                 onPressed: () {
-                  // Handle submit action here
-                  // You can access the input values using the controllers
-                  String makeModelColor = _makeModelColorController.text;
-                  String registration = _registrationController.text;
-                  String odometer = _odometerController.text;
-                  String faultDesc = _faultDescController.text;
-                  String notes = _notesController.text;
-
-                  // Perform your submission logic here
-                  // For example, print the values or send them to a server
-                  print('Make/Model/Color: $makeModelColor');
-                  print('Registration: $registration');
-                  print('Odometer: $odometer');
-                  print('Fault Description: $faultDesc');
-                  print('Notes: $notes');
+                  print("Vehicle details: ${_vehicleController.vehicleDetail}");
+                  print("Registration: ${_vehicleController.registration}");
+                  print("Odometer: ${_vehicleController.odometer}");
+                  print("Fault Description: ${_vehicleController.faultDesc}");
                 },
                 child: Text('Submit', style: TextStyle(color: Colors.white)),
                 style: ElevatedButton.styleFrom(
-                  minimumSize:
-                      Size(double.infinity, 50), // Make button full width
+                  minimumSize: Size(double.infinity, 50),
                   backgroundColor: Colors.blue,
                 ),
               ),

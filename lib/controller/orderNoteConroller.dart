@@ -18,16 +18,11 @@ import 'event_controller.dart';
 
 class OrderNoteController extends GetxController {
   String oid = "";
-  //String token = "";
- // String rid = "";
-  //String nspace = "";
-  //String geo = "";
+
 
   @override
-  void onInit() {
+  void onInit()  {
     super.onInit();
-    fetchDetailsfromDb();
-    fetchOrderNotesFromApi();
   }
 
   Future<void> fetchOrderNotesFromApi() async {
@@ -52,6 +47,8 @@ class OrderNoteController extends GetxController {
         // Save to the local database
         final orderNote = OrderNoteModel(data: jsonResponse);
         await OrderNoteTable.insertOrderNote(orderNote);
+
+        print("Note is inserted successfully");
       } else {
         print("Failed to fetch order notes: ${response.statusCode}");
       }
@@ -61,26 +58,25 @@ class OrderNoteController extends GetxController {
   }
 
 
-  Future<void> fetchDetailsfromDb() async {
+  Future<void> fetchDetailsFromDb() async {
     List<TokenApiReponse> tokenDbData = await ApiDataTable.fetchData();
     List<LoginResponse> nspDbData =
         await LoginResponseTable.fetchLoginResponses();
     List<Event> eventDbData = await EventTable.fetchEvents();
     for (var data in eventDbData) {
       oid = data.id;
+      print("oid $oid");
     }
 
-    for (var data in tokenDbData) {
-      token = data.token;
-      rid = data.requestId;
-      geo = data.geoLocation;
+     for (var data in tokenDbData) {
+       // token = data.token;
+    //   rid = data.requestId;
+    //   geo = data.geoLocation;
     }
 
-  /*  for (var data in nspDbData) {
-      nsp = data.nsp;
-    }*/
 
-   // print("data respectivly : $oid , $nspace ,$token, $geo ,$rid");
+
+    print("data respectively : $oid , $token, $geo ,$rid");
   }
 }
     

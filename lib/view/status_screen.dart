@@ -43,14 +43,20 @@ class _StatusScreenState extends State<StatusScreen> {
   Widget build(BuildContext context) {
     AllTerms.getTerm(); //getting the lable
     return Scaffold(
-      appBar: myAppBar(
-        context: context,
-        //not availbel in status in api data
-        titleText: AllTerms.formName,
+      appBar: AppBar(
+        title: Text("Status" , style: TextStyle(  color: Colors.white,)),
+        centerTitle: true,
         backgroundColor: MyColors.blueColor,
+        leading: IconButton(
+          icon: const Icon(
+            Icons.arrow_back,
+            color: Colors.white,
+          ),
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+        ),
       ),
-
-
       body: Obx(() {
         return ListView.builder(
           itemCount: statusControllers.organizedData.keys.length,

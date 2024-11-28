@@ -57,7 +57,7 @@ class DatabaseHelper {
       OrderNoteTable.onCreate(db),
       GetOrderPartTable.onCreate(db)
     ]);
-    // print("All tables created successfully.");
+     print("All tables created successfully.");
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
@@ -79,6 +79,6 @@ class DatabaseHelper {
     if (oldVersion < 5) {
       await EventTable.onUpgrade(db);
     }
-    // print("Database upgrade complete.");
+     print("Database upgrade complete.");
   }
 }

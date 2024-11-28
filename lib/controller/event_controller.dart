@@ -2,9 +2,11 @@ import 'dart:convert';
 
 import 'package:ace_routes/controller/getOrderPart_controller.dart';
 import 'package:ace_routes/core/Constants.dart';
+import 'package:ace_routes/database/Tables/OrderTypeDataTable.dart';
 import 'package:ace_routes/database/Tables/api_data_table.dart';
 import 'package:ace_routes/database/Tables/event_table.dart';
 import 'package:ace_routes/database/Tables/login_response_table.dart';
+import 'package:ace_routes/model/Status_model_database.dart';
 import 'package:ace_routes/model/event_model.dart';
 import 'package:ace_routes/model/login_model/login_response.dart';
 import 'package:get/get.dart';
@@ -31,62 +33,48 @@ import 'package:intl/intl.dart';
 
 class EventController extends GetxController {
   final allTermsController = Get.put(AllTermsController());
-  final controller = Get.put(OrderNoteController());
   final getOrderPart = Get.put(GetOrderPartController());
 
   var events = <Event>[].obs;
   var isLoading = false.obs;
-  String pid = "";
-
-  String token = "";
-  String rid = "";
-  String nspace = "";
-  String geo = "";
-  String webUrl = "";
+  String wkf = "";
+  String tid = '';
   int daysToAdd = 1;
+  RxString currentStatus = "Loading...".obs; // Reactive variable
+  RxString categoryName = "".obs;
+  final OrderNoteController orderNoteController =
+      Get.put(OrderNoteController());
 
   @override
-  void onInit() {
+  void onInit() async {
     super.onInit();
-    loadAllTerms();
-    fetchEvents();
+    isLoading(true); // Show loading spinner
+    await loadAllTerms();
+    await fetchEvents();
+    isLoading(false); // Show loading spinner
 
+    //Fetching and saving note in db
+    await orderNoteController.fetchDetailsFromDb();
+    await orderNoteController.fetchOrderNotesFromApi();
   }
 
   Future<void> loadAllTerms() async {
     print("Loading all terms...");
 
+    await allTermsController.fetchStatusList();
+    await allTermsController.fetchAndStoreOrderTypes();
     await allTermsController.displayLoginResponseData();
     Database db = await DatabaseHelper().database;
     await allTermsController.GetAllPartTypes();
-    await allTermsController.fetchAndStoreOrderTypes(db);
-    await allTermsController.fetchStatusList();
+
     await allTermsController.fetchAndStoreGTypes(db);
     await allTermsController.GetAllTerms();
 
     await AllTerms.getTerm();
     await getOrderPart.fetchOrderData();
-
-    await controller.fetchDetailsfromDb();
-    await controller.fetchOrderNotesFromApi();
   }
 
   Future<void> fetchEvents() async {
-    List<TokenApiReponse> dataList = await ApiDataTable.fetchData();
-    List<LoginResponse> loginDataList =
-        await LoginResponseTable.fetchLoginResponses();
-    for (var data in dataList) {
-      token = data.token;
-      rid = data.requestId;
-      geo = data.geoLocation;
-    }
-
-    for (var data in loginDataList) {
-      webUrl = data.url;
-      nspace = data.nsp;
-    }
-    token = token.trim();
-
     DateTime currentDate = DateTime.now();
     DateTime secondDate = currentDate.add(Duration(days: daysToAdd));
     String formattedCurrentDate = DateFormat('yyyy-MM-dd').format(currentDate);
@@ -94,7 +82,7 @@ class EventController extends GetxController {
 
     isLoading(true);
     var url =
-        'https://$baseUrl/mobi?token=$token&nspace=$nspace&geo=$geo&rid=$rid&action=getorders&tz=Asia/Kolkata&from=$formattedCurrentDate&to=$formattedSecondDate';
+        'https://$baseUrl/mobi?token=$token&nspace=$nsp&geo=$geo&rid=$rid&action=getorders&tz=Asia/Kolkata&from=$formattedCurrentDate&to=$formattedSecondDate';
 
     print("Fetching events from URL: $url");
 
@@ -201,15 +189,17 @@ class EventController extends GetxController {
       print("Loaded ${localEvents.length} events from database");
 
       for (var data in localEvents) {
-        pid = data.pid;
-        print("pid ${data.pid}");
-        print("pid ${pid}");
+        wkf = data.wkf;
+        tid = data.tid;
       }
 
-      List<String> names = await StatusTable.fetchNamesById(pid);
+      String? name = await StatusTable.fetchNameById(wkf);
+      String? category =
+          await OrderTypeDataTable.gettingCategoryThroughTid(tid);
+      currentStatus.value = name!;
+      categoryName.value = category!;
 
-      print("name is $names");
-
+      print("category  $category");
     } catch (e) {
       print("Error loading events from database: $e");
     } finally {
@@ -372,6 +362,8 @@ class Event {
       znid: map['znid'] ?? '',
     );
   }
+
+  get startTime => null;
 }
 
 extension EventJson on Event {
