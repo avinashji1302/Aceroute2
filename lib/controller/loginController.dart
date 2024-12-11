@@ -99,9 +99,6 @@ class LoginController extends GetxController {
     final url = jsonResponse['url'];
     final subKey = jsonResponse['subkey'];
 
-    // // Save `nsp` to SharedPreferences
-    // SharedPreferences prefs = await SharedPreferences.getInstance();
-    // await prefs.setString('nsp', nsp);
 
     // Store in database
     LoginResponse loginResponse =
@@ -124,7 +121,6 @@ class LoginController extends GetxController {
   }
 
   Future<void> _fetchUserData(BuildContext context, String baseUrl , String nsp) async {
-    final prefs = await SharedPreferences.getInstance();
     try {
       final String fetchUrl =
           'https://$baseUrl/mobi?&geo=0.0,0.0&os=2&pcode=${password.value}&nspace=${accountName}&action=mlogin&rid=${workerId.value}&cts=1728382466217';
@@ -140,12 +136,6 @@ class LoginController extends GetxController {
         print(
             'Converted JSON Response ${jsonResponse['rid']}: ${jsonEncode(jsonResponse)}   ');
 
-        // Store in SharedPreferences or database as needed
-
-        // await prefs.setString("token", token);
-        // await prefs.setString("rid", jsonResponse['rid']);
-        // await prefs.setString("responderName", jsonResponse['resnm']);
-        // await prefs.setString("geoLocation", jsonResponse['geo']);
 
         // Parse response into ApiResponse model and store in database
         TokenApiReponse apiResponse = TokenApiReponse(
@@ -315,12 +305,4 @@ class LoginController extends GetxController {
     }
   }
 
-  Future<void> displayDataFromDb() async {
-    List<TokenApiReponse> dataList = await ApiDataTable.fetchData();
-
-    for (var data in dataList) {
-      print('Responder Name:  ${data.responderName}');
-      print('GeoLocation: ${data.geoLocation}');
-    }
-  }
 }

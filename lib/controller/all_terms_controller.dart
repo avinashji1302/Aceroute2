@@ -16,7 +16,7 @@ import 'package:sqflite/sqflite.dart';
 import 'package:xml/xml.dart' as xml;
 import 'package:xml/xml.dart';
 import '../core/colors/Constants.dart';
-import '../database/Tables/GTypeTable.dart';
+import '../database/Tables/genTypeTable.dart';
 import '../database/Tables/PartTypeDataTable.dart';
 import '../database/Tables/api_data_table.dart';
 import '../database/Tables/status_table.dart';
@@ -120,118 +120,93 @@ class AllTermsController {
 
   /// getparttype API to save the data ----------------------------
 
-  Future<void> GetAllPartTypes() async {
-   /* final prefs = await SharedPreferences.getInstance();
-    final String token = prefs.getString("token") ?? '';
-    final String rid = prefs.getString("rid") ?? '';
-    final String nsp = prefs.getString("nsp") ?? '';*/
+   Future<void> GetAllPartTypes() async {
+     final requestUrl =
+         "https://$baseUrl/mobi?token=$token&nspace=$nsp&geo=<lat,lon>&rid=$rid&action=getparttype";
+     final response = await http.get(Uri.parse(requestUrl));
 
-    final requestUrl =
-        "https://$baseUrl/mobi?token=$token&nspace=$nsp&geo=<lat,lon>&rid=$rid&action=getparttype";
-    final response = await http.get(Uri.parse(requestUrl));
+     if (response.statusCode == 200) {
+       print("Step 4 call 2 Default Part Type : get term URL: $requestUrl");
+       final xmlResponse = XmlDocument.parse(response.body);
 
-    if (response.statusCode == 200) {
-      print(" Step 4 call 2 Default Part Type : get term URL: $requestUrl");
-      final xmlResponse = XmlDocument.parse(response.body);
+       final partTypesList = xmlResponse.findAllElements('ptype').map((element) {
+         try {
+           return PartTypeDataModel(
+             id: element.findElements('id').single.text,
+             name: element.findElements('nm').single.text,
+             detail: element.findElements('dtl').single.text,
+             unitPrice: element.findElements('upr').single.text,
+             unit: element.findElements('unt').single.text,
+             updatedBy: element.findElements('by').single.text,
+             updatedDate: element.findElements('upd').single.text,
+           );
+         } catch (e) {
+           print("Error parsing element: $e");
+           return null;
+         }
+       }).whereType<PartTypeDataModel>().toList();
 
-      // Parse each <ptype> element and create PartTypeDataModel instances
-      final partTypesList = xmlResponse.findAllElements('ptype').map((element) {
-        return PartTypeDataModel(
-          id: element.findElements('id').single.text,
-          name: element.findElements('nm').single.text,
-          detail: element.findElements('dtl').single.text,
-          unitPrice: element.findElements('upr').single.text,
-          unit: element.findElements('unt').single.text,
-          updatedBy: element.findElements('by').single.text,
-          updatedDate: element.findElements('upd').single.text,
-        );
-      }).toList();
+       print("Number of part types found: ${partTypesList.length}");
 
-      // Convert the list of PartTypeDataModel instances to a JSON string
-      final jsonString =
-          jsonEncode(partTypesList.map((pt) => pt.toJson()).toList());
+       for (var partType in partTypesList) {
+         await PartTypeDataTable.insertPartTypeData(partType);
+       }
 
-      // Print JSON string to console
-      print("Converted JSON:\n$jsonString");
+       print('Successfully added part type data to the database');
+     } else {
+       print("Failed to load parttype data: ${response.reasonPhrase}");
+     }
+   }
 
-      // Saving each PartTypeDataModel instance in the database
-      for (var partType in partTypesList) {
-        await PartTypeDataTable.insertPartTypeData(partType);
-      }
-
-      print('Successfully added part type data to the database');
-    } else {
-      print("Failed to load parttype data: ${response.reasonPhrase}");
-    }
-  }
 
   /// getStoreOrderTypes API to save the data ----------------------------
 
-  Future<void> fetchAndStoreOrderTypes() async {
+   Future<void> fetchAndStoreOrderTypes() async {
+     try {
+       final requestUrl = 'https://$baseUrl/mobi?token=$token&nspace=$nsp&geo=<lat,lon>&rid=$rid&action=getordertype';
+       final request = http.Request('GET', Uri.parse(requestUrl));
+       final response = await request.send();
+
+       if (response.statusCode == 200) {
+         final responseBody = await response.stream.bytesToString();
+         final document = xml.XmlDocument.parse(responseBody);
+         final otypes = document.findAllElements('otype');
+
+         List<Map<String, dynamic>> orderTypesList = [];
+         for (var otype in otypes) {
+           var orderTypeMap = {
+             "id": otype.findElements('id').single.text,
+             "name": otype.findElements('nm').single.text,
+             "abbreviation": otype.findElements('abr').single.text,
+             "duration": otype.findElements('dur').single.text,
+             "capacity": otype.findElements('cap').single.text,
+             "parentId": otype.findElements('pid').single.text,
+             "customTimeSlot": otype.findElements('ctmslot').single.text,
+             "elapseTimeSlot": otype.findElements('eltmslot').single.text,
+             "value": otype.findElements('val').single.text,
+             "externalId": otype.findElements('xid').isNotEmpty ? otype.findElements('xid').single.text : '',
+             "updateTimestamp": otype.findElements('upd').single.text,
+             "updatedBy": otype.findElements('by').single.text,
+           };
+
+           orderTypesList.add(orderTypeMap);
+
+           // Insert into database
+           await OrderTypeDataTable.insertOrderTypeData(OrderTypeModel.fromMap(orderTypeMap));
+         }
+
+         print("Order types stored successfully.");
+       } else {
+         print('Request failed with status: ${response.reasonPhrase}');
+       }
+     } catch (e) {
+       print("Error in fetchAndStoreOrderTypes: $e");
+     }
+   }
 
 
-    final requestUrl = 'https://$baseUrl/mobi?token=$token&nspace=$nsp&geo=<lat,lon>&rid=$rid&action=getordertype';
-    var request = http.Request(
-      'GET',
-      Uri.parse(
-          requestUrl
-      ),
-    );
 
-    http.StreamedResponse response = await request.send();
-
-    if (response.statusCode == 200) {
-      String responseBody = await response.stream.bytesToString();
-      print(" Step 4 call 4  Get Order Type :  URL: $requestUrl");
-      // Parse the XML response
-      var document = xml.XmlDocument.parse(responseBody);
-      var otypes = document.findAllElements('otype');
-
-      print("Document order type : $document");
-      print("Document order otypes : $otypes");
-
-      // List to hold JSON representations of each order type
-      List<Map<String, dynamic>> orderTypesList = [];
-
-      for (var otype in otypes) {
-        // Create a map for each otype and add to the list
-        var orderTypeMap = {
-          "id": otype.findElements('id').single.text,
-          "name": otype.findElements('nm').single.text,
-          "abbreviation": otype.findElements('abr').single.text,
-          "duration": int.parse(otype.findElements('dur').single.text),
-          "capacity": int.parse(otype.findElements('cap').single.text),
-          "parentId": int.parse(otype.findElements('pid').single.text),
-          "customTimeSlot":
-              int.parse(otype.findElements('ctmslot').single.text),
-          "elapseTimeSlot": otype.findElements('eltmslot').single.text,
-          "value": double.parse(otype.findElements('val').single.text),
-          "externalId": otype.findElements('xid').isNotEmpty
-              ? otype.findElements('xid').single.text
-              : '',
-          "updateTimestamp": otype.findElements('upd').single.text,
-          "updatedBy": otype.findElements('by').single.text,
-        };
-
-        orderTypesList.add(orderTypeMap);
-
-        // Insert into database
-        var orderType = OrderTypeModel.fromMap(orderTypeMap);
-        await OrderTypeDataTable.insertOrderTypeData( orderType);
-      }
-
-      // Convert list of order types to JSON and print
-      final jsonString = jsonEncode(orderTypesList);
-      print("Converted JSON:\n$jsonString");
-
-      print(' Order type Data inserted successfully');
-    } else {
-      print('Request failed with status: ${response.reasonPhrase}');
-    }
-  }
-
-
-  //--------------status type--------------
+   //--------------status type--------------
   Future<void> fetchStatusList() async {
 
     final String url =
@@ -281,43 +256,61 @@ class AllTermsController {
       var document = xml.XmlDocument.parse(responseBody);
       var gtypes = document.findAllElements('gtype');
 
+      print("document of g type :$document");
       // Convert XML to JSON
       List<Map<String, dynamic>> gtypesList = [];
 
       for (var gtype in gtypes) {
-        var gTypeMap = {
-          'id': gtype.findElements('id').single.text,
-          'name': gtype.findElements('nm').single.text,
-          'typeId': gtype.findElements('tid').single.text,
-          'capacity': gtype.findElements('cap').single.text,
-          'details': gtype.findElements('dtl').single.text,
-          'externalId': gtype.findElements('xid').single.text,
-          'updateTimestamp': gtype.findElements('upd').single.text,
-          'updatedBy': gtype.findElements('by').single.text,
-        };
+        try {
+          var dtlElement = gtype.findElements('dtl').single;
+          var details = dtlElement.children.isNotEmpty
+              ? dtlElement.children.first.value?.trim()
+              : '';
 
-        // Add the map to the list
-        gtypesList.add(gTypeMap);
+          var gTypeMap = {
+            'id': gtype.findElements('id').single.text.trim(),
+            'name': gtype.findElements('nm').single.text.trim(),
+            'typeId': gtype.findElements('tid').single.text.trim(),
+            'capacity': gtype.findElements('cap').single.text.trim(),
+            'details': details,
+            'externalId': gtype.findElements('xid').isEmpty
+                ? ''
+                : gtype.findElements('xid').single.text.trim(),
+            'updateTimestamp':
+            gtype.findElements('upd').single.text.trim(),
+            'updatedBy': gtype.findElements('by').single.text.trim(),
+          };
+
+          print("Parsed gtype: $gTypeMap");
+          gtypesList.add(gTypeMap);
+        } catch (e) {
+          print("Error parsing gtype: $e");
+        }
       }
 
-      // Convert the list of maps (gtypesList) to JSON
-      String jsonString = jsonEncode(gtypesList);
 
-      // Print the JSON string
-      print("Converted JSON:\n$jsonString");
+      // // Convert the list of maps (gtypesList) to JSON
+      // String jsonString = jsonEncode(gtypesList);
+      //
+      // // Print the JSON string
+      // print("Converted JSON:\n$jsonString");
 
       // Clear existing data
-      await GTypeTable.clearTable(db);
+    //  await GTypeTable.clearTable();
 
+     // saveGTypesToDatabase(gtypesList);
       // Save each gtype entry to the table
       for (var gTypeMap in gtypesList) {
+        print("G type data here ::: $gTypeMap");
         var gTypeModel = GTypeModel.fromJson(gTypeMap);
-        await GTypeTable.insertGType(db, gTypeModel);
+        await GTypeTable.insertGType( gTypeModel);
       }
 
       print('GType data inserted successfully');
     } else {
-      print('Request failed with status: ${response.reasonPhrase}');
+      print("Failed to fetch data. HTTP Status Code: ${response.statusCode}");
+      String errorResponse = await response.stream.bytesToString();
+      print("Error Response Body: $errorResponse");
     }
   }
 
@@ -348,3 +341,26 @@ List<Map<String, dynamic>> parseStatusListToJson(String xmlString) {
   final statusElements = document.findAllElements('stat');
   return statusElements.map((element) => Status.fromXmlElement(element).toJson()).toList();
 }
+
+
+void saveGTypesToDatabase(List<Map<String, dynamic>> gtypesList) async {
+  try {
+    // Convert list to JSON (optional debugging step)
+    String jsonString = jsonEncode(gtypesList);
+    print("Converted JSON:\n$jsonString");
+
+    // Clear existing data
+    await GTypeTable.clearGTypes();
+
+    // Insert each GType
+    for (var gTypeMap in gtypesList) {
+      var gTypeModel = GTypeModel.fromJson(gTypeMap);
+      await GTypeTable.insertGType(gTypeModel);
+    }
+
+    print('All GType data inserted successfully');
+  } catch (e) {
+    print('Error saving GTypes: $e');
+  }
+}
+

@@ -10,13 +10,14 @@ import '../controller/fontSizeController.dart';
 
 class DirectoryDetails extends StatelessWidget {
   final String id;
-  const DirectoryDetails({super.key, required this.id});
+  final String ctid;
+  const DirectoryDetails({super.key, required this.id, required this.ctid});
 
   @override
   Widget build(BuildContext context) {
     final fontSizeController = Get.find<FontSizeController>();
     // Initialize controller immediately
-    final DirectoryController directoryController = Get.put(DirectoryController(id));
+    final DirectoryController directoryController = Get.put(DirectoryController(id , ctid));
 
     return Scaffold(
         appBar: AppBar(
@@ -58,26 +59,28 @@ class DirectoryDetails extends StatelessWidget {
                             size: 35,
                           ),
                         ),
-                        Column(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              directoryController.address.value,
-                              softWrap: true,
-                              style: TextStyle(
-                                  color: Colors.black,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: fontSizeController.fontSize),
-                            ),
-                            Text(
-                              directoryController.address.value,
-                              softWrap: true,
-                              style: TextStyle(
-                                  color: Colors.green[500],
-                                  fontSize: fontSizeController.fontSize),
-                            ),
-                          ],
+                        Expanded(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                directoryController.address.value,
+                                softWrap: true,
+                                style: TextStyle(
+                                    color: Colors.black,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: fontSizeController.fontSize),
+                              ),
+                              Text(
+                                directoryController.address.value,
+                                softWrap: true,
+                                style: TextStyle(
+                                    color: Colors.green[500],
+                                    fontSize: fontSizeController.fontSize),
+                              ),
+                            ],
+                          ),
                         )
                       ],
                     ),
@@ -134,46 +137,7 @@ class DirectoryDetails extends StatelessWidget {
                 SizedBox(
                   height: 10,
                 ),
-                Container(
-                  color: const Color.fromARGB(255, 242, 255, 243),
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.only(right: 10),
-                          child: Icon(
-                            Icons.location_on_rounded,
-                            color: MyColors.blueColor,
-                            size: 35,
-                          ),
-                        ),
-                        Column(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              ' Danville Oak Place , Danville CA',
-                              softWrap: true,
-                              style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: fontSizeController.fontSize),
-                            ),
-                            Text(
-                              ' Danville Oak Place , Danville CA',
-                              softWrap: true,
-                              style: TextStyle(
-                                  color: Colors.green[500],
-                                  fontSize: fontSizeController.fontSize),
-                            ),
-                          ],
-                        )
-                      ],
-                    ),
-                  ),
-                ),
+           
                 SizedBox(
                   height: 10,
                 ),
@@ -194,9 +158,18 @@ class DirectoryDetails extends StatelessWidget {
                         Column(
                           children: [
                             Text(
-                              directoryController.ctpnm.value,
+                              directoryController.directoryName.value,
                               softWrap: true,
                               style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: fontSizeController.fontSize),
+                            ),
+
+                            Text(
+                              directoryController.capacity.value,
+                              softWrap: true,
+                              style: TextStyle(
+                                  color: Colors.green[500],
                                   fontWeight: FontWeight.bold,
                                   fontSize: fontSizeController.fontSize),
                             ),

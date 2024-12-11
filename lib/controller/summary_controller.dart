@@ -14,7 +14,7 @@ class SummaryController extends GetxController {
 
   final String id; // Add an id parameter
 
-  SummaryController(  this.id); // Constructor to accept id
+  SummaryController(this.id); // Constructor to accept id
 
   void onInit() {
     super.onInit();
@@ -24,18 +24,22 @@ class SummaryController extends GetxController {
   }
 
   Future<void> fetchSummaryDetails() async {
+    //this data is coming from event database
     Event? localEvent = await EventTable.fetchEventById(id);
 
     if (localEvent != null) {
       eventId.value = localEvent.id ?? '';
       nm.value = localEvent.name ?? '';
-      startTime.value = localEvent.startTime ?? ''; // Assuming startTime exists in Event model
-      startDate.value = localEvent.startDate ?? ''; // Assuming startDate exists in Event model
+      startTime.value = localEvent.startTime ??
+          ''; // Assuming startTime exists in Event model
+      startDate.value = localEvent.startDate ??
+          ''; // Assuming startDate exists in Event model
 
       // Format startDate using the formatEventDate method
       startDate.value = formatEventDate(startDate.value);
 
-      duration.value = localEvent.dur ?? ''; // Assuming duration exists in Event model
+      duration.value =
+          localEvent.dur ?? ''; // Assuming duration exists in Event model
     } else {
       print("No event found for the given ID");
     }
@@ -59,7 +63,7 @@ class SummaryController extends GetxController {
 
       // Format local time (e.g., "1:30 PM")
       String localTime = DateFormat.jm().format(date.toLocal());
-      startTime.value=localTime;
+      startTime.value = localTime;
       return "$formattedDate";
     } catch (e) {
       return "Invalid date";

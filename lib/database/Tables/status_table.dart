@@ -58,29 +58,24 @@ class StatusTable {
   }
 
   // Fetch a single name status by ID
-  static Future<String?> fetchNameById(String id) async {
-    final db = await DatabaseHelper().database;
-
+  static Future<Map<String, String?>> fetchNamesByIds(List<String> wkfIds) async {
+    Map<String, String?> resultMap = {};
     try {
-      // Query the statuses table for the given id
-      final List<Map<String, dynamic>> maps = await db.query(
-        tableName,
-        columns: ['name'], // Fetch only the 'name' column
-        where: 'id = ?', // Condition to match the ID
-        whereArgs: [id], // Pass the ID as an argument
-      );
-
-      // Return the name if it exists
-      if (maps.isNotEmpty) {
-        print("Fetched name for id $id: ${maps.first['name']}");
-        return maps.first['name'] as String?;
-      } else {
-        print("No name found for id $id");
-        return null; // ID does not exist
+      Database db = await DatabaseHelper().database;
+      for (String id in wkfIds) {
+        print("id $id wkf");
+        List<Map<String, dynamic>> results = await db.query(
+          tableName,
+          where: 'id = ?',
+          whereArgs: [id],
+        );
+        resultMap[id] = results.isNotEmpty ? results.first['name'] as String : null;
       }
     } catch (e) {
-      print("Error fetching name for id $id: $e");
-      return null;
+      print("Error fetching names: $e");
     }
+    return resultMap;
   }
+
+
 }

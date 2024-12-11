@@ -1,13 +1,13 @@
-class OrderData {
+class OrderParts {
   final String id;
   final String oid;
   final String tid;
   final String sku;
-  final int qty;
+  final String qty;
   final String upd;
   final String by;
 
-  OrderData({
+  OrderParts({
     required this.id,
     required this.oid,
     required this.tid,
@@ -17,7 +17,7 @@ class OrderData {
     required this.by,
   });
 
-  // Convert an OrderData object to a map for database storage
+  // Convert an OrderParts object to a map for database storage
   Map<String, dynamic> toMap() {
     return {
       'id': id,
@@ -30,9 +30,9 @@ class OrderData {
     };
   }
 
-  // Create an OrderData object from a map
-  static OrderData fromMap(Map<String, dynamic> map) {
-    return OrderData(
+  // Create an OrderParts object from a map
+  static OrderParts fromMap(Map<String, dynamic> map) {
+    return OrderParts(
       id: map['id'],
       oid: map['oid'],
       tid: map['tid'],
@@ -42,7 +42,7 @@ class OrderData {
       by: map['by'],
     );
   }
-  // Convert OrderData object to JSON-serializable map
+  // Convert OrderParts object to JSON-serializable map
   Map<String, dynamic> toJson() {
     return {
       'id': id,

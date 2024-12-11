@@ -7,21 +7,22 @@ class OrderTypeDataTable {
   static const String tableName = 'order_types';
 
   // Create the table
+  // Create the table
   static Future<void> onCreate(Database db) async {
     await db.execute('''
       CREATE TABLE $tableName (
-        id TEXT PRIMARY KEY,
-        nm TEXT,
-        abr TEXT,
-        dur INTEGER,
-        cap INTEGER,
-        pid INTEGER,
-        ctmslot INTEGER,
-        eltmslot TEXT,
-        val REAL,
-        xid TEXT,
-        upd TEXT,
-        by TEXT
+       id TEXT PRIMARY KEY,
+      name TEXT,
+      abbreviation TEXT,
+      duration TEXT,
+      capacity TEXT,
+      parentId TEXT,
+      customTimeSlot TEXT,
+      elapseTimeSlot TEXT,
+      value TEXT,
+      externalId TEXT,
+      updateTimestamp TEXT,
+      updatedBy TEXT
       )
     ''');
   }
@@ -45,33 +46,40 @@ class OrderTypeDataTable {
   }
 
 
-  //Getting Category name
+ // Getting Category name
 
-  static Future<String?> gettingCategoryThroughTid(String tid) async {
-    final db = await DatabaseHelper().database;
-
+  static Future<Map<String, String?>> fetchCategoriesByIds(List<String> tidIds) async {
+    Map<String, String?> resultMap = {};
     try {
-      // Query the statuses table for the given id
-      final List<Map<String, dynamic>> maps = await db.query(
-        tableName,
-        columns: ['nm'], // Fetch only the 'name' column
-        where: 'id = ?', // Condition to match the ID
-        whereArgs: [tid], // Pass the ID as an argument
-      );
+      Database db = await DatabaseHelper().database;
+      for (String id in tidIds) {
+        print("tid search $id");
 
-      // Return the name if it exists
-      if (maps.isNotEmpty) {
-        print("Fetched name for tid $tid: ${maps.first['nm']}");
-        return maps.first['nm'] as String?;
-      } else {
-        print("No name found for pid $tid");
-        return null; // ID does not exist
+        // Query for the id
+        List<Map<String, dynamic>> results = await db.query(
+          tableName,
+          where: 'id = ? COLLATE NOCASE',  // Use NOCASE for case-insensitive search
+          whereArgs: [id],
+        );
+
+        // Debug logs
+        print("Query result for $id: $results");
+
+        // Assign the value to the result map
+        resultMap[id] = results.isNotEmpty ? (results.first['name'] ?? '') : null;
       }
     } catch (e) {
-      print("Error fetching name for id $tid: $e");
-      return null;
+      print("Error fetching categories: $e");
     }
+    return resultMap;
   }
+
+
+
+  //Fetch the id of the table
+
+
+
 
 
   // Clear all data

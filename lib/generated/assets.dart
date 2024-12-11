@@ -39,7 +39,7 @@ class Assets {
   static const String modelTermsModel = 'lib/model/terms_model.dart';
   static const String tablesApiDataTable = 'lib/database/Tables/api_data_table.dart';
   static const String tablesEventTable = 'lib/database/Tables/event_table.dart';
-  static const String tablesGTypeTable = 'lib/database/Tables/GTypeTable.dart';
+  static const String tablesGTypeTable = 'lib/database/Tables/genTypeTable.dart';
   static const String tablesLoginResponseTable = 'lib/database/Tables/login_response_table.dart';
   static const String tablesOrderTypeDataTable = 'lib/database/Tables/OrderTypeDataTable.dart';
   static const String tablesPartTypeDataTable = 'lib/database/Tables/PartTypeDataTable.dart';

@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 
 import '../controller/fontSizeController.dart';
+import '../controller/getOrderPart_controller.dart';
 import 'add_part.dart';
 
 class PartScreen extends StatefulWidget {
@@ -15,6 +16,7 @@ class PartScreen extends StatefulWidget {
 
 class _PartScreenState extends State<PartScreen> {
   final fontSizeController = Get.find<FontSizeController>();
+  final getOrderPart = Get.put(GetOrderPartController());
   @override
   Widget build(BuildContext context) {
     AllTerms.getTerm();
@@ -52,10 +54,10 @@ class _PartScreenState extends State<PartScreen> {
       body: Container(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
-          child: Container(
+          child: Obx(() => Container(
             height: 130,
             width: double.infinity,
-            child: Card(
+                child: Card(
               elevation: 4,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10),
@@ -65,63 +67,63 @@ class _PartScreenState extends State<PartScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        Text(
-                          'Category :',
-                          style: TextStyle(
-                              fontSize: fontSizeController.fontSize,
-                              fontWeight: FontWeight.bold),
-                        ),
-                        Text(
-                          'ABC',
-                          style: TextStyle(
-                            fontSize: fontSizeController.fontSize,
+                    Expanded(
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              softWrap: true,
+                              '${getOrderPart.name}',
+                              style: TextStyle(
+                                  fontSize: fontSizeController.fontSize,
+                                 ),
+                            ),
                           ),
-                        ),
-                      ],
+                      
+                        ],
+                      ),
                     ),
-                    SizedBox(height: 10),
-                    Row(
-                      children: [
-                        Text(
-                          'SKU :',
-                          style: TextStyle(
-                              fontSize: fontSizeController.fontSize,
-                              fontWeight: FontWeight.bold),
-                        ),
-                        Text(
-                          'GFF',
-                          style: TextStyle(
-                            fontSize: fontSizeController.fontSize,
+                    Expanded(
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              softWrap: true,
+                              '${getOrderPart.detail}',
+                              style: TextStyle(
+                                  fontSize: fontSizeController.fontSize,
+                                  fontWeight: FontWeight.bold),
+                            ),
                           ),
-                        ),
-                      ],
+
+                        ],
+                      ),
                     ),
-                    SizedBox(height: 10),
-                    Row(
-                      children: [
-                        Text(
-                          'Quantity :',
-                          style: TextStyle(
-                              fontSize: fontSizeController.fontSize,
-                              fontWeight: FontWeight.bold),
-                        ),
-                        Text(
-                          '10',
-                          style: TextStyle(
-                            fontSize: fontSizeController.fontSize,
+
+                    Expanded(
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              softWrap: true,
+                              '${getOrderPart.sku}',
+                              style: TextStyle(
+                                  fontSize: fontSizeController.fontSize,
+                                  ),
+                            ),
                           ),
-                        ),
-                      ],
+
+                        ],
+                      ),
                     ),
+
                   ],
                 ),
               ),
             ),
           ),
         ),
-      ),
+      ),)
     );
   }
 }

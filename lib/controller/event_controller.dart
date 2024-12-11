@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:ace_routes/controller/eform_controller.dart';
 import 'package:ace_routes/controller/getOrderPart_controller.dart';
 import 'package:ace_routes/core/Constants.dart';
 import 'package:ace_routes/database/Tables/OrderTypeDataTable.dart';
@@ -34,6 +35,10 @@ import 'package:intl/intl.dart';
 class EventController extends GetxController {
   final allTermsController = Get.put(AllTermsController());
   final getOrderPart = Get.put(GetOrderPartController());
+  final OrderNoteController orderNoteController =
+      Get.put(OrderNoteController());
+
+  final EFormController eForm = Get.put(EFormController());
 
   var events = <Event>[].obs;
   var isLoading = false.obs;
@@ -42,8 +47,9 @@ class EventController extends GetxController {
   int daysToAdd = 1;
   RxString currentStatus = "Loading...".obs; // Reactive variable
   RxString categoryName = "".obs;
-  final OrderNoteController orderNoteController =
-      Get.put(OrderNoteController());
+
+  var nameMap = <String, String?>{}.obs; // Observable map
+  var categoryMap = <String, String?>{}.obs; // Observable map
 
   @override
   void onInit() async {
@@ -56,6 +62,13 @@ class EventController extends GetxController {
     //Fetching and saving note in db
     await orderNoteController.fetchDetailsFromDb();
     await orderNoteController.fetchOrderNotesFromApi();
+    print("above part type::");
+    //Order Part
+    await getOrderPart.fetchOrderData();
+
+    //Gen Type for EForm data
+
+  //  await eForm.GetGenOrderDataForForm();
   }
 
   Future<void> loadAllTerms() async {
@@ -71,7 +84,6 @@ class EventController extends GetxController {
     await allTermsController.GetAllTerms();
 
     await AllTerms.getTerm();
-    await getOrderPart.fetchOrderData();
   }
 
   Future<void> fetchEvents() async {
@@ -96,6 +108,7 @@ class EventController extends GetxController {
 
         // Parse and store the events
         parseXmlResponse(xmlString);
+        await  loadEventsFromDatabase();
       } else {
         print("Error fetching events: ${response.reasonPhrase}");
       }
@@ -172,7 +185,7 @@ class EventController extends GetxController {
     print("Fetched and stored ${fetchedEvents.length} events");
     print(jsonEncode("${fetchedEvents[0]}"));
     print("${events}");
-    loadEventsFromDatabase();
+
   }
 
   String _getText(xml.XmlElement element, String tagName) {
@@ -188,18 +201,25 @@ class EventController extends GetxController {
       events.assignAll(localEvents);
       print("Loaded ${localEvents.length} events from database");
 
-      for (var data in localEvents) {
-        wkf = data.wkf;
-        tid = data.tid;
-      }
+      // Extract unique wkf and tid values
+      Set<String> wkfSet = localEvents.map((event) => event.wkf).toSet();
+      Set<String> tidSet = localEvents.map((event) => event.tid).toSet();
 
-      String? name = await StatusTable.fetchNameById(wkf);
-      String? category =
-          await OrderTypeDataTable.gettingCategoryThroughTid(tid);
-      currentStatus.value = name!;
-      categoryName.value = category!;
+      print("wkfset $wkfSet");
+      print("tidSer :$tidSet");
+      // Fetch all names and categories in batch
+      Map<String, String?> FetchedStatus =
+          await StatusTable.fetchNamesByIds(wkfSet.toList());
+      Map<String, String?> fetchedCategory =
+          await OrderTypeDataTable.fetchCategoriesByIds(tidSet.toList());
 
-      print("category  $category");
+      // Update status and categories dynamically
+      nameMap.value =await FetchedStatus;
+      categoryMap.value =await fetchedCategory;
+
+      // Log all data
+      print("Names: ${nameMap.value}");
+      print("Categories: ${categoryMap.value}");
     } catch (e) {
       print("Error loading events from database: $e");
     } finally {

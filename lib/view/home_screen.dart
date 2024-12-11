@@ -160,21 +160,21 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     AllTerms.getTerm();
     return Scaffold(
-      floatingActionButton: GestureDetector(
-          onTap: () {
-            ApiDataTable.clearData();
-            LoginResponseTable.clearLoginResponse();
-            VersionApiTable.clearVersionData();
-            EventTable.clearEvents();
-            TermsDataTable.clearTermsData();
-            PartTypeDataTable.clearPartTypeData();
-            OrderTypeDataTable.clearOrderTypeData();
-            print("API data deleted");
-          },
-          child: Obx(() => Text(
-                AllTerms.assetName.value,
-                style: TextStyle(fontSize: 30),
-              ))),
+      // floatingActionButton: GestureDetector(
+      //     onTap: () {
+      //       ApiDataTable.clearData();
+      //       LoginResponseTable.clearLoginResponse();
+      //       VersionApiTable.clearVersionData();
+      //       EventTable.clearEvents();
+      //       TermsDataTable.clearTermsData();
+      //       PartTypeDataTable.clearPartTypeData();
+      //       OrderTypeDataTable.clearOrderTypeData();
+      //       print("API data deleted");
+      //     },
+      //     child: Obx(() => Text(
+      //           AllTerms.assetName.value,
+      //           style: TextStyle(fontSize: 30),
+      //         ))),
       appBar: AppBar(
         title: Obx(() {
           return Column(
@@ -236,7 +236,13 @@ class _HomeScreenState extends State<HomeScreen> {
                 itemCount: eventController.events.length,
                 itemBuilder: (context, index) {
                   final event = eventController.events[index];
+                  final statusText =
+                      eventController.nameMap[event.wkf] ?? 'Unknown Status';
 
+                  print("status text $statusText");
+                  final categoryValue =
+                      eventController.categoryMap[event.tid] ?? 'Unknown Status';
+                  print("category value :::$categoryValue");
                   return Card(
                     elevation: 5,
                     margin: const EdgeInsets.all(8.0),
@@ -245,7 +251,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       children: [
                         GestureDetector(
                           onTap: () {
-                            Get.to(StatusScreen());
+                            Get.to(() => StatusScreen());
                           },
                           child: Container(
                             color: MyColors.blueColor,
@@ -253,9 +259,8 @@ class _HomeScreenState extends State<HomeScreen> {
                             width: double.infinity,
                             child: Center(
                               child: Obx(() => Text(
-                                    eventController
-                                            .currentStatus.value.isNotEmpty
-                                        ? eventController.currentStatus.value
+                                    eventController.nameMap.isNotEmpty
+                                        ? statusText
                                         : "No Name",
                                     style: TextStyle(
                                       color: Colors.white,
@@ -280,65 +285,92 @@ class _HomeScreenState extends State<HomeScreen> {
                                       color: MyColors.blueColor,
                                     ),
                                     onPressed: () {
-                                      Get.to(SummaryDetails(id: event.id));
+                                      Get.to(
+                                          () => SummaryDetails(id: event.id));
                                     },
                                   ),
                                   SizedBox(width: 10),
                                   Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Container(
-                                          width: 115,
-                                          height: 40,
-                                          decoration: BoxDecoration(
-                                            color: Colors.grey[500],
-                                            borderRadius:
-                                                BorderRadius.circular(10.0),
-                                          ),
-                                          child: Padding(
-                                            padding: const EdgeInsets.all(2.0),
-                                            child: Center(
-                                              child: Text(
-                                                formatEventDate(
-                                                    event.startDate),
-                                                style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize: fontSizeController
-                                                      .fontSize,
+                                    child: LayoutBuilder(
+                                      builder: (context, constraints) {
+                                        // Dynamically calculate values based on the available width
+                                        double responsiveFontSize =
+                                            constraints.maxWidth *
+                                                0.04; // 4% of width
+                                        double responsiveWidth =
+                                            constraints.maxWidth *
+                                                0.8; // 30% of width
+                                        double responsiveHeight =
+                                            constraints.maxWidth *
+                                                0.3; // 10% of width
+
+                                        return Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Container(
+                                              width:
+                                                  responsiveWidth, // Responsive width
+                                              height:
+                                                  responsiveHeight, // Responsive height
+                                              decoration: BoxDecoration(
+                                                color: Colors.grey[500],
+                                                borderRadius:
+                                                    BorderRadius.circular(10.0),
+                                              ),
+                                              child: Padding(
+                                                padding: EdgeInsets.all(
+                                                    responsiveFontSize *
+                                                        0.5), // Responsive padding
+                                                child: Center(
+                                                  child: Text(
+                                                    formatEventDate(
+                                                        event.startDate),
+                                                    style: TextStyle(
+                                                      color: Colors.white,
+                                                      fontSize: fontSizeController
+                                                          .fontSize, // Responsive font size
+                                                    ),
+                                                  ),
                                                 ),
                                               ),
                                             ),
-                                          ),
-                                        ),
-                                        SizedBox(height: 5.0),
-                                        Text(
-                                          event.name ?? "No name",
-                                          style: TextStyle(
-                                            fontSize:
-                                                fontSizeController.fontSize,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.black,
-                                          ),
-                                        ),
-
-                                        Obx(
-                                              () => Center(
-                                            child: Row(
-                                              children: [
-                                                Text("${eventController.categoryName.value} :",
-                                                style: TextStyle(
-                                                  fontSize:
-                                                  fontSizeController.fontSize,
-                                                 fontWeight: FontWeight.bold,
-                                                  color: Colors.grey,
-                                                ),)
-                                              ],
+                                            SizedBox(
+                                                height: constraints.maxWidth *
+                                                    0.02), // 2% of width as spacing
+                                            Text(
+                                              event.name ?? "No name",
+                                              style: TextStyle(
+                                                fontSize: fontSizeController
+                                                    .fontSize, // Responsive font size
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.black,
+                                              ),
                                             ),
-                                          ),
-                                        ),
-                                      ],
+                                            SizedBox(
+                                                height: constraints.maxWidth *
+                                                    0.01), // 1% of width as spacing
+                                            Obx(
+                                              () => Center(
+                                                child: Row(
+                                                  children: [
+                                                    Text(
+                                                      "${categoryValue} :",
+                                                      style: TextStyle(
+                                                        fontSize: fontSizeController
+                                                            .fontSize, // Responsive font size
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        color: Colors.grey,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        );
+                                      },
                                     ),
                                   ),
                                   SizedBox(width: 20),
@@ -373,7 +405,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                       color: MyColors.blueColor,
                                     ),
                                     onPressed: () {
-                                      Get.to(()=>DirectoryDetails( id: event.id,));
+                                      Get.to(() => DirectoryDetails(
+                                          id: event.id, ctid: event.ctid));
                                     },
                                   ),
                                   SizedBox(width: 10),
@@ -391,7 +424,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                             color: Colors.black,
                                           ),
                                         ),
-
                                         SizedBox(height: 5.0),
                                         Text(
                                           event.address ?? "No Alt",
@@ -451,7 +483,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                       color: MyColors.blueColor,
                                     ),
                                     onPressed: () {
-                                      Get.to(VehicleDetails(id: event.id,));
+                                      Get.to(() => VehicleDetails(
+                                            id: event.id,
+                                          ));
                                     },
                                   ),
                                   SizedBox(width: 10),
@@ -523,7 +557,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                       icon:
                                           Icon(Icons.person_2_sharp, size: 30),
                                       onPressed: () {
-                                        Get.to(EFormScreen());
+                                        Get.to(EFormScreen(tid: eventController.events[index].tid));
                                       },
                                     ),
                                     IconButton(
