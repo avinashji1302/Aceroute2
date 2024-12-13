@@ -42,7 +42,7 @@ class OrderNoteController extends GetxController {
         final dataElement = document.findAllElements('data').first.text.trim();
         final jsonResponse = jsonEncode( dataElement);
 
-        // print("Converted JSON: ${jsonResponse}");
+         print("Converted JSON: ${jsonResponse}");
 
         // Save to the local database
         final orderNote = OrderNoteModel(data: jsonResponse);
@@ -67,14 +67,6 @@ class OrderNoteController extends GetxController {
       oid = data.id;
       print("oid $oid");
     }
-
-     for (var data in tokenDbData) {
-       // token = data.token;
-    //   rid = data.requestId;
-    //   geo = data.geoLocation;
-    }
-
-
 
     print("data respectively : $oid , $token, $geo ,$rid");
   }

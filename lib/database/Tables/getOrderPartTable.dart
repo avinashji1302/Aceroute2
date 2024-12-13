@@ -1,7 +1,7 @@
 import 'package:ace_routes/database/databse_helper.dart';
 import 'package:sqflite/sqflite.dart';
 
-import '../../model/orderData_model.dart';
+import '../../model/orderPartsModel.dart';
 
 class GetOrderPartTable {
   static const String tableName = 'orderPart_data';
@@ -14,7 +14,7 @@ class GetOrderPartTable {
         oid TEXT,
         tid TEXT,
         sku TEXT,
-        qty INTEGER,
+        qty TEXT,
         upd TEXT,
         by TEXT
       )
@@ -22,7 +22,7 @@ class GetOrderPartTable {
   }
 
   // Insert data into the order_data table
-  static Future<void> insertData(Database db,OrderData orderData) async {
+  static Future<void> insertData(OrderParts orderData) async {
     final db = await DatabaseHelper().database;
     await db.insert(
       tableName,
@@ -32,10 +32,31 @@ class GetOrderPartTable {
   }
 
   // Fetch all data from the order_data table
-  static Future<List<OrderData>> fetchData() async {
+  static Future<List<OrderParts>> fetchData() async {
     final db = await DatabaseHelper().database;
     final List<Map<String, dynamic>> maps = await db.query(tableName);
-    return List.generate(maps.length, (i) => OrderData.fromMap(maps[i]));
+    return List.generate(maps.length, (i) => OrderParts.fromMap(maps[i]));
+  }
+
+
+
+// Fetch data by OID
+  static Future<OrderParts?> fetchDataById(String id) async {
+    final db = await DatabaseHelper().database;
+
+    // Query the database
+    final List<Map<String, dynamic>> maps = await db.query(
+      tableName,
+      where: 'oid = ?',
+      whereArgs: [id],
+    );
+
+    // Check if data exists
+    if (maps.isNotEmpty) {
+      return OrderParts.fromMap(maps.first);
+    } else {
+      return null; // Return null if no data found
+    }
   }
 
   // Clear all data from order_data table

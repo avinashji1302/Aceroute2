@@ -6,16 +6,16 @@ import 'package:image_picker/image_picker.dart';
 import '../controller/addBwForm_controller.dart';
 import '../model/GTypeModel.dart';
 
-class AddBwForm extends StatefulWidget {
+class OtherForm extends StatefulWidget {
   final GTypeModel gType;
 
-  const AddBwForm({Key? key, required this.gType}) : super(key: key);
+  const OtherForm({Key? key, required this.gType}) : super(key: key);
 
   @override
-  State<AddBwForm> createState() => _AddBwFormState();
+  State<OtherForm> createState() => _AddBwFormState();
 }
 
-class _AddBwFormState extends State<AddBwForm> {
+class _AddBwFormState extends State<OtherForm> {
   final controller = Get.put(AddBwFormController());
 
   @override
@@ -148,7 +148,7 @@ class _AddBwFormState extends State<AddBwForm> {
               style: const TextStyle(fontWeight: FontWeight.bold)),
           ...List.generate(options.length, (index) {
             return Obx(
-              () => CheckboxListTile(
+                  () => CheckboxListTile(
                 title: Text(
                   options[index],
                   style: TextStyle(
@@ -211,7 +211,7 @@ class _AddBwFormState extends State<AddBwForm> {
             );
           },
           child: Obx(
-            () => Container(
+                () => Container(
               height: 150,
               width: double.infinity,
               decoration: BoxDecoration(
@@ -220,13 +220,13 @@ class _AddBwFormState extends State<AddBwForm> {
               ),
               child: controller.selectedImage.value == null
                   ? const Center(
-                      child:
-                          Icon(Icons.camera_alt, size: 50, color: Colors.grey),
-                    )
+                child:
+                Icon(Icons.camera_alt, size: 50, color: Colors.grey),
+              )
                   : Image.file(
-                      File(controller.selectedImage.value!.path),
-                      fit: BoxFit.cover,
-                    ),
+                File(controller.selectedImage.value!.path),
+                fit: BoxFit.cover,
+              ),
             ),
           ),
         ),

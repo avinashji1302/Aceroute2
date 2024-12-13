@@ -28,12 +28,10 @@ class VehicleController extends GetxController {
 
       // Debugging fetched notes
       if (dbNote.isNotEmpty) {
-        print("First note: ${dbNote.first.data}");
-        // Split the note by '\n' and keep the new line formatting intact
-        String formattedNotes = dbNote.first.data.replaceAll('"\n"', '      ');
-
+        //this data is from Note DataTable
+        String formattedNotes =
+            dbNote.first.data.replaceAll("\\n", "\n").replaceAll('"', '');
         print("formated noted $formattedNotes");
-        // Assign the formatted notes value
         notes.value = formattedNotes;
       } else {
         print("No notes found in the database.");
@@ -42,6 +40,7 @@ class VehicleController extends GetxController {
 
       // Populate vehicle details
       if (localEvent != null) {
+        //this data is coming from event database
         vehicleDetail.value = localEvent.detail;
         registration.value = localEvent.po;
         odometer.value = localEvent.inv;

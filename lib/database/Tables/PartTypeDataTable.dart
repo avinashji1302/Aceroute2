@@ -30,7 +30,7 @@ class PartTypeDataTable {
   // Insert part type data into part_type table
   static Future<void> insertPartTypeData(PartTypeDataModel partTypeData) async {
     final db = await DatabaseHelper().database;
-    await clearPartTypeData(); // Clear existing data before inserting new one
+
     await db.insert(
       tableName,
       partTypeData.toJson(),
@@ -44,6 +44,32 @@ class PartTypeDataTable {
     final List<Map<String, dynamic>> maps = await db.query(tableName);
     return List.generate(maps.length, (i) => PartTypeDataModel.fromJson(maps[i]));
   }
+
+  //Fetch part type data on the basis of id
+
+  static Future<PartTypeDataModel?> fetchPartTypeById(String id) async {
+    final db = await DatabaseHelper().database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      tableName,
+      where: 'id = ?', // SQL WHERE clause
+      whereArgs: [id], // Arguments for the WHERE clause
+    );
+    print("success in getting $id");
+
+    // If data exists, return the first record as a GTypeModel object
+    if (maps.isNotEmpty) {
+      print("success in getting $id");
+      return PartTypeDataModel.fromJson(maps.first);
+    }else{
+      print("not availble");
+    }
+
+    // If no data found, return null
+    return null;
+  }
+
+
+  //
 
   // Clear all part type data from the part_type table
   static Future<void> clearPartTypeData() async {
