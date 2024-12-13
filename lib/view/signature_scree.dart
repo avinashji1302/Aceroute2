@@ -5,16 +5,24 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:syncfusion_flutter_signaturepad/signaturepad.dart';
 import 'dart:ui' as ui;
-import 'package:ace_routes/controller/signature_controller.dart'; // Ensure correct import
+import 'package:ace_routes/controller/signature_controller.dart';
+
+import '../controller/file_meta_controller.dart';
+
 
 class Signature extends StatelessWidget {
-  final SignatureController signatureController =
-      Get.put(SignatureController()); // Correct controller initialization
+
+  final SignatureController signatureController = Get.put(SignatureController()); // Correct controller initialization
   final RxInt currentBlock = 0.obs; // Track the current signature block
+  final FileMetaController fileMetaController = Get.put(FileMetaController());
+  final int eventId;
+
+  Signature({required this.eventId});
 
   @override
   Widget build(BuildContext context) {
     AllTerms.getTerm();
+    _fetchFileMeta(); // Fetch data when the screen loads
     return Scaffold(
       appBar: myAppBar(
           context: context,
@@ -70,7 +78,7 @@ class Signature extends StatelessWidget {
               Icons.edit,
               size: 30,
               color: (index == currentBlock.value &&
-                      signatureController.signatures.length <= index)
+                  signatureController.signatures.length <= index)
                   ? Colors.black
                   : Colors.transparent,
             );
@@ -81,7 +89,7 @@ class Signature extends StatelessWidget {
           // Wrap only the part that depends on observable
           return signatureController.signatures.length > index
               ? _buildSignatureDisplay(
-                  index, signatureController.signatures[index])
+              index, signatureController.signatures[index])
               : SizedBox.shrink();
         }),
         SizedBox(height: 5.0),
@@ -118,7 +126,7 @@ class Signature extends StatelessWidget {
             TextButton(
               onPressed: () async {
                 final signature =
-                    await _signaturePadKey.currentState?.toImage();
+                await _signaturePadKey.currentState?.toImage();
                 if (signature != null) {
                   signatureController.addSignature(signature);
                   currentBlock.value++; // Move to the next block
@@ -183,5 +191,11 @@ class Signature extends StatelessWidget {
         child: Text('Add Signature'),
       ),
     );
+  }
+
+  void _fetchFileMeta() async {
+    fileMetaController.isLoading.value = true;
+    await fileMetaController.fetchAndSaveFileMeta(eventId.toString());
+    fileMetaController.isLoading.value = false;
   }
 }

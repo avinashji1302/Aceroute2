@@ -64,7 +64,7 @@ class EventController extends GetxController {
     await orderNoteController.fetchOrderNotesFromApi();
     print("above part type::");
     //Order Part
-    await getOrderPart.fetchOrderData();
+  //  await getOrderPart.fetchOrderData();
 
     //Gen Type for EForm data
 

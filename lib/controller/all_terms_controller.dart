@@ -281,7 +281,7 @@ class AllTermsController {
             'updatedBy': gtype.findElements('by').single.text.trim(),
           };
 
-          print("Parsed gtype: $gTypeMap");
+        //  print("Parsed gtype: $gTypeMap");
           gtypesList.add(gTypeMap);
         } catch (e) {
           print("Error parsing gtype: $e");

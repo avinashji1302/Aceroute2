@@ -7,6 +7,7 @@ import '../model/OrderTypeModel.dart';
 
 class EFormController extends GetxController {
   // Use RxList to store the fetched data reactively
+  //Template Getting from Gen TypeFor to choose who is gonna fill the form and label all fields
   String capacity = "";
   var gTypeList = <GTypeModel>[].obs;
   Future<void> GetGenOrderDataForForm(String tid) async {

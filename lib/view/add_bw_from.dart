@@ -1,11 +1,9 @@
 import 'dart:io';
 
-import 'package:ace_routes/core/colors/Constants.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import '../controller/addBwForm_controller.dart';
-import '../controller/fontSizeController.dart';
 import '../model/GTypeModel.dart';
 
 class AddBwForm extends StatefulWidget {
@@ -34,7 +32,7 @@ class _AddBwFormState extends State<AddBwForm> {
           widget.gType.name,
           style: const TextStyle(color: Colors.white),
         ),
-        backgroundColor: MyColors.blueColor,
+        backgroundColor: Colors.blue,
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
@@ -42,54 +40,31 @@ class _AddBwFormState extends State<AddBwForm> {
         ),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(8.0),
         child: SingleChildScrollView(
           child: Column(
-            children: [
-              // Dynamically generate form fields
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: widget.gType.details['frm'].map<Widget>((item) {
-                  if (item['nm'] == 'tech') {
-                    return buildTextField(item);
-                  } else if (item['nm'] == 'payment') {
-                    return buildRadioOptions(item);
-                  } else if (item['nm'] == 'safety') {
-                    return buildImagePicker(item);
-                  } else if (item['nm'] == 'dpayment') {
-                    return buildMultiSelectOptions(item);
-                  } else {
-                    return Container();
-                  }
-                }).toList(),
-              ),
-
-              const SizedBox(height: 20),
-
-              // Submit Button
-              ElevatedButton(
-                onPressed: () {
-                  // Add submit logic here
-                  print("Submitted Values:");
-                  print(
-                      "Text: ${controller.textEditingControllers['tech']?.text}");
-                  print("Selected Radio: ${controller.selectedValue.value}");
-                  print("Selected Multi: ${controller.selectedValues}");
-                },
-                style: ElevatedButton.styleFrom(
-                  minimumSize: const Size(double.infinity, 50),
-                  backgroundColor: Colors.blue,
-                ),
-                child: const Text(
-                  'Submit',
-                  style: TextStyle(color: Colors.white),
-                ),
-              ),
-            ],
+            children: widget.gType.details['frm']
+                .map<Widget>((item) => buildFormField(item))
+                .toList(),
           ),
         ),
       ),
     );
+  }
+
+  Widget buildFormField(Map<String, dynamic> item) {
+    switch (item['id']) {
+      case 1: // For text fields
+        return buildTextField(item);
+      case 2: // For radio buttons
+        return buildRadioOptions(item);
+      case 3: // For image picker
+        return buildImagePicker(item);
+      case 4: // For multi-select options
+        return buildMultiSelectOptions(item);
+      default:
+        return Container(); // Empty container for unsupported IDs
+    }
   }
 
   // TextField for technician name
@@ -106,7 +81,6 @@ class _AddBwFormState extends State<AddBwForm> {
     );
   }
 
-  // Radio buttons for payment options
   Widget buildRadioOptions(Map<String, dynamic> item) {
     List<String> options = item['ddn'].split(',');
     List<String> values = item['ddnval'].split(',');
@@ -116,26 +90,51 @@ class _AddBwFormState extends State<AddBwForm> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(item['lbl'],
-              style: const TextStyle(fontWeight: FontWeight.bold)),
-          ...List.generate(options.length, (index) {
-            return Obx(
-              () => RadioListTile<String>(
-                title: Text(options[index]),
-                value: values[index],
-                groupValue: controller.selectedValue.value,
-                onChanged: (newValue) {
-                  controller.selectedValue.value = newValue!;
-                },
-              ),
-            );
-          }),
+          Text(item['lbl'], style: const TextStyle(fontWeight: FontWeight.bold)),
+          Column(
+            children: [
+              for (int i = 0; i < options.length; i += 2)
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+
+                    Expanded(
+                      child: Obx(
+                            () => RadioListTile<String>(
+                          title: Text(options[i]),
+                          value: values[i],
+                          groupValue: controller.selectedValue.value,
+                          onChanged: (newValue) {
+                            controller.selectedValue.value = newValue!;
+                          },
+                        ),
+                      ),
+                    ),
+                    if (i + 1 < options.length)
+                      Expanded(
+                        child: Obx(
+                              () => RadioListTile<String>(
+                            title: Text(options[i + 1]),
+                            value: values[i + 1],
+                            groupValue: controller.selectedValue.value,
+                            onChanged: (newValue) {
+                              controller.selectedValue.value = newValue!;
+                            },
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+            ],
+          ),
         ],
       ),
     );
   }
 
-  // Multi-select for payment options
+
+  // Multi-select for options
   Widget buildMultiSelectOptions(Map<String, dynamic> item) {
     List<String> options = item['ddn'].split(',');
     List<String> values = item['ddnval'].split(',');
@@ -174,7 +173,7 @@ class _AddBwFormState extends State<AddBwForm> {
     );
   }
 
-  // Image picker for safety
+  // Image picker for uploading an image
   Widget buildImagePicker(Map<String, dynamic> item) {
     return Column(
       children: [

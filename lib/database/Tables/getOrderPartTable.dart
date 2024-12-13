@@ -39,6 +39,26 @@ class GetOrderPartTable {
   }
 
 
+
+// Fetch data by OID
+  static Future<OrderParts?> fetchDataById(String id) async {
+    final db = await DatabaseHelper().database;
+
+    // Query the database
+    final List<Map<String, dynamic>> maps = await db.query(
+      tableName,
+      where: 'oid = ?',
+      whereArgs: [id],
+    );
+
+    // Check if data exists
+    if (maps.isNotEmpty) {
+      return OrderParts.fromMap(maps.first);
+    } else {
+      return null; // Return null if no data found
+    }
+  }
+
   // Clear all data from order_data table
   static Future<void> clearData() async {
     final db = await DatabaseHelper().database;

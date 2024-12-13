@@ -22,19 +22,11 @@ class GetOrderPartController extends GetxController {
   RxString detail = "".obs;
   RxString tidOP = "".obs;
 
-  Future<void> fetchOrderData() async {
+  Future<void> fetchOrderData(String oid) async {
+    print("inside fetch");
     try {
-      // Fetch the event from the EventTable
-      final List<Event> events = await EventTable.fetchEvents();
-      if (events.isEmpty) {
-        print('No events found.');
-        return;
-      }
-
-      final String eventId = events.first.id;
-      print('eventId: $eventId');
       final url =
-          'https://$baseUrl/mobi?token=$token&nspace=$nsp&geo=<lat,lon>&rid=$rid&action=getorderpart&oid=$eventId';
+          'https://$baseUrl/mobi?token=$token&nspace=$nsp&geo=<lat,lon>&rid=$rid&action=getorderpart&oid=$oid';
 
       final response = await http.get(Uri.parse(url));
       print('getorderpart API URL: $url');
@@ -95,26 +87,29 @@ class GetOrderPartController extends GetxController {
         print('Reason: ${response.reasonPhrase}');
       }
 
-      await GetOrderPartFromDb();
+      //   await GetOrderPartFromDb();
     } catch (e) {
       print('Error in fetchOrderData: $e');
     }
   }
 
-  Future<void> GetOrderPartFromDb() async {
+  //
+  Future<void> GetOrderPartFromDb(String oid) async {
+
+    print("isnide");
     try {
-      List<OrderParts> orderParts = await GetOrderPartTable.fetchData();
-      if (orderParts.isEmpty) {
-        print('No order parts found in DB.');
-        return;
+      //  getorderpart
+      OrderParts? orderParts = await GetOrderPartTable.fetchDataById(oid);
+      if (orderParts != null) {
+        sku.value = orderParts.sku;
+        quantity.value = orderParts.qty;
+        tidOP.value = orderParts.tid;
+      }
+      {
+        print('No GType found for tidOP: ${tidOP.value}');
       }
 
-      for (var data in orderParts) {
-        sku.value = data.sku;
-        quantity.value = data.qty;
-        tidOP.value = data.tid;
-      }
-
+      // Get Part Type
       PartTypeDataModel? fetchedPartType =
           await PartTypeDataTable.fetchPartTypeById(tidOP.value);
 

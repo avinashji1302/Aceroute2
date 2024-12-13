@@ -160,21 +160,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     AllTerms.getTerm();
     return Scaffold(
-      // floatingActionButton: GestureDetector(
-      //     onTap: () {
-      //       ApiDataTable.clearData();
-      //       LoginResponseTable.clearLoginResponse();
-      //       VersionApiTable.clearVersionData();
-      //       EventTable.clearEvents();
-      //       TermsDataTable.clearTermsData();
-      //       PartTypeDataTable.clearPartTypeData();
-      //       OrderTypeDataTable.clearOrderTypeData();
-      //       print("API data deleted");
-      //     },
-      //     child: Obx(() => Text(
-      //           AllTerms.assetName.value,
-      //           style: TextStyle(fontSize: 30),
-      //         ))),
+
       appBar: AppBar(
         title: Obx(() {
           return Column(
@@ -241,7 +227,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
                   print("status text $statusText");
                   final categoryValue =
-                      eventController.categoryMap[event.tid] ?? 'Unknown Status';
+                      eventController.categoryMap[event.tid] ??
+                          'Unknown Status';
                   print("category value :::$categoryValue");
                   return Card(
                     elevation: 5,
@@ -557,14 +544,16 @@ class _HomeScreenState extends State<HomeScreen> {
                                       icon:
                                           Icon(Icons.person_2_sharp, size: 30),
                                       onPressed: () {
-                                        Get.to(EFormScreen(tid: eventController.events[index].tid));
+                                        Get.to(EFormScreen(
+                                            tid: eventController
+                                                .events[index].tid));
                                       },
                                     ),
                                     IconButton(
                                       icon: Icon(Icons.tips_and_updates,
                                           size: 30),
                                       onPressed: () {
-                                        Get.to(PartScreen());
+                                        Get.to(PartScreen( oid: eventController.events[index].id,));
                                       },
                                     ),
                                     IconButton(
@@ -583,7 +572,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                     IconButton(
                                       icon: Icon(Icons.edit, size: 30),
                                       onPressed: () {
-                                        Get.to(Signature());
+                                        //fileMetaController.fetchAndSaveFileMeta();  // call the filemeta API data here
+                                        // Get.to(Signature());
+                                        Get.to(() => Signature(
+                                            eventId: int.parse(eventController
+                                                .events[index].id)));
                                       },
                                     ),
                                   ],

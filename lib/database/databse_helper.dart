@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'package:ace_routes/database/Tables/eform_data_table.dart';
+import 'package:ace_routes/database/Tables/file_meta_table.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -55,13 +57,22 @@ class DatabaseHelper {
       GTypeTable.onCreate(db),
       StatusTable.onCreate(db), // Create statuses table
       OrderNoteTable.onCreate(db),
-      GetOrderPartTable.onCreate(db)
+      GetOrderPartTable.onCreate(db),
+      EFormDataTable.onCreate(db),
+      FileMetaTable.onCreate(db)
     ]);
      print("All tables created successfully.");
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
     // print("Upgrading database...");
+    if (oldVersion < 11) {
+      await  FileMetaTable.onCreate(db);
+    }
+    if (oldVersion < 10) {
+      await EFormDataTable.onCreate(db);// Add OrderDataTable if upgrading
+    }
+
     if (oldVersion < 9) {
       await GetOrderPartTable.onCreate(db); // Add OrderDataTable if upgrading
     }

@@ -8,6 +8,7 @@ import 'package:get/get_core/src/get_main.dart';
 import '../controller/eform_controller.dart';
 import '../model/GTypeModel.dart';
 import 'add_bw_from.dart';
+import 'other_form.dart';
 
 class EformSelect extends StatelessWidget {
   EformSelect({super.key});
@@ -31,13 +32,15 @@ class EformSelect extends StatelessWidget {
                 child:
                     CircularProgressIndicator()); // Show loading while fetching data
           } else {
+            // Sort the list alphabetically by gType.name outside the builder
+            List<GTypeModel> sortedGTypes = List.from(controller.gTypeList)
+              ..sort((a, b) => a.name.compareTo(b.name));
+            print("sorde data here : ${controller.gTypeList}");
             return ListView.builder(
                 shrinkWrap: true,
-                itemCount: controller.gTypeList.length,
+                itemCount: sortedGTypes.length,
                 itemBuilder: (context, index) {
-                  GTypeModel gType = controller.gTypeList[index];
-
-                  // Check if gType.details is not empty
+                  GTypeModel gType = sortedGTypes[index]; // Use the sorted list
                   bool isDetailsNotEmpty = gType.details.isNotEmpty;
 
                   return Column(
@@ -50,11 +53,18 @@ class EformSelect extends StatelessWidget {
                                 'ListTile tapped: ${gType.name}'); // Debugging
                             Navigator.of(context).pop(); // Close the dialog
 
-                            // Navigate to the specific form based on the GType data
+
+                            // Redirect to specific forms based on gType.name
                             if (gType.name == 'BW Form') {
                               Get.to(AddBwForm(gType: gType));
                             } else if (gType.name == 'Voltage Form') {
-                              Get.to(VoltageForm());
+                              Get.to(VoltageForm(gType: gType));
+                            } else if (gType.name == 'Other Form') {
+                             // Get.to(OtherForm(gType: gType));
+                            } else {
+                              Get.to(
+                                  OtherForm(gType: gType));
+                              print('No form found for ${gType.name}');
                             }
                           },
                           title: Text(gType.name), // Display GType name
