@@ -2,14 +2,29 @@ import 'dart:io';
 import 'package:ace_routes/core/Constants.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../controller/file_meta_controller.dart';
 import '../controller/fontSizeController.dart';
 import '../controller/picUploadController.dart';
 
-class PicUploadScreen extends StatelessWidget {
-  PicUploadScreen({Key? key}) : super(key: key);
+class PicUploadScreen extends StatefulWidget {
+  final int eventId;
+  PicUploadScreen({required this.eventId});
 
+  @override
+  State<PicUploadScreen> createState() => _PicUploadScreenState();
+}
+
+class _PicUploadScreenState extends State<PicUploadScreen> {
   final PicUploadController controller = Get.put(PicUploadController());
+  final FileMetaController fileMetaController = Get.put(FileMetaController());
   final fontSizeController = Get.find<FontSizeController>();
+
+  @override
+  void initState() {
+    super.initState();
+
+    fileMetaController.fetchFileImageDataFromDatabase();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -38,6 +53,14 @@ class PicUploadScreen extends StatelessWidget {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
+            Obx(() {
+              if (fileMetaController.fileMetaData.isEmpty) {
+                return Center(child: Text('No file meta data available.'));
+              }
+              return _buildFileMetaDataList();
+            }),
+
+            SizedBox(height: 20),
             Expanded(
               child: Obx(() {
                 return GridView.builder(
@@ -75,7 +98,7 @@ class PicUploadScreen extends StatelessWidget {
                         },
                         child: Obx(() {
                           bool isSelected =
-                              controller.selectedIndices.contains(index);
+                          controller.selectedIndices.contains(index);
 
                           return Stack(
                             children: [
@@ -110,7 +133,7 @@ class PicUploadScreen extends StatelessWidget {
                                     child: CircleAvatar(
                                       radius: 15,
                                       backgroundColor:
-                                          Colors.red.withOpacity(0.7),
+                                      Colors.red.withOpacity(0.7),
                                       child: Icon(
                                         Icons.close,
                                         color: Colors.white,
@@ -133,6 +156,53 @@ class PicUploadScreen extends StatelessWidget {
       ),
     );
   }
+  // Build file meta data list
+  // Build file meta data list for images
+  Widget _buildFileMetaDataList() {
+    return ListView.builder(
+      shrinkWrap: true,
+      itemCount: fileMetaController.fileMetaData.length,
+      itemBuilder: (context, index) {
+        final fileMeta = fileMetaController.fileMetaData[index];
+        return _buildFileMetaBlock(context, index, fileMeta);
+      },
+    );
+  }
+
+  // Create the file metadata block (with the image name or icon)
+  Widget _buildFileMetaBlock(BuildContext context, int index, var fileMeta) {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Stack(
+        children: [
+          Container(
+            height: 100,
+            width: 150,
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.black),
+              borderRadius: BorderRadius.circular(8.0),
+            ),
+            child: Text(
+              fileMeta.fname ?? 'No Name',
+              style: TextStyle(fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+            ),
+          ),
+          Positioned(
+            top: 0,
+            right: 0,
+            child: IconButton(
+              icon: Icon(Icons.delete, color: Colors.red),
+              onPressed: () {
+                // fileMetaController.deleteFileMeta(index);
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
 }
 
 class FullScreenImageView extends StatelessWidget {

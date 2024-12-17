@@ -1,6 +1,8 @@
 import 'package:ace_routes/model/file_meta_model.dart';
 import 'package:sqflite/sqflite.dart';
 
+import '../databse_helper.dart';
+
 class FileMetaTable {
   static const String tableName = "file_meta";
 
@@ -46,4 +48,12 @@ class FileMetaTable {
     final List<Map<String, dynamic>> maps = await db.query(tableName);
     return maps.map((map) => FileMetaModel.fromJson(map)).toList();
   }
+
+  static Future<List<FileMetaModel>> getAllFileMeta() async {
+    final db = await DatabaseHelper().database;
+    final List<Map<String, dynamic>> maps = await db.query(tableName);
+    return maps.map((map) => FileMetaModel.fromJson(map)).toList();
+  }
+
+
 }

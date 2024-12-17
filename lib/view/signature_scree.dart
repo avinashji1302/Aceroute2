@@ -6,38 +6,54 @@ import 'package:get/get.dart';
 import 'package:syncfusion_flutter_signaturepad/signaturepad.dart';
 import 'dart:ui' as ui;
 import 'package:ace_routes/controller/signature_controller.dart';
-
 import '../controller/file_meta_controller.dart';
+import '../database/databse_helper.dart';
 
-
-class Signature extends StatelessWidget {
-
-  final SignatureController signatureController = Get.put(SignatureController()); // Correct controller initialization
-  final RxInt currentBlock = 0.obs; // Track the current signature block
-  final FileMetaController fileMetaController = Get.put(FileMetaController());
+class Signature extends StatefulWidget {
   final int eventId;
-
   Signature({required this.eventId});
+  @override
+  State<Signature> createState() => _SignatureState();
+}
+
+class _SignatureState extends State<Signature> {
+  final SignatureController signatureController = Get.put(SignatureController());
+  final FileMetaController fileMetaController = Get.put(FileMetaController());
+
+  final RxInt currentBlock = 0.obs;
+  @override
+  void initState() {
+    super.initState();
+    fileMetaController.fetchFileSignatureDataFromDatabase();
+  }
 
   @override
   Widget build(BuildContext context) {
-    AllTerms.getTerm();
-    _fetchFileMeta(); // Fetch data when the screen loads
     return Scaffold(
       appBar: myAppBar(
-          context: context,
-          titleText: AllTerms.signatureLabel,
-          backgroundColor: MyColors.blueColor),
+        context: context,
+        titleText: AllTerms.signatureLabel,
+        backgroundColor: MyColors.blueColor,
+      ),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Wrapping only the widget that will update
-              Obx(() => _buildSignatureGrid(context)),
+              // Display file meta data from the database
+              Obx(() {
+                if (fileMetaController.fileMetaData.isEmpty  && signatureController.signatures.isEmpty) {
+                  return Center(child: Text('No file meta data available.'));
+                }
+                return _buildFileMetaDataList();
+              }),
+
               SizedBox(height: 20),
-              _buildAddSignatureButton(context), // No need to wrap this in Obx
+              Obx(() => _buildSignatureGrid(context)),
+
+              SizedBox(height: 20),
+              _buildAddSignatureButton(context),
             ],
           ),
         ),
@@ -45,35 +61,37 @@ class Signature extends StatelessWidget {
     );
   }
 
-  // Build the signature grid using Wrap widget
+
+  // Build signature grid (already defined in your code)
   Widget _buildSignatureGrid(BuildContext context) {
-    // Wrap only the part that depends on the observable
-    if (signatureController.signatures.isEmpty) {
+    // Check if there are any signatures
+    if (fileMetaController.fileMetaData.isEmpty && signatureController.signatures.isEmpty) {
       return Center(
         child: Text('No signatures added yet.'),
       );
     }
 
-    // Use Wrap widget to show signatures in a row
+    // If there are signatures, build the signature grid
     return Wrap(
-      spacing: 16.0, // Horizontal space between items
-      runSpacing: 16.0, // Vertical space between rows
+      spacing: 16.0,
+      runSpacing: 16.0,
       children: List.generate(signatureController.signatures.length, (index) {
         return _buildSignatureBlock(context, index);
       }),
     );
   }
 
+
+  // Signature block UI (already defined in your code)
   Widget _buildSignatureBlock(BuildContext context, int index) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         GestureDetector(
           onTap: () {
-            _showSignatureDialog(context, index); // Open signature dialog
+            _showSignatureDialog(context, index);
           },
           child: Obx(() {
-            // Wrap only the Icon in Obx since it uses an observable
             return Icon(
               Icons.edit,
               size: 30,
@@ -86,7 +104,6 @@ class Signature extends StatelessWidget {
         ),
         SizedBox(height: 5.0),
         Obx(() {
-          // Wrap only the part that depends on observable
           return signatureController.signatures.length > index
               ? _buildSignatureDisplay(
               index, signatureController.signatures[index])
@@ -97,6 +114,7 @@ class Signature extends StatelessWidget {
     );
   }
 
+  // Signature dialog UI (already defined in your code)
   void _showSignatureDialog(BuildContext context, int index) {
     final _signaturePadKey = GlobalKey<SfSignaturePadState>();
 
@@ -125,8 +143,7 @@ class Signature extends StatelessWidget {
             ),
             TextButton(
               onPressed: () async {
-                final signature =
-                await _signaturePadKey.currentState?.toImage();
+                final signature = await _signaturePadKey.currentState?.toImage();
                 if (signature != null) {
                   signatureController.addSignature(signature);
                   currentBlock.value++; // Move to the next block
@@ -141,6 +158,56 @@ class Signature extends StatelessWidget {
     );
   }
 
+
+  // Build file meta data list
+  Widget _buildFileMetaDataList() {
+    return ListView.builder(
+      shrinkWrap: true,
+      itemCount: fileMetaController.fileMetaData.length,
+      itemBuilder: (context, index) {
+        final fileMeta = fileMetaController.fileMetaData[index];
+        return _buildFileMetaBlock(context, index, fileMeta);
+      },
+    );
+  }
+
+
+  // FileMeta display block UI (similar to _buildSignatureDisplay)
+  Widget _buildFileMetaBlock(BuildContext context, int index, var fileMeta) {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Stack(
+        children: [
+          Container(
+            height: 100,
+            width: 150,
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.black),
+              borderRadius: BorderRadius.circular(8.0),
+            ),
+            child: Text(
+              fileMeta.fname ?? 'No Name',
+              style: TextStyle(fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+            ),
+          ),
+          Positioned(
+            top: 0,
+            right: 0,
+            child: IconButton(
+              icon: Icon(Icons.delete, color: Colors.red),
+              onPressed: () {
+                //fileMetaController.deleteFileMeta(index);
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+
+  // Signature display widget (already defined in your code)
   Widget _buildSignatureDisplay(int index, ui.Image signature) {
     return Padding(
       padding: const EdgeInsets.all(8.0),
@@ -148,7 +215,7 @@ class Signature extends StatelessWidget {
         children: [
           Container(
             height: 100,
-            width: 150, // Ensure a fixed width for signature blocks
+            width: 150,
             decoration: BoxDecoration(
               border: Border.all(color: Colors.black),
             ),
@@ -172,14 +239,14 @@ class Signature extends StatelessWidget {
     );
   }
 
+  // Add signature button (already defined in your code)
   Widget _buildAddSignatureButton(BuildContext context) {
     return Center(
       child: ElevatedButton(
         onPressed: () {
           if (signatureController.signatures.length <
               signatureController.maxSignatures) {
-            _showSignatureDialog(
-                context, currentBlock.value); // Open dialog to add signature
+            _showSignatureDialog(context, currentBlock.value);
           } else {
             Get.snackbar(
               'Limit Reached',
@@ -191,11 +258,5 @@ class Signature extends StatelessWidget {
         child: Text('Add Signature'),
       ),
     );
-  }
-
-  void _fetchFileMeta() async {
-    fileMetaController.isLoading.value = true;
-    await fileMetaController.fetchAndSaveFileMeta(eventId.toString());
-    fileMetaController.isLoading.value = false;
   }
 }
