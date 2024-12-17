@@ -85,6 +85,37 @@ class GTypeTable {
   // Fetch GType by TID
   // Fetch GType by TID (matching any of the IDs in the 'capacity' column)
 // Fetch GType by TID (matching any of the IDs in the 'capacity' column)
+//   static Future<List<GTypeModel>> fetchGTypeByTid(String tid) async {
+//     final db = await DatabaseHelper().database;
+//
+//     // Create a list of patterns to check for the matching 'tid' in 'capacity'
+//     List<String> patterns = [
+//       '%|$tid|%', // Match tid surrounded by pipe symbols (e.g., |1045582131|)
+//       '$tid|%',   // Match tid at the start (e.g., 1045582131|)
+//       '%|$tid',   // Match tid at the end (e.g., |1045582131)
+//       '$tid'      // Match tid alone (e.g., 1045582131)
+//     ];
+//
+//     // Create a query with an OR condition to check if any of the patterns match
+//     final List<Map<String, dynamic>> maps = await db.query(
+//       tableName,
+//       where: 'capacity LIKE ? OR capacity LIKE ? OR capacity LIKE ? OR capacity LIKE ?',
+//       whereArgs: patterns, // Pass the patterns list as arguments
+//     );
+//
+//     // If data exists, convert each map to a GTypeModel and return a list
+//     if (maps.isNotEmpty) {
+//       print("Success in getting records for typeId: $tid");
+//       return List.generate(maps.length, (i) => GTypeModel.fromJson(maps[i]));
+//     } else {
+//       print("No records found for typeId: $tid");
+//     }
+//
+//     // If no data found, return an empty list
+//     return [];
+//   }
+
+
   static Future<List<GTypeModel>> fetchGTypeByTid(String tid) async {
     final db = await DatabaseHelper().database;
 
@@ -96,19 +127,28 @@ class GTypeTable {
       '$tid'      // Match tid alone (e.g., 1045582131)
     ];
 
-    // Create a query with an OR condition to check if any of the patterns match
+    // Debug: Log the patterns being used
+    print("Debug: Patterns for tid: $patterns");
+
+    // Update the query to include an additional condition for empty 'capacity'
     final List<Map<String, dynamic>> maps = await db.query(
       tableName,
-      where: 'capacity LIKE ? OR capacity LIKE ? OR capacity LIKE ? OR capacity LIKE ?',
+      where: '''
+      capacity LIKE ? OR capacity LIKE ? OR capacity LIKE ? OR capacity LIKE ? 
+      OR capacity IS NULL OR TRIM(capacity) = ''
+    ''', // Use TRIM to handle spaces in the capacity field
       whereArgs: patterns, // Pass the patterns list as arguments
     );
 
+    // Debug: Log the raw results from the database query
+    print("Debug: Raw database query results for tid $tid: $maps");
+
     // If data exists, convert each map to a GTypeModel and return a list
     if (maps.isNotEmpty) {
-      print("Success in getting records for typeId: $tid");
+      print("Debug: Success in getting records for typeId: $tid");
       return List.generate(maps.length, (i) => GTypeModel.fromJson(maps[i]));
     } else {
-      print("No records found for typeId: $tid");
+      print("Debug: No records found for typeId: $tid");
     }
 
     // If no data found, return an empty list

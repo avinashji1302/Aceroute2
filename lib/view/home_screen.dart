@@ -26,6 +26,7 @@ import 'package:ace_routes/view/drawer.dart';
 import 'package:ace_routes/controller/homeController.dart';
 import 'package:intl/intl.dart';
 import 'package:sqflite/sqflite.dart';
+import '../controller/file_meta_controller.dart';
 import '../controller/fontSizeController.dart';
 import '../database/Tables/OrderTypeDataTable.dart';
 import '../database/Tables/PartTypeDataTable.dart';
@@ -47,6 +48,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final Completer<GoogleMapController> _mapController = Completer();
   final LoginController loginController =
       Get.find<LoginController>(); // Accessing LoginController
+  final FileMetaController fileMetaController = Get.put(FileMetaController());
 
   // final AllTerms allTerms = Get.put(AllTerms());
 
@@ -160,7 +162,6 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     AllTerms.getTerm();
     return Scaffold(
-
       appBar: AppBar(
         title: Obx(() {
           return Column(
@@ -342,7 +343,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 child: Row(
                                                   children: [
                                                     Text(
-                                                      "${categoryValue} :",
+                                                      "${categoryValue}:P5: Normal",
                                                       style: TextStyle(
                                                         fontSize: fontSizeController
                                                             .fontSize, // Responsive font size
@@ -553,20 +554,60 @@ class _HomeScreenState extends State<HomeScreen> {
                                       icon: Icon(Icons.tips_and_updates,
                                           size: 30),
                                       onPressed: () {
-                                        Get.to(PartScreen( oid: eventController.events[index].id,));
+                                        Get.to(PartScreen(
+                                          oid: eventController.events[index].id,
+                                        ));
                                       },
                                     ),
                                     IconButton(
                                       icon: Icon(Icons.camera_alt_outlined,
                                           size: 30),
-                                      onPressed: () {
-                                        Get.to(PicUploadScreen());
+                                      onPressed: () async {
+                                        // Get the event ID
+                                        String eventId =
+                                            eventController.events[index].id;
+
+                                        // Fetch and save the file meta data
+                                        try {
+                                          await fileMetaController
+                                              .fetchAndSaveFileMeta(eventId);
+                                          // Navigate to the Signature screen after the API call succeeds
+                                          Get.to(() => PicUploadScreen(
+                                              eventId: int.parse(eventId)));
+                                        } catch (error) {
+                                          // Handle errors, e.g., show a snackbar or dialog
+                                          Get.snackbar(
+                                            'Error',
+                                            'Failed to fetch file metadata: $error',
+                                            backgroundColor: Colors.red,
+                                            colorText: Colors.white,
+                                          );
+                                        }
                                       },
                                     ),
                                     IconButton(
                                       icon: Icon(Icons.mic, size: 30),
-                                      onPressed: () {
-                                        Get.to(AudioRecord());
+                                      onPressed: () async {
+                                        // Get the event ID
+                                        String eventId =
+                                            eventController.events[index].id;
+
+                                        // Fetch and save the file meta data
+                                        try {
+                                          await fileMetaController
+                                              .fetchAndSaveFileMeta(eventId);
+                                          // Navigate to the Signature screen after the API call succeeds
+                                          Get.to(() => AudioRecord(
+                                              eventId: int.parse(eventId)));
+                                        } catch (error) {
+                                          // Handle errors, e.g., show a snackbar or dialog
+                                          Get.snackbar(
+                                            'Error',
+                                            'Failed to fetch file metadata: $error',
+                                            backgroundColor: Colors.red,
+                                            colorText: Colors.white,
+                                          );
+                                        }
                                       },
                                     ),
                                     IconButton(

@@ -3,11 +3,17 @@ import 'package:ace_routes/core/Constants.dart';
 import 'package:ace_routes/core/colors/Constants.dart';
 import 'package:ace_routes/view/appbar.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:siri_wave/siri_wave.dart';
 
+import '../controller/file_meta_controller.dart';
+
 class AudioRecord extends StatefulWidget {
-  const AudioRecord({super.key});
+  final int eventId;
+
+  AudioRecord({required this.eventId});
 
   @override
   State<AudioRecord> createState() => _AudioRecordState();
@@ -15,11 +21,13 @@ class AudioRecord extends StatefulWidget {
 
 class _AudioRecordState extends State<AudioRecord> {
   final AudioController _controller = AudioController();
+  final FileMetaController fileMetaController = Get.put(FileMetaController());
 
   @override
   void initState() {
     super.initState();
     _initController();
+    fileMetaController.fetchFileAudioDataFromDatabase();
   }
 
   Future<void> _initController() async {
@@ -72,21 +80,30 @@ class _AudioRecordState extends State<AudioRecord> {
     AllTerms.getTerm();
     return Scaffold(
       appBar: myAppBar(
-          context: context, titleText: AllTerms.audioLabel, backgroundColor: MyColors.blueColor),
+          context: context,
+          titleText: AllTerms.audioLabel,
+          backgroundColor: MyColors.blueColor),
       body: Container(
         width: double.infinity,
         padding: EdgeInsets.all(0.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
+            Obx(() {
+              if (fileMetaController.fileMetaData.isEmpty) {
+                return Center(child: Text('No file meta data available.'));
+              }
+              return _buildFileMetaDataList();
+            }),
+            SizedBox(height: 20),
             Container(
                 child: _controller.isRecording
                     ? SiriWaveform.ios9(
-                        options: IOS9SiriWaveformOptions(
-                          height: 180,
-                          width: 360,
-                        ),
-                      )
+                  options: IOS9SiriWaveformOptions(
+                    height: 180,
+                    width: 360,
+                  ),
+                )
                     : Text('')),
             Icon(
               Icons.mic,
@@ -97,13 +114,13 @@ class _AudioRecordState extends State<AudioRecord> {
             ElevatedButton(
               onPressed: _controller.isRecording
                   ? () async {
-                      await _controller.stopRecording();
-                      setState(() {});
-                    }
+                await _controller.stopRecording();
+                setState(() {});
+              }
                   : () async {
-                      await _controller.startRecording();
-                      setState(() {});
-                    },
+                await _controller.startRecording();
+                setState(() {});
+              },
               child: Text(_controller.isRecording
                   ? 'Stop Recording'
                   : 'Start Recording'),
@@ -138,7 +155,7 @@ class _AudioRecordState extends State<AudioRecord> {
                           onPressed: () async {
                             await _controller.togglePlayback(
                               recordingPath,
-                              () => setState(() {}),
+                                  () => setState(() {}),
                             );
                           },
                         ),
@@ -161,6 +178,52 @@ class _AudioRecordState extends State<AudioRecord> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  // Build file meta data list for images
+  Widget _buildFileMetaDataList() {
+    return ListView.builder(
+      shrinkWrap: true,
+      itemCount: fileMetaController.fileMetaData.length,
+      itemBuilder: (context, index) {
+        final fileMeta = fileMetaController.fileMetaData[index];
+        return _buildFileMetaBlock(context, index, fileMeta);
+      },
+    );
+  }
+
+  // Create the file metadata block (with the image name or icon)
+  Widget _buildFileMetaBlock(BuildContext context, int index, var fileMeta) {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Stack(
+        children: [
+          Container(
+            height: 100,
+            width: 150,
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.black),
+              borderRadius: BorderRadius.circular(8.0),
+            ),
+            child: Text(
+              fileMeta.fname ?? 'No Name',
+              style: TextStyle(fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+            ),
+          ),
+          Positioned(
+            top: 0,
+            right: 0,
+            child: IconButton(
+              icon: Icon(Icons.delete, color: Colors.red),
+              onPressed: () {
+                // fileMetaController.deleteFileMeta(index);
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
