@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:ace_routes/controller/all_terms_controller.dart';
 import 'package:ace_routes/controller/event_controller.dart';
 import 'package:ace_routes/controller/loginController.dart';
-import 'package:ace_routes/controller/status_controller.dart';
 import 'package:ace_routes/core/Constants.dart';
 import 'package:ace_routes/core/colors/Constants.dart';
 import 'package:ace_routes/database/Tables/api_data_table.dart';
@@ -37,6 +36,7 @@ import '../model/login_model/login_response.dart';
 import 'add_bw_from.dart';
 import 'add_part.dart';
 import 'directory_screen.dart';
+import 'map_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -222,6 +222,12 @@ class _HomeScreenState extends State<HomeScreen> {
               return ListView.builder(
                 itemCount: eventController.events.length,
                 itemBuilder: (context, index) {
+
+                  //sequence in order time
+                  // Sort events by time in ascending order
+               //   eventController.events.sort((a, b) => a.startDate.compareTo(b.startDate));
+
+
                   final event = eventController.events[index];
                   final statusText =
                       eventController.nameMap[event.wkf] ?? 'Unknown Status';
@@ -239,7 +245,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       children: [
                         GestureDetector(
                           onTap: () {
-                            Get.to(() => StatusScreen());
+                            Get.to(() => StatusScreen(oid:event.id, name: event.wkf,));
                           },
                           child: Container(
                             color: MyColors.blueColor,
@@ -632,21 +638,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 },
               );
             })
-          : Column(
-              children: [
-                Expanded(
-                  child: GoogleMap(
-                    initialCameraPosition: CameraPosition(
-                      target: LatLng(28.5724, 77.3644),
-                      zoom: 14,
-                    ),
-                    markers: _markers, // Set markers here
-                    onMapCreated: (GoogleMapController controller) {
-                      // Optionally use the controller
-                    },
-                  ),
-                )
-              ],
+          : Container(
+              child: MapScreen(),
             ),
       bottomNavigationBar: Obx(() => BottomNavigationBar(
             items: const <BottomNavigationBarItem>[
@@ -675,27 +668,17 @@ class _HomeScreenState extends State<HomeScreen> {
               setState(() {
                 if (index == 0) {
                   _showCard = true; // Show card
-                }
-                /*else if (index == 1) {
-                  // Search tab
-                  _showCard = false; // Hide card
-
-                  homeController.getCurrentLocation();
-                  // _getCurrentLocation(); // Up
-                } */
-                else if (index == 1) {
+                } else if (index == 1) {
                   // Map tab
 
                   print('object');
                   _showCard = false; // Hide card
 
                   homeController.getCurrentLocation();
-                  // _getCurrentLocation(); // Up
                 } else if (index == 2) {
                   // Clocked In tab
                   _showCard = false; // Hide card
                   homeController.getCurrentLocation();
-                  // _getCurrentLocation(); // Up
                 }
               });
               homeController.onItemTapped(index);

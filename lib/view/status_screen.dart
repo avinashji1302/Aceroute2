@@ -7,23 +7,18 @@ import 'package:ace_routes/view/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controller/fontSizeController.dart';
-import '../controller/status_controller.dart';
 import '../model/Status_model_database.dart';
 
 class StatusScreen extends StatefulWidget {
-  const StatusScreen({super.key});
+  String oid;
+  String name;
+  StatusScreen({super.key, required this.oid , required this.name});
 
   @override
   State<StatusScreen> createState() => _StatusScreenState();
 }
 
 class _StatusScreenState extends State<StatusScreen> {
-  String? _selectedJob;
-  String? _selectedJobException;
-  String? _selectedFieldException;
-  String? _selectedPlan;
-  // String selectedJob = ''.obs as String;
-
   // final statusController = Get.put(StatusController());
   final LoginController loginController =
       Get.find<LoginController>(); // Accessing LoginController
@@ -34,8 +29,7 @@ class _StatusScreenState extends State<StatusScreen> {
   @override
   void initState() {
     super.initState();
-    // Fetch the status list when the screen initializes
-    // statusController.fetchStatusList();
+
     statusControllers.organizeData();
   }
 
@@ -44,7 +38,10 @@ class _StatusScreenState extends State<StatusScreen> {
     AllTerms.getTerm(); //getting the lable
     return Scaffold(
       appBar: AppBar(
-        title: Text("Status" , style: TextStyle(  color: Colors.white,)),
+        title: Text("Status",
+            style: TextStyle(
+              color: Colors.white,
+            )),
         centerTitle: true,
         backgroundColor: MyColors.blueColor,
         leading: IconButton(
@@ -92,7 +89,16 @@ class _StatusScreenState extends State<StatusScreen> {
 
                     return Column(
                       children: [
-                        ListTile(title: Text(item.name)),
+                        ListTile(
+                          title: Text(item.name),
+                          onTap: () {
+                            print(" item name is :${item.name}");
+                            print(" id is :${item.id}");
+                            Navigator.of(context).pop();
+
+                            statusControllers.GetStatusUpdate( widget.oid , widget.name , item.id , item.name );
+                          },
+                        ),
                         // Add Divider only if it's not the last item
                         if (itemIndex < groupItems.length - 1)
                           Divider(thickness: 1),
@@ -106,52 +112,5 @@ class _StatusScreenState extends State<StatusScreen> {
         );
       }),
     );
-  }
-
-  // Method to build each section with a header and radio buttons
-  Widget _buildSection(String header, String? groupValue,
-      ValueChanged<String?> onChanged, List<String> options) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          width: double.infinity,
-          color: Colors.grey[300],
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Text(
-              header,
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 20.0,
-              ),
-            ),
-          ),
-        ),
-        Divider(thickness: 1),
-        for (int i = 0; i < options.length; i++)
-          Column(
-            children: [
-              ListTile(
-                title: Text(options[i]),
-                trailing: Radio<String>(
-                  value: options[i],
-                  groupValue: groupValue, // Ensures only one selection
-                  onChanged: onChanged, // Update the selected value
-                ),
-              ),
-              if (i < options.length - 1) Divider(thickness: 1),
-            ],
-          ),
-      ],
-    );
-  }
-
-  // Helper method to deselect all options
-  void _deselectAll() {
-    _selectedJob = null;
-    _selectedJobException = null;
-    _selectedFieldException = null;
-    _selectedPlan = null;
   }
 }

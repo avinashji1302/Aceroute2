@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:ace_routes/Widgets/error_handling_login.dart';
 import 'package:ace_routes/controller/all_terms_controller.dart';
 import 'package:ace_routes/core/Constants.dart';
@@ -11,6 +12,7 @@ import 'package:ace_routes/model/login_model/login_response.dart';
 import 'package:ace_routes/model/login_model/version_model.dart';
 import 'package:ace_routes/model/login_model/token_api_response.dart';
 import 'package:ace_routes/view/home_screen.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -24,6 +26,7 @@ import 'dart:async';
 import 'package:xml/xml.dart';
 import 'package:xml/xml.dart' as xml;
 
+import '../Widgets/internet_connection_check.dart';
 import '../core/colors/Constants.dart';
 import '../core/colors/Constants.dart';
 import '../core/xml_to_json_converter.dart';
@@ -48,6 +51,44 @@ class LoginController extends GetxController {
     isPasswordVisible.value = !isPasswordVisible.value;
   }
 
+  // Message to show on the UI
+  var message = ''.obs;
+  var messageColor = Rx<Color>(Colors.green);
+
+  // Check internet connection on load
+  void checkInternetConnection() async {
+    bool isConnected = await _isInternetAvailable();
+    if (!isConnected) {
+      message.value = 'Please check your internet connection.';
+      messageColor.value = Colors.red;
+    } else {
+      message.value = 'Internet is restored!';
+      messageColor.value = Colors.green;
+
+      // Hide message after 2 seconds
+      Future.delayed(Duration(seconds: 2), () {
+        message.value = '';
+      });
+    }
+  }
+
+  // Function to check actual internet connection
+  Future<bool> _isInternetAvailable() async {
+    try {
+      final connectivityResult = await Connectivity().checkConnectivity();
+      if (connectivityResult == ConnectivityResult.none) {
+        return false; // No internet
+      }
+
+      // Check actual internet access
+      final result = await InternetAddress.lookup('google.com');
+      return result.isNotEmpty && result[0].rawAddress.isNotEmpty;
+    } catch (e) {
+      return false; // Error, assume no internet
+    }
+  }
+
+  //Login Button Clicked
   Future<void> login(BuildContext context) async {
     isLoading.value = true; // Start loading
 
@@ -99,7 +140,6 @@ class LoginController extends GetxController {
     final url = jsonResponse['url'];
     final subKey = jsonResponse['subkey'];
 
-
     // Store in database
     LoginResponse loginResponse =
         LoginResponse(nsp: nsp, url: url, subkey: subKey);
@@ -114,13 +154,14 @@ class LoginController extends GetxController {
       nsp = data.nsp;
     }
 
-  //  print('base Url :$baseUrl  $nsp');
+    //  print('base Url :$baseUrl  $nsp');
 
     // Now fetch user-specific data
-    await _fetchUserData(context, baseUrl , nsp);
+    await _fetchUserData(context, baseUrl, nsp);
   }
 
-  Future<void> _fetchUserData(BuildContext context, String baseUrl , String nsp) async {
+  Future<void> _fetchUserData(
+      BuildContext context, String baseUrl, String nsp) async {
     try {
       final String fetchUrl =
           'https://$baseUrl/mobi?&geo=0.0,0.0&os=2&pcode=${password.value}&nspace=${accountName}&action=mlogin&rid=${workerId.value}&cts=1728382466217';
@@ -132,10 +173,8 @@ class LoginController extends GetxController {
       if (response.statusCode == 200) {
         final jsonResponse = xmlToJson(response.body);
 
-
         print(
             'Converted JSON Response ${jsonResponse['rid']}: ${jsonEncode(jsonResponse)}   ');
-
 
         // Parse response into ApiResponse model and store in database
         TokenApiReponse apiResponse = TokenApiReponse(
@@ -192,8 +231,7 @@ class LoginController extends GetxController {
         passwordError.isEmpty;
   }
 
-  Future<void> checkTheLatestVersion(
-      String baseUrl) async {
+  Future<void> checkTheLatestVersion(String baseUrl) async {
     List<TokenApiReponse> loginDataList = await ApiDataTable.fetchData();
 
     List<LoginResponse> loginReponse =
@@ -227,7 +265,6 @@ class LoginController extends GetxController {
         String versionId = xmlDocument.findAllElements('id').single.text.trim();
         final success = xmlDocument.findAllElements('success').single.text;
 
-
         // Convert XML data to JSON format
         Map<String, dynamic> jsonResponse = {
           'success': success,
@@ -248,8 +285,6 @@ class LoginController extends GetxController {
         // Get the installed app version
         PackageInfo packageInfo = await PackageInfo.fromPlatform();
         String currentVersion = packageInfo.version;
-
-
 
         // Normalize versions to ensure they have a minor and patch version
         versionId = _normalizeVersion(versionId);
@@ -304,5 +339,4 @@ class LoginController extends GetxController {
       print('Could not launch $url');
     }
   }
-
 }
