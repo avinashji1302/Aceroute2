@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import '../controller/addBwForm_controller.dart';
+import '../core/colors/Constants.dart';
 import '../model/GTypeModel.dart';
 
 class OtherForm extends StatefulWidget {
@@ -32,7 +33,7 @@ class _AddBwFormState extends State<OtherForm> {
           widget.gType.name,
           style: const TextStyle(color: Colors.white),
         ),
-        backgroundColor: Colors.blue,
+        backgroundColor: MyColors.blueColor,
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),

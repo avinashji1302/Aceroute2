@@ -64,11 +64,11 @@ class EventController extends GetxController {
     await orderNoteController.fetchOrderNotesFromApi();
     print("above part type::");
     //Order Part
-  //  await getOrderPart.fetchOrderData();
+    //  await getOrderPart.fetchOrderData();
 
     //Gen Type for EForm data
 
-  //  await eForm.GetGenOrderDataForForm();
+    //  await eForm.GetGenOrderDataForForm();
   }
 
   Future<void> loadAllTerms() async {
@@ -87,6 +87,7 @@ class EventController extends GetxController {
   }
 
   Future<void> fetchEvents() async {
+    print("object");
     DateTime currentDate = DateTime.now();
     DateTime secondDate = currentDate.add(Duration(days: daysToAdd));
     String formattedCurrentDate = DateFormat('yyyy-MM-dd').format(currentDate);
@@ -94,7 +95,7 @@ class EventController extends GetxController {
 
     isLoading(true);
     var url =
-        'https://$baseUrl/mobi?token=$token&nspace=$nsp&geo=$geo&rid=$rid&action=getorders&tz=Asia/Kolkata&from=$formattedCurrentDate&to=$formattedSecondDate';
+        "https://$baseUrl/mobi?token=$token&nspace=$nsp&geo=$geo&rid=$rid&action=getorders&tz=Asia/Kolkata&from=${formattedCurrentDate}&to=${formattedSecondDate}";
 
     print("Fetching events from URL: $url");
 
@@ -108,7 +109,7 @@ class EventController extends GetxController {
 
         // Parse and store the events
         parseXmlResponse(xmlString);
-        await  loadEventsFromDatabase();
+        await loadEventsFromDatabase();
       } else {
         print("Error fetching events: ${response.reasonPhrase}");
       }
@@ -178,14 +179,13 @@ class EventController extends GetxController {
 
     for (Event event in fetchedEvents) {
       EventTable.insertEvent(event);
-      print("Event added to database: ${event.toJson()}");
+      print("Event added to database: ${event.toJson()['id']}");
     }
 
     events.assignAll(fetchedEvents);
     print("Fetched and stored ${fetchedEvents.length} events");
     print(jsonEncode("${fetchedEvents[0]}"));
-    print("${events}");
-
+    print("  geo is ${events}");
   }
 
   String _getText(xml.XmlElement element, String tagName) {
@@ -214,8 +214,8 @@ class EventController extends GetxController {
           await OrderTypeDataTable.fetchCategoriesByIds(tidSet.toList());
 
       // Update status and categories dynamically
-      nameMap.value =await FetchedStatus;
-      categoryMap.value =await fetchedCategory;
+      nameMap.value = await FetchedStatus;
+      categoryMap.value = await fetchedCategory;
 
       // Log all data
       print("Names: ${nameMap.value}");

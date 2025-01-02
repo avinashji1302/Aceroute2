@@ -12,8 +12,7 @@ void main() {
   // databaseFactory = databaseFactoryFfi; // This is crucial
   // print("SQLite initialized using FFI");
 
-
-  Get.put(FontSizeController());   
+  Get.put(FontSizeController());
   runApp(const MyApp());
 }
 
@@ -35,4 +34,3 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-

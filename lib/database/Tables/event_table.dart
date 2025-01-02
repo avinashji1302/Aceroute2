@@ -69,6 +69,7 @@ class EventTable {
 
   // Insert event into the events table
   static Future<void> insertEvent(Event event) async {
+
     final db = await DatabaseHelper().database;
     fetchEvents();
     await db.insert(
