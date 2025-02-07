@@ -2,13 +2,19 @@ import 'package:ace_routes/controller/barcode_controller.dart';
 import 'package:ace_routes/core/Constants.dart';
 import 'package:ace_routes/core/colors/Constants.dart';
 import 'package:ace_routes/view/appbar.dart';
+import 'package:ace_routes/view/part.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../controller/fontSizeController.dart';
+import '../controller/getOrderPart_controller.dart';
+import '../model/orderPartsModel.dart';
 
 class AddPart extends StatefulWidget {
-  const AddPart({super.key});
+  String oid;
+  final OrderParts? part; // Nullable for new parts
+  final partTypeData;
+  AddPart({super.key, required this.oid, this.part, this.partTypeData});
 
   @override
   State<AddPart> createState() => _AddPartState();
@@ -19,14 +25,25 @@ class _AddPartState extends State<AddPart> {
   final TextEditingController _skuController = TextEditingController();
   final TextEditingController _quantityController = TextEditingController();
   final fontSizeController = Get.find<FontSizeController>();
-  // Dummy list of categories
-  final List<String> _categories = ['Category 1', 'Category 2', 'Category 3'];
   final BarcodeController _barcodeController = Get.put(BarcodeController());
-  // final BarcodeController _barcodeController = Get.find<BarcodeController>();
+  final controller = Get.find<GetOrderPartController>();
 
   @override
   void initState() {
     super.initState();
+
+    // If updating, pre-fill fields
+    if (widget.part != null) {
+      print("widget.partTypeData!.name");
+      print(widget.partTypeData!.name);
+      _selectedCategory = widget.partTypeData!.name;
+      _skuController.text = widget.part!.sku;
+      _quantityController.text = widget.part!.qty.toString();
+      print(_selectedCategory);
+    }
+
+    print(_selectedCategory);
+
     // Listen to changes in scannedData
     ever(_barcodeController.scannedData, (data) {
       _skuController.text = data;
@@ -37,154 +54,13 @@ class _AddPartState extends State<AddPart> {
   Widget build(BuildContext context) {
     AllTerms.getTerm();
     return Scaffold(
-      //Add Part not availble in api data so i used part
-      appBar:myAppBar(context: context, titleText: AllTerms.partName, backgroundColor:MyColors.blueColor ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Category Dropdown Card
-            Card(
-              elevation: 4,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: DropdownButtonFormField<String>(
-                  decoration: InputDecoration(
-                    labelText: 'Select Category',
-                    border: OutlineInputBorder(),
-                  ),
-                  value: _selectedCategory,
-                  items: _categories
-                      .map((category) => DropdownMenuItem<String>(
-                            value: category,
-                            child: Text(category),
-                          ))
-                      .toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedCategory = value;
-                    });
-                  },
-                ),
-              ),
-            ),
-            SizedBox(height: 20),
-
-            // SKU Barcode Scanner Card
-            Card(
-              elevation: 4,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Row(
-                  children: [
-                    // SKU TextFormField
-                    Expanded(
-                      child: TextFormField(
-                        controller: _skuController,
-                        decoration: InputDecoration(
-                          labelText: 'SKU',
-                          border: OutlineInputBorder(),
-                        ),
-                      ),
-                    ),
-                    SizedBox(width: 10),
-                    // Barcode Icon Button
-                    IconButton(
-                      icon: Icon(Icons.qr_code_scanner),
-                      onPressed: () {
-                        print('Button pressed'); // Debugging print
-                        print(_skuController.text);
-                        _barcodeController.scanBarcode();
-                      },
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            SizedBox(height: 20),
-
-            // Quantity TextFormField Card
-            Card(
-              elevation: 4,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: TextFormField(
-                  controller: _quantityController,
-                  keyboardType: TextInputType.number,
-                  decoration: InputDecoration(
-                    labelText: 'Quantity',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-              ),
-            ),
-            SizedBox(height: 20),
-
-            // Submit Button
-            ElevatedButton(
-              onPressed: () {
-                // Navigate to PartDetailScreen and pass the entered data
-                /*Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => PartDetailScreen(
-                      category: _selectedCategory,
-                      sku: _skuController.text,
-                      quantity: _quantityController.text,
-                    ),
-                  ),
-                );*/
-              },
-              child: Text(
-                'Submit',
-                style: TextStyle(color: Colors.white),
-              ),
-              style: ElevatedButton.styleFrom(
-                minimumSize:
-                    Size(double.infinity, 50), // Make button full width
-                backgroundColor: Colors.blue,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class PartDetailScreen extends StatelessWidget {
-  final String? category;
-  final String sku;
-  final String quantity;
-
-  const PartDetailScreen({
-    Key? key,
-    required this.category,
-    required this.sku,
-    required this.quantity,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    final fontSizeController = Get.find<FontSizeController>();
-    return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Part ',
+          widget.part == null ? AllTerms.partName.value : "Edit Part",
           style: TextStyle(color: Colors.white),
         ),
         centerTitle: true,
-       backgroundColor: Color.fromARGB(255, 76, 81, 175),
+        backgroundColor: Colors.blue[900],
         leading: IconButton(
           icon: Icon(
             Icons.arrow_back,
@@ -194,77 +70,139 @@ class PartDetailScreen extends StatelessWidget {
             Navigator.of(context).pop();
           },
         ),
+        actions: [
+          IconButton(
+            icon: Icon(
+              Icons.done,
+              color: Colors.white,
+              size: 30.0,
+            ),
+            onPressed: () async {
+              if (widget.part == null) {
+                // New Part
+                await controller.SaveOrderPart(_selectedCategory!,
+                    _quantityController.text, _skuController.text, widget.oid);
+              } else {
+                // Update Part
+                await controller.EditPart( widget.part!.id,  widget.oid , widget.part!.tid , _quantityController.text , _skuController.text );
+                print("edit");
+              }
+
+              Get.back();
+            },
+          ),
+        ],
       ),
-      body: Container(
+      body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
-          child: Container(
-            height: 130,
-            width: double.infinity,
-            child: Card(
-              elevation: 4,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Text(
-                          'Category :',
-                          style: TextStyle(
-                              fontSize: fontSizeController.fontSize,
-                              fontWeight: FontWeight.bold),
-                        ),
-                        Text(
-                          '    ${category ?? "Not Selected"}',
-                          style: TextStyle(
-                            fontSize: fontSizeController.fontSize,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Category Dropdown
+              Obx(() {
+                return Card(
+                  elevation: 4,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: DropdownButtonFormField<String>(
+                      decoration: InputDecoration(
+                        labelText: 'Select Category',
+                        border: OutlineInputBorder(),
+                      ),
+                      value: _selectedCategory,
+                      items: controller.categories
+                          .map((category) => DropdownMenuItem<String>(
+                                value: category,
+                                child: Text(category),
+                              ))
+                          .toList(),
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedCategory = value;
+                          controller.FetchPartTypeId(_selectedCategory!);
+                        });
+                      },
+                    ),
+                  ),
+                );
+              }),
+              SizedBox(height: 20),
+
+              // SKU Barcode Scanner
+              Card(
+                elevation: 4,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: TextFormField(
+                          controller: _skuController,
+                          decoration: InputDecoration(
+                            labelText: 'SKU',
+                            border: OutlineInputBorder(),
                           ),
                         ),
-                      ],
-                    ),
-                    SizedBox(height: 10),
-                    Row(
-                      children: [
-                        Text(
-                          'SKU :',
-                          style: TextStyle(
-                              fontSize: fontSizeController.fontSize,
-                              fontWeight: FontWeight.bold),
-                        ),
-                        Text(
-                          '             ${sku}',
-                          style: TextStyle(
-                            fontSize: fontSizeController.fontSize,
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 10),
-                    Row(
-                      children: [
-                        Text(
-                          'Quantity :',
-                          style: TextStyle(
-                              fontSize: fontSizeController.fontSize,
-                              fontWeight: FontWeight.bold),
-                        ),
-                        Text(
-                          '      ${quantity}',
-                          style: TextStyle(
-                            fontSize: fontSizeController.fontSize,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+                      ),
+                      SizedBox(width: 10),
+                      IconButton(
+                        icon: Icon(Icons.qr_code_scanner),
+                        onPressed: () {
+                          print('Button pressed');
+                          _barcodeController.scanBarcode();
+                        },
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
+              SizedBox(height: 20),
+
+              // Quantity Input
+              Card(
+                elevation: 4,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: TextFormField(
+                    controller: _quantityController,
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                      labelText: 'Quantity',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(height: 20),
+
+              // Submit Button
+              ElevatedButton(
+                onPressed: () {
+                  // Handle form submission
+
+                  print(
+                      "$_selectedCategory ${_quantityController.text} ${_skuController.text}");
+                },
+                child: Text(
+                  'Submit',
+                  style: TextStyle(color: Colors.white),
+                ),
+                style: ElevatedButton.styleFrom(
+                  minimumSize: Size(double.infinity, 50), // Full width button
+                  backgroundColor: Colors.blue,
+                ),
+              ),
+            ],
           ),
         ),
       ),

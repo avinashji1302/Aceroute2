@@ -7,6 +7,7 @@ import '../core/colors/Constants.dart';
 import '../database/Tables/api_data_table.dart';
 import '../database/Tables/event_table.dart';
 import '../database/Tables/login_response_table.dart';
+import '../model/event_model.dart';
 import '../model/login_model/login_response.dart';
 import '../model/login_model/token_api_response.dart';
 import '../model/order_note_model.dart';

@@ -5,6 +5,7 @@ import '../database/Tables/PartTypeDataTable.dart';
 import '../database/Tables/event_table.dart';
 import '../model/GTypeModel.dart';
 import '../model/Ptype.dart';
+import '../model/event_model.dart';
 import 'event_controller.dart';
 
 class DirectoryController extends GetxController {

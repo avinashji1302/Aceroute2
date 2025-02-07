@@ -38,25 +38,58 @@ class GetOrderPartTable {
     return List.generate(maps.length, (i) => OrderParts.fromMap(maps[i]));
   }
 
-
-
 // Fetch data by OID
-  static Future<OrderParts?> fetchDataById(String id) async {
+//   static Future<OrderParts?> fetchDataById(String id) async {
+//     final db = await DatabaseHelper().database;
+//
+//     // Query the database
+//     final List<Map<String, dynamic>> maps = await db.query(
+//       tableName,
+//       where: 'oid = ?',
+//       whereArgs: [id],
+//     );
+//
+//     // Check if data exists
+//     if (maps.isNotEmpty) {
+//       return OrderParts.fromMap(maps.first);
+//     } else {
+//       return null; // Return null if no data found
+//     }
+//   }
+
+  static Future<List<OrderParts>> fetchDataByOid(String oid) async {
     final db = await DatabaseHelper().database;
 
-    // Query the database
+    // Query the database for all matching records
     final List<Map<String, dynamic>> maps = await db.query(
       tableName,
       where: 'oid = ?',
+      whereArgs: [oid],
+    );
+
+    // Convert each map into an OrderParts object and return a list
+    return maps.map((map) => OrderParts.fromMap(map)).toList();
+  }
+
+  //delete on the basis of id:::
+
+  static Future<int> deleteById(String id) async {
+    final db = await DatabaseHelper().database;
+
+    // Delete the record with the given ID
+    final int result = await db.delete(
+      tableName,
+      where: 'id = ?',
       whereArgs: [id],
     );
 
-    // Check if data exists
-    if (maps.isNotEmpty) {
-      return OrderParts.fromMap(maps.first);
+    if (result > 0) {
+      print("Successfully deleted record with ID: $id");
     } else {
-      return null; // Return null if no data found
+      print("No record found with ID: $id");
     }
+
+    return result; // Returns the number of rows deleted
   }
 
   // Clear all data from order_data table

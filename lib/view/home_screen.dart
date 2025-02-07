@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:ace_routes/controller/all_terms_controller.dart';
 import 'package:ace_routes/controller/event_controller.dart';
 import 'package:ace_routes/controller/loginController.dart';
+import 'package:ace_routes/controller/status_updated_controller.dart';
 import 'package:ace_routes/core/Constants.dart';
 import 'package:ace_routes/core/colors/Constants.dart';
 import 'package:ace_routes/database/Tables/api_data_table.dart';
@@ -50,88 +51,29 @@ class _HomeScreenState extends State<HomeScreen> {
       Get.find<LoginController>(); // Accessing LoginController
   final FileMetaController fileMetaController = Get.put(FileMetaController());
 
-  // final AllTerms allTerms = Get.put(AllTerms());
-
-  //LatLng _currentLocation = LatLng(45.521563, -122.677433); // Default location
-  LatLng _currentLocation = LatLng(0, 0); // Initialize with an empty location
   StreamSubscription<geo.Position>? _positionStreamSubscription;
   final AllTermsController allTermsController = Get.put(AllTermsController());
   bool _showCard = true;
   final FontSizeController fontSizeController = Get.put(FontSizeController());
   final EventController eventController = Get.put(EventController());
+  final StatusControllers statusControllers = Get.put(StatusControllers());
 
-  List<bool> _showCardDetails = List.generate(2, (_) => false);
   List<bool> temp = [true, false];
-  Set<Marker> _markers = {};
-  BitmapDescriptor? _customIcon;
-  bool _loadingLocation = true;
 
   @override
   void initState() {
     super.initState();
     // _loadCustomIcon();
-    _determinePosition();
+    // _determinePosition();
     // Get.put(EventController());
+    // Get.put(StatusControllers());
+    // eventController.fetchEvents();
   }
 
   @override
   void dispose() {
     _positionStreamSubscription?.cancel();
     super.dispose();
-  }
-
-  Future<void> _determinePosition() async {
-    try {
-      geo.Position position = await geo.Geolocator.getCurrentPosition(
-        desiredAccuracy: geo.LocationAccuracy.high,
-      );
-
-      // print("deternianton $position");
-
-      _currentLocation = LatLng(position.latitude, position.longitude);
-      _updateMapLocation(_currentLocation);
-
-      // Start tracking location after initial location is obtained
-      _startLocationTracking();
-
-      setState(() {
-        _loadingLocation = false; // Stop showing loading indicator
-      });
-    } catch (e) {
-      print("Error getting current location: $e");
-    }
-  }
-
-  void _startLocationTracking() {
-    _positionStreamSubscription = geo.Geolocator.getPositionStream(
-      locationSettings: geo.LocationSettings(
-        accuracy: geo.LocationAccuracy.high,
-        distanceFilter: 10, // Update location if user moves 10 meters
-      ),
-    ).listen((geo.Position position) {
-      _currentLocation = LatLng(position.latitude, position.longitude);
-      _updateMapLocation(_currentLocation);
-    });
-  }
-
-  Future<void> _updateMapLocation(LatLng location) async {
-    final GoogleMapController controller = await _mapController.future;
-
-    controller.animateCamera(
-      CameraUpdate.newLatLng(location),
-    );
-
-    setState(() {
-      _markers.clear();
-      _markers.add(
-        Marker(
-          markerId: MarkerId('current_location'),
-          position: location,
-          icon: _customIcon ?? BitmapDescriptor.defaultMarker,
-          infoWindow: InfoWindow(title: 'Current Location'),
-        ),
-      );
-    });
   }
 
   String formatEventDate(String? startDate) {
@@ -160,6 +102,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    print("Building");
+
     AllTerms.getTerm();
     return Scaffold(
       appBar: AppBar(
@@ -222,21 +166,19 @@ class _HomeScreenState extends State<HomeScreen> {
               return ListView.builder(
                 itemCount: eventController.events.length,
                 itemBuilder: (context, index) {
-
                   //sequence in order time
                   // Sort events by time in ascending order
-               //   eventController.events.sort((a, b) => a.startDate.compareTo(b.startDate));
-
+                  //   eventController.events.sort((a, b) => a.startDate.compareTo(b.startDate));
 
                   final event = eventController.events[index];
+
                   final statusText =
                       eventController.nameMap[event.wkf] ?? 'Unknown Status';
 
-                  print("status text $statusText");
                   final categoryValue =
                       eventController.categoryMap[event.tid] ??
                           'Unknown Status';
-                  print("category value :::$categoryValue");
+
                   return Card(
                     elevation: 5,
                     margin: const EdgeInsets.all(8.0),
@@ -245,7 +187,16 @@ class _HomeScreenState extends State<HomeScreen> {
                       children: [
                         GestureDetector(
                           onTap: () {
-                            Get.to(() => StatusScreen(oid:event.id, name: event.wkf,));
+                            Get.to(() => StatusScreen(
+                                  oid: event.id,
+                                  name: event.wkf,
+                                ))?.then((updatedStatus) {
+                              if (updatedStatus != null) {
+                                // Update the nameMap for the specific wkf
+                                eventController.nameMap[event.wkf] =
+                                    updatedStatus;
+                              }
+                            });
                           },
                           child: Container(
                             color: MyColors.blueColor,
@@ -253,9 +204,12 @@ class _HomeScreenState extends State<HomeScreen> {
                             width: double.infinity,
                             child: Center(
                               child: Obx(() => Text(
-                                    eventController.nameMap.isNotEmpty
-                                        ? statusText
-                                        : "No Name",
+                                    // Observing changes in currentStatus or nameMap
+                                    eventController.nameMap[event.wkf]
+                                                ?.isNotEmpty ??
+                                            false
+                                        ? eventController.nameMap[event.wkf]!
+                                        : statusText,
                                     style: TextStyle(
                                       color: Colors.white,
                                       fontSize: 20,
@@ -279,8 +233,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                       color: MyColors.blueColor,
                                     ),
                                     onPressed: () {
-                                      Get.to(
-                                          () => SummaryDetails(id: event.id));
+                                      Get.to(() => SummaryDetails(
+                                          id: event.id, tid: event.tid));
                                     },
                                   ),
                                   SizedBox(width: 10),
@@ -377,7 +331,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     ),
                                     child: Center(
                                       child: Text(
-                                        "1",
+                                        "${(index + 1)}",
                                         style: TextStyle(
                                           color: Colors.white,
                                           fontSize: fontSizeController.fontSize,

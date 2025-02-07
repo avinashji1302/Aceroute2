@@ -76,11 +76,6 @@ class OrderTypeDataTable {
 
 
 
-  //Fetch the id of the table
-
-
-
-
 
   // Clear all data
   static Future<void> clearOrderTypeData() async {

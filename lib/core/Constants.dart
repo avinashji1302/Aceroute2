@@ -5,15 +5,9 @@ import '../database/Tables/terms_data_table.dart';
 import '../model/terms_model.dart';
 
 var initURL = 'https://portal.aceroute.com';
+// var initURL = 'https://qa.aceroute.com';
 
-// Future<void> displayDataFromDb() async {
-//   List<TokenApiReponse> dataList = await ApiDataTable.fetchData();
-//
-//   for (var data in dataList) {
-//     print('Responder Name:  ${data.responderName}');
-//     print('GeoLocation: ${data.geoLocation}');
-//   }
-// }
+
 
 
 class AllTerms extends GetxController {

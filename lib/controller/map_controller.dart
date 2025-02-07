@@ -2,6 +2,7 @@ import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../database/Tables/event_table.dart';
+import '../model/event_model.dart';
 import 'event_controller.dart';
 
 class MapControllers extends GetxController {

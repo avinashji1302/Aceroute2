@@ -2,8 +2,7 @@ import 'package:ace_routes/controller/loginController.dart';
 import 'package:ace_routes/controller/status_updated_controller.dart';
 import 'package:ace_routes/core/Constants.dart';
 import 'package:ace_routes/core/colors/Constants.dart';
-import 'package:ace_routes/view/appbar.dart';
-import 'package:ace_routes/view/home_screen.dart';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controller/fontSizeController.dart';
@@ -12,7 +11,7 @@ import '../model/Status_model_database.dart';
 class StatusScreen extends StatefulWidget {
   String oid;
   String name;
-  StatusScreen({super.key, required this.oid , required this.name});
+  StatusScreen({super.key, required this.oid, required this.name});
 
   @override
   State<StatusScreen> createState() => _StatusScreenState();
@@ -92,11 +91,12 @@ class _StatusScreenState extends State<StatusScreen> {
                         ListTile(
                           title: Text(item.name),
                           onTap: () {
-                            print(" item name is :${item.name}");
-                            print(" id is :${item.id}");
+                            print(" item name is :${item.name} ${widget.name}");
+                            print(" id is :${item.id} ");
                             Navigator.of(context).pop();
 
-                            statusControllers.GetStatusUpdate( widget.oid , widget.name , item.id , item.name );
+                            statusControllers.GetStatusUpdate(
+                                widget.oid, widget.name, item.id, item.name);
                           },
                         ),
                         // Add Divider only if it's not the last item

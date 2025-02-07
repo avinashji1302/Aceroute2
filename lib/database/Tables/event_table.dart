@@ -105,6 +105,48 @@ class EventTable {
   }
 
 
+
+  // Update order by ID
+  static Future<int> updateOrder(String orderId, String newWkf) async {
+    final db = await DatabaseHelper().database;
+
+    // Define the SQL UPDATE statement
+    int result = await db.update(
+      'events', // Replace with your table name
+      {'wkf': newWkf}, // Replace 'column_name' with the name of the column to update
+      where: 'id = ?', // SQL WHERE clause to match the order ID
+      whereArgs: [orderId], // Arguments for the WHERE clause
+    );
+
+    return result; // Returns the number of rows affected
+  }
+
+  //updating some data in event from vehicle details
+
+
+// Update order by ID
+  static Future<void> updateVehicle(String orderId, Map<String, String> updatedData) async {
+    final db = await DatabaseHelper().database;
+
+    // Define the SQL UPDATE statement
+    int result = await db.update(
+      'events', // Replace with your table name
+      {
+        'detail': updatedData['details'],     // Update the 'wkf' column
+        'po': updatedData['registration'], // Update the 'status' column
+        'inv': updatedData['odometer'],
+        'alt': updatedData['faultDesc'],// Update the 'amount' column
+      },
+      where: 'id = ?', // SQL WHERE clause to match the order ID
+      whereArgs: [orderId], // Arguments for the WHERE clause
+    );
+
+
+    print("succesfullt");
+
+  }
+
+
   // Clear all events
   static Future<void> clearEvents() async {
     final db = await DatabaseHelper().database;
