@@ -6,6 +6,7 @@ import 'package:xml/xml.dart';
 import 'package:http/http.dart' as http;
 import '../core/colors/Constants.dart';
 import '../database/Tables/event_table.dart';
+import '../model/event_model.dart';
 import 'event_controller.dart';
 
 class EFormDataController extends GetxController {

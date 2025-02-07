@@ -19,6 +19,8 @@ class DirectoryDetails extends StatelessWidget {
     // Initialize controller immediately
     final DirectoryController directoryController = Get.put(DirectoryController(id , ctid));
 
+
+
     return Scaffold(
         appBar: AppBar(
           title: Text(

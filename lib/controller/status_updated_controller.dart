@@ -1,4 +1,5 @@
 import 'package:ace_routes/core/colors/Constants.dart';
+import 'package:ace_routes/database/Tables/event_table.dart';
 import 'package:get/get.dart';
 import '../database/Tables/status_table.dart';
 import '../model/Status_model_database.dart';
@@ -10,6 +11,7 @@ class StatusControllers extends GetxController {
   var organizedData = <String, List<Status>>{}.obs;
   final EventController eventController = Get.put(EventController());
   RxString currentStatus = "".obs;
+  RxString updatedWkf = "".obs;
 
   // Organize the data into groups
   Future<void> organizeData() async {
@@ -59,22 +61,41 @@ class StatusControllers extends GetxController {
   }
 
   Future<void> GetStatusUpdate(
-      String oid, String wkf, String id, String status) async {
-    print("data us $oid $wkf $id $status");
+      String oid, String oldWkf, String newWkf, String status) async {
+    print(" oid $oid old wkf $oldWkf new wkf $newWkf  status $status");
     currentStatus.value = status;
+    updatedWkf.value = newWkf;
 
     print(currentStatus.value);
-    print("currentStatus.value");
+    // print("currentStatus.value");
     String url =
-        "https://$baseUrl/mobi?token=$token&nspace=$nsp&geo=$geo&rid=$rid&action=saveorderfld&id=$oid&name=$wkf&value=$id&egeo=<lat,lon>&";
+        "https://$baseUrl/mobi?token=$token&nspace=$nsp&geo=$geo&rid=$rid&action=saveorderfld&id=$oid&name=wkf&value=$newWkf&egeo=<lat,lon>&";
 
     try {
       final response = await http.get(Uri.parse(url));
 
       if (response.statusCode == 200) {
         final responseData = response.body;
-
+        print("Success ${response.statusCode}");
         print("Response $responseData");
+
+        //-----------
+
+        // Fetch the updated status from the database
+        String? updatedStatus =
+            await StatusTable.fetchNameById(newWkf); // Fetch new status
+        if (updatedStatus != null) {
+          eventController.nameMap[oldWkf] =
+              updatedStatus; // Update the nameMap dynamically
+          print("Updated status for new  wkf $newWkf: $updatedStatus");
+
+          //update the wkf
+        int value = await EventTable.updateOrder(oid , newWkf);
+
+        print("updated value is $value");
+        } else {
+          print("No updated status found for old wkf $oldWkf");
+        }
       } else {
         print("Error: Received status code ${response.statusCode}");
       }

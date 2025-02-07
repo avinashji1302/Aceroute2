@@ -69,6 +69,47 @@ class PartTypeDataTable {
   }
 
 
+  //Fetch the id of the table
+  static Future<String?> fetchIdByName(String categoryName) async {
+    try {
+      Database db = await DatabaseHelper().database;
+
+      // Query for the name
+      List<Map<String, dynamic>> results = await db.query(
+        tableName,
+        where: 'name = ? COLLATE NOCASE',  // Use NOCASE for case-insensitive search
+        whereArgs: [categoryName],
+      );
+
+      // Debug logs
+      print("Query result for $categoryName: $results");
+
+      // Return the id if found, otherwise return null
+      return results.isNotEmpty ? results.first['id'] as String? : null;
+    } catch (e) {
+      print("Error fetching id: $e");
+      return null;
+    }
+  }
+
+
+  static Future<List<PartTypeDataModel>> fetchPartTypeAllDataById(String id) async {
+    final db = await DatabaseHelper().database;
+
+    final List<Map<String, dynamic>> maps = await db.query(
+      tableName,
+      where: 'id = ?', // Fetch all records with the same tid
+      whereArgs: [id],
+    );
+
+    print("Success in getting data for tid: $id");
+
+    // Convert the list of maps to a list of PartTypeDataModel objects
+    return maps.isNotEmpty ? maps.map((e) => PartTypeDataModel.fromJson(e)).toList() : [];
+  }
+
+
+
   //
 
   // Clear all part type data from the part_type table

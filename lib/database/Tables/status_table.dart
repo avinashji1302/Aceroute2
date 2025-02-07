@@ -78,4 +78,35 @@ class StatusTable {
   }
 
 
+
+
+  // Fetch the name by id (After choosing any specific status the status
+
+// Fetch a single name by ID
+  static Future<String?> fetchNameById(String id) async {
+    String? name;
+    try {
+      // Access the database instance
+      Database db = await DatabaseHelper().database;
+
+      // Query the database for the specific ID
+      List<Map<String, dynamic>> results = await db.query(
+        tableName,
+        where: 'id = ?',
+        whereArgs: [id],
+      );
+
+      // Extract the name if the result is not empty
+      if (results.isNotEmpty) {
+        name = results.first['name'] as String?;
+
+        print("name is $name");
+      }
+    } catch (e) {
+      print("Error fetching name by ID: $e");
+    }
+    return name;
+  }
+
+
 }
