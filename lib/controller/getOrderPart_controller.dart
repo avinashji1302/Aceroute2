@@ -108,7 +108,7 @@ class GetOrderPartController extends GetxController {
           await GetOrderPartTable.fetchDataByOid(oid);
       if (dbOrders.isNotEmpty) {
         orderPartsList.assignAll(dbOrders);
-
+        partTypeDataList.clear(); // Clear the list before refreshing
         for (var data in dbOrders) {
           List<PartTypeDataModel> fetchedPartTypeList =
               await PartTypeDataTable.fetchPartTypeAllDataById(data.tid);
@@ -226,6 +226,17 @@ class GetOrderPartController extends GetxController {
       print("edited Successfully ${response.statusCode}");
 
       print(response.body);
+
+      // Refresh the data
+      await GetOrderPartFromDb(oId);
+      partTypeDataList.clear(); // Clear the list before refreshing
+      for (var data in orderPartsList) {
+        List<PartTypeDataModel> fetchedPartTypeList =
+            await PartTypeDataTable.fetchPartTypeAllDataById(data.tid);
+        if (fetchedPartTypeList.isNotEmpty) {
+          partTypeDataList.addAll(fetchedPartTypeList);
+        }
+      }
     }
   }
 

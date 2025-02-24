@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:ace_routes/controller/all_terms_controller.dart';
 import 'package:ace_routes/controller/event_controller.dart';
 import 'package:ace_routes/controller/loginController.dart';
+import 'package:ace_routes/controller/map_controller.dart';
 import 'package:ace_routes/controller/status_updated_controller.dart';
 import 'package:ace_routes/core/Constants.dart';
 import 'package:ace_routes/core/colors/Constants.dart';
@@ -26,8 +27,10 @@ import 'package:ace_routes/view/drawer.dart';
 import 'package:ace_routes/controller/homeController.dart';
 import 'package:intl/intl.dart';
 import 'package:sqflite/sqflite.dart';
+import '../Widgets/icon_with_badge.dart';
 import '../controller/file_meta_controller.dart';
 import '../controller/fontSizeController.dart';
+import '../controller/getOrderPart_controller.dart';
 import '../database/Tables/OrderTypeDataTable.dart';
 import '../database/Tables/PartTypeDataTable.dart';
 import '../database/Tables/login_response_table.dart';
@@ -57,17 +60,14 @@ class _HomeScreenState extends State<HomeScreen> {
   final FontSizeController fontSizeController = Get.put(FontSizeController());
   final EventController eventController = Get.put(EventController());
   final StatusControllers statusControllers = Get.put(StatusControllers());
+  final MapControllers mapControllers = Get.put(MapControllers());
+  final controller = Get.put(GetOrderPartController());
 
   List<bool> temp = [true, false];
 
   @override
   void initState() {
     super.initState();
-    // _loadCustomIcon();
-    // _determinePosition();
-    // Get.put(EventController());
-    // Get.put(StatusControllers());
-    // eventController.fetchEvents();
   }
 
   @override
@@ -411,10 +411,24 @@ class _HomeScreenState extends State<HomeScreen> {
                                       color: MyColors.blueColor,
                                       borderRadius: BorderRadius.circular(12.0),
                                     ),
-                                    child: Center(
-                                      child: Icon(
-                                        Icons.share,
-                                        color: Colors.white,
+                                    child: GestureDetector(
+                                      onTap: () {
+                                        final List<String> coordinates =
+                                            event.geo.split(',');
+                                        final LatLng targetLocation = LatLng(
+                                          double.parse(
+                                              coordinates[0]), // Latitude
+                                          double.parse(
+                                              coordinates[1]), // Longitude
+                                        );
+                                        mapControllers
+                                            .launchURL(targetLocation);
+                                      },
+                                      child: Center(
+                                        child: Icon(
+                                          Icons.directions,
+                                          color: Colors.white,
+                                        ),
                                       ),
                                     ),
                                   ),
@@ -501,27 +515,44 @@ class _HomeScreenState extends State<HomeScreen> {
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceEvenly,
                                   children: [
-                                    IconButton(
-                                      icon:
-                                          Icon(Icons.person_2_sharp, size: 30),
+
+
+                                    //added cunt  ******EForm Type*************
+                                    // EForm Type with Badge
+                                    IconButtonWithBadge(
+                                      icon: Icons.person_2_sharp,
+                                      badgeCount:
+                                          '0', // Replace with your dynamic count
                                       onPressed: () {
                                         Get.to(EFormScreen(
                                             tid: eventController
                                                 .events[index].tid));
                                       },
+                                      badgePositionLeft: 0,
+                                      badgePositionTop: 0,
                                     ),
-                                    IconButton(
-                                      icon: Icon(Icons.tips_and_updates,
-                                          size: 30),
+
+                                    //************ Part Type**********
+
+                                    // Part Type with Badge
+                                    IconButtonWithBadge(
+                                      icon: Icons.tips_and_updates,
+                                      badgeCount:"1",
+                                      // Replace with your dynamic count
                                       onPressed: () {
                                         Get.to(PartScreen(
                                           oid: eventController.events[index].id,
                                         ));
                                       },
+                                      badgePositionLeft: 0,
+                                      badgePositionTop: 0,
                                     ),
-                                    IconButton(
-                                      icon: Icon(Icons.camera_alt_outlined,
-                                          size: 30),
+
+                                    // Part Type with Badge
+                                    IconButtonWithBadge(
+                                      icon: Icons.camera_alt_outlined,
+                                      badgeCount:
+                                          '0', // Replace with your dynamic count
                                       onPressed: () async {
                                         // Get the event ID
                                         String eventId =
@@ -544,9 +575,15 @@ class _HomeScreenState extends State<HomeScreen> {
                                           );
                                         }
                                       },
+                                      badgePositionLeft: 0,
+                                      badgePositionTop: 0,
                                     ),
-                                    IconButton(
-                                      icon: Icon(Icons.mic, size: 30),
+
+                                    // Part Type with Badge
+                                    IconButtonWithBadge(
+                                      icon: Icons.mic,
+                                      badgeCount:
+                                          '0', // Replace with your dynamic count
                                       onPressed: () async {
                                         // Get the event ID
                                         String eventId =
@@ -569,16 +606,33 @@ class _HomeScreenState extends State<HomeScreen> {
                                           );
                                         }
                                       },
+                                      badgePositionLeft: 0,
+                                      badgePositionTop: 0,
                                     ),
-                                    IconButton(
-                                      icon: Icon(Icons.edit, size: 30),
+
+                                    // IconButton(
+                                    //   icon: Icon(Icons.edit, size: 30),
+                                    //   onPressed: () {
+                                    //     //fileMetaController.fetchAndSaveFileMeta();  // call the filemeta API data here
+                                    //     // Get.to(Signature());
+                                    //     Get.to(() => Signature(
+                                    //         eventId: int.parse(eventController
+                                    //             .events[index].id)));
+                                    //   },
+                                    // ),
+
+                                    // Part Type with Badge
+                                    IconButtonWithBadge(
+                                      icon: Icons.edit,
+                                      badgeCount:
+                                          '0', // Replace with your dynamic count
                                       onPressed: () {
-                                        //fileMetaController.fetchAndSaveFileMeta();  // call the filemeta API data here
-                                        // Get.to(Signature());
                                         Get.to(() => Signature(
                                             eventId: int.parse(eventController
                                                 .events[index].id)));
                                       },
+                                      badgePositionLeft: 0,
+                                      badgePositionTop: 0,
                                     ),
                                   ],
                                 ),

@@ -4,13 +4,20 @@ import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class MapScreen extends StatefulWidget {
+  final LatLng? targetLocation;
+
+  const MapScreen({super.key, this.targetLocation});
+
   @override
   _MapScreenState createState() => _MapScreenState();
 }
 
 class _MapScreenState extends State<MapScreen> {
   late GoogleMapController mapController;
-  final LatLng _startLocation = LatLng(37.6989067397224, -121.95810274469206);
+  final LatLng _startLocation = LatLng(41.500000, -100.000000);
+
+
+  LatLng? _currentLocation;
 
   Set<Marker> markers = {};
   final locationMapController = Get.put(MapControllers());
@@ -18,6 +25,7 @@ class _MapScreenState extends State<MapScreen> {
   @override
   void initState() {
     super.initState();
+    _currentLocation = widget.targetLocation;
     fetchOrderData();
   }
 
@@ -75,7 +83,7 @@ class _MapScreenState extends State<MapScreen> {
           onMapCreated: _onMapCreated,
           initialCameraPosition: CameraPosition(
             target: _startLocation,
-            zoom: 8.0,
+            zoom: 3.0,
           ),
           markers: markers,
         );

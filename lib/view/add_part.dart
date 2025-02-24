@@ -84,11 +84,18 @@ class _AddPartState extends State<AddPart> {
                     _quantityController.text, _skuController.text, widget.oid);
               } else {
                 // Update Part
-                await controller.EditPart( widget.part!.id,  widget.oid , widget.part!.tid , _quantityController.text , _skuController.text );
+                await controller.EditPart(
+                    widget.part!.id,
+                    widget.oid,
+                    controller.categoryId, // Use the updated tid
+                    _quantityController.text,
+                    _skuController.text);
                 print("edit");
               }
 
-              Get.back();
+
+
+              Get.back(result: true);
             },
           ),
         ],
@@ -101,6 +108,15 @@ class _AddPartState extends State<AddPart> {
             children: [
               // Category Dropdown
               Obx(() {
+                // Ensure categories are unique
+                final uniqueCategories = controller.categories.toSet().toList();
+
+                // If _selectedCategory is not in the list, set it to null
+                if (_selectedCategory != null &&
+                    !uniqueCategories.contains(_selectedCategory)) {
+                  _selectedCategory = null;
+                }
+
                 return Card(
                   elevation: 4,
                   shape: RoundedRectangleBorder(
@@ -114,7 +130,7 @@ class _AddPartState extends State<AddPart> {
                         border: OutlineInputBorder(),
                       ),
                       value: _selectedCategory,
-                      items: controller.categories
+                      items: uniqueCategories
                           .map((category) => DropdownMenuItem<String>(
                                 value: category,
                                 child: Text(category),
@@ -189,7 +205,6 @@ class _AddPartState extends State<AddPart> {
               ElevatedButton(
                 onPressed: () {
                   // Handle form submission
-
                   print(
                       "$_selectedCategory ${_quantityController.text} ${_skuController.text}");
                 },
