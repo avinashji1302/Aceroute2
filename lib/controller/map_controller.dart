@@ -1,9 +1,9 @@
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../database/Tables/event_table.dart';
 import '../model/event_model.dart';
-import 'event_controller.dart';
 
 class MapControllers extends GetxController {
   // Use .obs to make orderLocations observable
@@ -44,6 +44,16 @@ class MapControllers extends GetxController {
       print("All geo locations: $orderLocations");
     } catch (e) {
       print("Error fetching order locations: $e");
+    }
+  }
+
+  void launchURL(LatLng targetLocation) async {
+    final String googleMapsUrl =
+        'https://www.google.com/maps?q=${targetLocation.latitude},${targetLocation.longitude}';
+    if (await canLaunch(googleMapsUrl)) {
+      await launch(googleMapsUrl);
+    } else {
+      throw 'Could not launch $googleMapsUrl';
     }
   }
 }

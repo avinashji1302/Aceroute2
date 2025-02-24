@@ -29,6 +29,7 @@ class _PartScreenState extends State<PartScreen> {
   Future<void> _initializeData() async {
     await controller.fetchOrderData(widget.oid);
     await controller.GetOrderPartFromDb(widget.oid);
+    setState(() {}); // Ensure the UI is updated
   }
 
   @override
@@ -78,11 +79,11 @@ class _PartScreenState extends State<PartScreen> {
           itemCount: controller.orderPartsList.length,
           itemBuilder: (context, index) {
             final order = controller.orderPartsList[index];
-            final partData = controller.partTypeDataList[
-                index]; // Handle cases where data is still loading
-
+            final partData = index < controller.partTypeDataList.length
+                ? controller.partTypeDataList[index]
+                : null; // Handle out-of-bounds access
             return Dismissible(
-              key: Key(order.id), // Ensure a unique key
+              key: UniqueKey(), // Ensure a unique key
               direction:
                   DismissDirection.horizontal, // Allow both swipe directions
               background: Container(
@@ -104,16 +105,20 @@ class _PartScreenState extends State<PartScreen> {
                   Get.to(() => AddPart(
                       oid: order.oid, // Pass the necessary data
                       part: order,
-                      partTypeData: partData))?.then((_) {
-                    // This will be called when returning from AddPart screen
-                    //  controller.fetchOrderParts(); // Call API to refresh the list
-                    print(order.sku);
-                    print("sdsd");
+                      partTypeData: partData))?.then((result) {
+                    if (result == true) {
+                      _initializeData(); // Refresh data
+                    }
+
+                    controller.AddPartCategories();
+                    print('Add Part button pressed');
                   });
                 } else if (direction == DismissDirection.endToStart) {
                   // Swipe Left -> Call Delete Function
                   await controller.DeletePart(order.id);
-                  controller.orderPartsList.remove(order); // Remove from UI
+                  setState(() {
+                    controller.orderPartsList.remove(order); // Remove from UI
+                  });
                 }
               },
 
@@ -132,58 +137,61 @@ class _PartScreenState extends State<PartScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Expanded(
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                partData != null
+                          // No need for Expanded here, instead use flexible layout if necessary
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              partData != null
+                                  ? Text(
+                                      partData.name,
+                                      style: TextStyle(
+                                        fontSize: fontSizeController.fontSize,
+                                      ),
+                                    )
+                                  : Container(
+                                      width: 10,
+                                      height: 10,
+                                      child: Container(
+                                          width: 10,
+                                          height: 10,
+                                          child: CircularProgressIndicator()),
+                                    ), // Show loader while partData is fetching
+                              Text(
+                                order.qty,
+                                style: TextStyle(
+                                    fontSize: 26, fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: partData != null
                                     ? Text(
-                                        partData.name,
+                                        partData.detail,
                                         style: TextStyle(
                                           fontSize: fontSizeController.fontSize,
+                                          fontWeight: FontWeight.bold,
                                         ),
                                       )
-                                    : CircularProgressIndicator(), // Show loader while partData is fetching
-                                Text(
-                                  order.qty,
+                                    : Container(
+                                        width: 10,
+                                        height: 10,
+                                        child: CircularProgressIndicator()),
+                              ),
+                            ],
+                          ),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  order.sku,
                                   style: TextStyle(
-                                      fontSize: 26,
-                                      fontWeight: FontWeight.bold),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Expanded(
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: partData != null
-                                      ? Text(
-                                          partData.detail,
-                                          style: TextStyle(
-                                            fontSize:
-                                                fontSizeController.fontSize,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        )
-                                      : CircularProgressIndicator(),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Expanded(
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    order.sku,
-                                    style: TextStyle(
-                                      fontSize: fontSizeController.fontSize,
-                                    ),
+                                    fontSize: fontSizeController.fontSize,
                                   ),
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
