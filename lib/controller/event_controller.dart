@@ -91,7 +91,7 @@ class EventController extends GetxController {
     var url =
         "https://$baseUrl/mobi?token=$token&nspace=$nsp&geo=$geo&rid=$rid&action=getorders&tz=Asia/Kolkata&from=${formattedCurrentDate}&to=${formattedSecondDate}";
 
-    print("Fetching events from URL: $url");
+   // print("Fetching events from URL: $url");
 
     try {
       var request = http.Request('GET', Uri.parse(url));
@@ -99,7 +99,7 @@ class EventController extends GetxController {
 
       if (response.statusCode == 200) {
         String xmlString = await response.stream.bytesToString();
-        print("Raw XML response: $xmlString");
+       // print("Raw XML response: $xmlString");
 
         // Parse and store the events
         parseXmlResponse(xmlString);
@@ -172,15 +172,15 @@ class EventController extends GetxController {
     }).toList();
 
     for (Event event in fetchedEvents) {
-      print("Event is ${event.geo}");
+    //  print("Event is ${event.geo}");
       EventTable.insertEvent(event);
-      print("Event added to database: ${event.toJson()['id']}");
+     // print("Event added to database: ${event.toJson()['id']}");
     }
 
     events.assignAll(fetchedEvents);
-    print("Fetched and stored ${fetchedEvents.length} events");
-    print(jsonEncode("${fetchedEvents[0]}"));
-    print("  geo is ${events}");
+    // print("Fetched and stored ${fetchedEvents.length} events");
+    // print(jsonEncode("${fetchedEvents[0]}"));
+    // print("  geo is ${events}");
   }
 
   String _getText(xml.XmlElement element, String tagName) {
@@ -194,7 +194,7 @@ class EventController extends GetxController {
     try {
       List<Event> localEvents = await EventTable.fetchEvents();
       events.assignAll(localEvents);
-      print("Loaded ${localEvents.length} events from database");
+    //  print("Loaded ${localEvents.length} events from database");
 
       // Extract unique wkf and tid values
       Set<String> wkfSet = localEvents.map((event) => event.wkf).toSet();
@@ -214,8 +214,8 @@ class EventController extends GetxController {
       categoryMap.value = await fetchedCategory;
 
       // Log all data
-      print("Names: ${nameMap.value}");
-      print("Categories: ${categoryMap.value}");
+      // print("Names: ${nameMap.value}");
+      // print("Categories: ${categoryMap.value}");
     } catch (e) {
       print("Error loading events from database: $e");
     } finally {

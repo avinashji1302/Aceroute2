@@ -30,7 +30,7 @@ class OrderNoteController extends GetxController {
     final apiUrl =
         "https://$baseUrl/mobi?token=$token&nspace=$nsp&geo=%3Clat,lon%3E&rid=$rid&action=getordernotes&oid=$oid";
 
-    print("API URL: $apiUrl");
+  //  print("API URL: $apiUrl");
 
 
     try {
@@ -43,13 +43,13 @@ class OrderNoteController extends GetxController {
         final dataElement = document.findAllElements('data').first.text.trim();
         final jsonResponse = jsonEncode( dataElement);
 
-         print("Converted JSON: ${jsonResponse}");
+       //  print("Converted JSON: ${jsonResponse}");
 
         // Save to the local database
         final orderNote = OrderNoteModel(data: jsonResponse);
         await OrderNoteTable.insertOrderNote(orderNote);
 
-        print("Note is inserted successfully");
+      //  print("Note is inserted successfully");
       } else {
         print("Failed to fetch order notes: ${response.statusCode}");
       }
@@ -66,10 +66,10 @@ class OrderNoteController extends GetxController {
     List<Event> eventDbData = await EventTable.fetchEvents();
     for (var data in eventDbData) {
       oid = data.id;
-      print("oid $oid");
+    //  print("oid $oid");
     }
 
-    print("data respectively : $oid , $token, $geo ,$rid");
+    //print("data respectively : $oid , $token, $geo ,$rid");
   }
 }
     

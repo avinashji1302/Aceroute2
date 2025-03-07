@@ -34,10 +34,10 @@ class GetOrderPartController extends GetxController {
           'https://$baseUrl/mobi?token=$token&nspace=$nsp&geo=<lat,lon>&rid=$rid&action=getorderpart&oid=$oid';
 
       final response = await http.get(Uri.parse(url));
-      print('getorderpart API URL: $url');
+     // print('getorderpart API URL: $url');
 
       if (response.statusCode == 200) {
-        print('Response Body:\n${response.body}'); // Debug the response body
+       // print('Response Body:\n${response.body}'); // Debug the response body
 
         final xmlDoc = XmlDocument.parse(response.body);
 
@@ -152,11 +152,11 @@ class GetOrderPartController extends GetxController {
     print("$categoryId ${sku} ${quantity}");
     final url =
         "https://$baseUrl/mobi?token=$token&nspace=$nsp&geo=$geo&rid=$rid&action=saveorderpart&oid=$oid&id=0&tid=$categoryId&qty=$quantity&sku=$sku&stmp=333242323";
-    print("oid to use $oid");
+ //   print("oid to use $oid");
     final response = await http.get(Uri.parse(url));
 
     if (response.statusCode == 200) {
-      print("response is ::: ${response.body}");
+     // print("response is ::: ${response.body}");
 
       final xmlDoc = XmlDocument.parse(response.body);
 

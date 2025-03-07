@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:ace_routes/core/Constants.dart';
 import 'package:ace_routes/core/colors/Constants.dart';
 import 'package:ace_routes/view/appbar.dart';
@@ -17,7 +19,8 @@ class Signature extends StatefulWidget {
 }
 
 class _SignatureState extends State<Signature> {
-  final SignatureController signatureController = Get.put(SignatureController());
+  final SignatureController signatureController =
+      Get.put(SignatureController());
   final FileMetaController fileMetaController = Get.put(FileMetaController());
 
   final RxInt currentBlock = 0.obs;
@@ -43,7 +46,8 @@ class _SignatureState extends State<Signature> {
             children: [
               // Display file meta data from the database
               Obx(() {
-                if (fileMetaController.fileMetaData.isEmpty  && signatureController.signatures.isEmpty) {
+                if (fileMetaController.fileMetaData.isEmpty &&
+                    signatureController.signatures.isEmpty) {
                   return Center(child: Text('No file meta data available.'));
                 }
                 return _buildFileMetaDataList();
@@ -61,26 +65,32 @@ class _SignatureState extends State<Signature> {
     );
   }
 
-
   // Build signature grid (already defined in your code)
   Widget _buildSignatureGrid(BuildContext context) {
     // Check if there are any signatures
-    if (fileMetaController.fileMetaData.isEmpty && signatureController.signatures.isEmpty) {
+    if (fileMetaController.fileMetaData.isEmpty &&
+        signatureController.signatures.isEmpty) {
       return Center(
         child: Text('No signatures added yet.'),
       );
     }
 
-    // If there are signatures, build the signature grid
     return Wrap(
       spacing: 16.0,
       runSpacing: 16.0,
       children: List.generate(signatureController.signatures.length, (index) {
-        return _buildSignatureBlock(context, index);
+        return GestureDetector(
+          onTap: () {
+            print(signatureController.signatures[index]);
+            // Get.to(PictureViewScreen(
+            //   id: fileMeta.id,
+            // ));
+          },
+          child: _buildSignatureBlock(context, index),
+        );
       }),
     );
   }
-
 
   // Signature block UI (already defined in your code)
   Widget _buildSignatureBlock(BuildContext context, int index) {
@@ -96,7 +106,7 @@ class _SignatureState extends State<Signature> {
               Icons.edit,
               size: 30,
               color: (index == currentBlock.value &&
-                  signatureController.signatures.length <= index)
+                      signatureController.signatures.length <= index)
                   ? Colors.black
                   : Colors.transparent,
             );
@@ -106,7 +116,7 @@ class _SignatureState extends State<Signature> {
         Obx(() {
           return signatureController.signatures.length > index
               ? _buildSignatureDisplay(
-              index, signatureController.signatures[index])
+                  index, signatureController.signatures[index])
               : SizedBox.shrink();
         }),
         SizedBox(height: 5.0),
@@ -143,7 +153,8 @@ class _SignatureState extends State<Signature> {
             ),
             TextButton(
               onPressed: () async {
-                final signature = await _signaturePadKey.currentState?.toImage();
+                final signature =
+                    await _signaturePadKey.currentState?.toImage();
                 if (signature != null) {
                   signatureController.addSignature(signature);
                   currentBlock.value++; // Move to the next block
@@ -158,7 +169,6 @@ class _SignatureState extends State<Signature> {
     );
   }
 
-
   // Build file meta data list
   Widget _buildFileMetaDataList() {
     return ListView.builder(
@@ -170,7 +180,6 @@ class _SignatureState extends State<Signature> {
       },
     );
   }
-
 
   // FileMeta display block UI (similar to _buildSignatureDisplay)
   Widget _buildFileMetaBlock(BuildContext context, int index, var fileMeta) {
@@ -205,7 +214,6 @@ class _SignatureState extends State<Signature> {
       ),
     );
   }
-
 
   // Signature display widget (already defined in your code)
   Widget _buildSignatureDisplay(int index, ui.Image signature) {

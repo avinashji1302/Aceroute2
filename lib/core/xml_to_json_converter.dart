@@ -4,7 +4,7 @@ import 'package:xml/xml.dart' as xml;
 Map<String, dynamic> xmlToJson(String xmlString) {
   final document = xml.XmlDocument.parse(xmlString);
 
-  print("xml string $xmlString");
+ // print("xml string $xmlString");
 
   // We need to return the children of the root element <data>
   return _xmlNodeToJson(document.rootElement);

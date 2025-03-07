@@ -1,19 +1,14 @@
-import 'package:ace_routes/view/home_screen.dart';
+import 'package:ace_routes/controller/connectivity/dependecy_injection.dart';
 import 'package:ace_routes/view/login_screen.dart';
-import 'package:ace_routes/view/splash_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import 'controller/fontSizeController.dart';
 
 void main() {
-  // Initialize FFI for sqflite
-  // sqfliteFfiInit();
-  // databaseFactory = databaseFactoryFfi; // This is crucial
-  // print("SQLite initialized using FFI");
-
   Get.put(FontSizeController());
   runApp(const MyApp());
+  DependecyInjection.init();
 }
 
 class MyApp extends StatelessWidget {

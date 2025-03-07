@@ -2,15 +2,31 @@ import 'package:ace_routes/controller/get_media_file.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class SignatureDummy extends StatelessWidget {
-  SignatureDummy({super.key});
+import '../core/Constants.dart';
 
-  final GetMediaFile getMediaFile = Get.put(GetMediaFile());
+class PictureViewScreen extends StatelessWidget {
+  late String id;
+  PictureViewScreen({super.key, required this.id});
 
   @override
   Widget build(BuildContext context) {
+    final GetMediaFile getMediaFile = Get.put(GetMediaFile(id: id));
+
     return Scaffold(
-      appBar: AppBar(title: Text("Signature Image")),
+      appBar: AppBar(
+        title: Text(
+          'Picture View',
+          style: TextStyle(color: Colors.white, fontSize: 16),
+        ),
+        centerTitle: true,
+        backgroundColor: Colors.blue[900],
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+        ),
+      ),
       body: Center(
         child: Obx(() {
           if (getMediaFile.imageUrl.isEmpty) {
