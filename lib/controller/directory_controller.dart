@@ -26,7 +26,7 @@ class DirectoryController extends GetxController {
   void onInit() {
     super.onInit();
     fetchDirectoryDetailsFromDb();
-    print("I am here in directory");
+  //  print("I am here in directory");
   }
 
   Future<void> fetchDirectoryDetailsFromDb() async {
@@ -40,7 +40,7 @@ class DirectoryController extends GetxController {
       ctpnm.value = localEvent.ctpnm;
       customerName.value = localEvent.cnm;
 
-      print("Local events ${address.value}");
+     // print("Local events ${address.value}");
     }
 
     if (fetchedGType != null) {

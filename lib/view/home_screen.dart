@@ -14,6 +14,7 @@ import 'package:ace_routes/view/audio.dart';
 import 'package:ace_routes/view/e_from.dart';
 import 'package:ace_routes/view/part.dart';
 import 'package:ace_routes/view/pic_upload_screen.dart';
+import 'package:ace_routes/view/picture_view_screen.dart';
 import 'package:ace_routes/view/signature_scree.dart';
 import 'package:ace_routes/view/status_screen.dart';
 import 'package:ace_routes/view/summary_screen.dart';
@@ -515,8 +516,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceEvenly,
                                   children: [
-
-
                                     //added cunt  ******EForm Type*************
                                     // EForm Type with Badge
                                     IconButtonWithBadge(
@@ -537,7 +536,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     // Part Type with Badge
                                     IconButtonWithBadge(
                                       icon: Icons.tips_and_updates,
-                                      badgeCount:"1",
+                                      badgeCount: "1",
                                       // Replace with your dynamic count
                                       onPressed: () {
                                         Get.to(PartScreen(
@@ -552,7 +551,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     IconButtonWithBadge(
                                       icon: Icons.camera_alt_outlined,
                                       badgeCount:
-                                          '0', // Replace with your dynamic count
+                                          '3', // Replace with your dynamic count
                                       onPressed: () async {
                                         // Get the event ID
                                         String eventId =
@@ -609,17 +608,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                       badgePositionLeft: 0,
                                       badgePositionTop: 0,
                                     ),
-
-                                    // IconButton(
-                                    //   icon: Icon(Icons.edit, size: 30),
-                                    //   onPressed: () {
-                                    //     //fileMetaController.fetchAndSaveFileMeta();  // call the filemeta API data here
-                                    //     // Get.to(Signature());
-                                    //     Get.to(() => Signature(
-                                    //         eventId: int.parse(eventController
-                                    //             .events[index].id)));
-                                    //   },
-                                    // ),
 
                                     // Part Type with Badge
                                     IconButtonWithBadge(

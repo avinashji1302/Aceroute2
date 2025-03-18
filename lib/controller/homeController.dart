@@ -1,6 +1,9 @@
 import 'dart:async';
 
+import 'package:ace_routes/core/colors/Constants.dart';
+import 'package:ace_routes/database/databse_helper.dart';
 import 'package:ace_routes/model/order_data_model.dart';
+import 'package:ace_routes/pubnub/pubnub_service.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:location/location.dart' as locationLib;
@@ -13,6 +16,7 @@ import 'package:get/get_rx/src/rx_types/rx_types.dart';
 import 'package:get/get_state_manager/src/simple/get_controllers.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
+import 'package:sqflite/sqflite.dart';
 
 class HomeController extends GetxController {
   final Completer<GoogleMapController> mapController = Completer();
@@ -21,6 +25,22 @@ class HomeController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    initializePubNub(nsp, rid);
+  }
+
+  late PubNubService pubNubService;
+
+  Future<void> initializePubNub(String namespace, String rid) async {
+    print("insitalize");
+    // Database db = await DatabaseHelper().database;
+    pubNubService = PubNubService(namespace: namespace, rid: rid);
+    
+
+    print("insitalize  $pubNubService");
+  }
+
+  void dispose() {
+    pubNubService.dispose();
   }
 
   Future<void> getCurrentLocation() async {

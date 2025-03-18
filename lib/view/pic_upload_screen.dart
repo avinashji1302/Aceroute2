@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:ace_routes/core/Constants.dart';
+import 'package:ace_routes/view/picture_view_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controller/file_meta_controller.dart';
@@ -22,7 +23,6 @@ class _PicUploadScreenState extends State<PicUploadScreen> {
   @override
   void initState() {
     super.initState();
-
     fileMetaController.fetchFileImageDataFromDatabase();
   }
 
@@ -39,10 +39,7 @@ class _PicUploadScreenState extends State<PicUploadScreen> {
         centerTitle: true,
         backgroundColor: Colors.blue[900],
         leading: IconButton(
-          icon: Icon(
-            Icons.arrow_back,
-            color: Colors.white,
-          ),
+          icon: Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () {
             Navigator.of(context).pop();
             controller.clearImages();
@@ -57,16 +54,15 @@ class _PicUploadScreenState extends State<PicUploadScreen> {
               if (fileMetaController.fileMetaData.isEmpty) {
                 return Center(child: Text('No file meta data available.'));
               }
-              return _buildFileMetaDataList();
+              return _buildFileMetaDataGrid(); // Updated to use a grid
             }),
-
             SizedBox(height: 20),
             Expanded(
               child: Obx(() {
                 return GridView.builder(
                   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 10,
+                    crossAxisCount: 2, // Two images per row
+                    crossAxisSpacing: 40,
                     mainAxisSpacing: 10,
                   ),
                   itemCount: controller.images.length + 1,
@@ -89,7 +85,6 @@ class _PicUploadScreenState extends State<PicUploadScreen> {
                     } else {
                       return GestureDetector(
                         onTap: () {
-                          // Open the full-screen view of the image
                           Get.to(() => FullScreenImageView(
                               image: File(controller.images[index].path)));
                         },
@@ -98,51 +93,27 @@ class _PicUploadScreenState extends State<PicUploadScreen> {
                         },
                         child: Obx(() {
                           bool isSelected =
-                          controller.selectedIndices.contains(index);
+                              controller.selectedIndices.contains(index);
 
-                          return Stack(
-                            children: [
-                              Container(
-                                decoration: BoxDecoration(
-                                  border: Border.all(
-                                    color: isSelected
-                                        ? Colors.red
-                                        : Colors.transparent,
-                                    width: 3,
-                                  ),
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(10),
-                                  child: Image.file(
-                                    File(controller.images[index].path),
-                                    fit: BoxFit.cover,
-                                    width: double.infinity,
-                                    height: double.infinity,
-                                  ),
-                                ),
+                          return Container(
+                            decoration: BoxDecoration(
+                              border: Border.all(
+                                color: isSelected
+                                    ? Colors.red
+                                    : Colors.transparent,
+                                width: 3,
                               ),
-                              if (isSelected)
-                                Positioned(
-                                  top: 5,
-                                  right: 5,
-                                  child: GestureDetector(
-                                    onTap: () {
-                                      controller.deleteImage(index);
-                                    },
-                                    child: CircleAvatar(
-                                      radius: 15,
-                                      backgroundColor:
-                                      Colors.red.withOpacity(0.7),
-                                      child: Icon(
-                                        Icons.close,
-                                        color: Colors.white,
-                                        size: 18,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                            ],
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(10),
+                              child: Image.file(
+                                File(controller.images[index].path),
+                                fit: BoxFit.cover,
+                                width: double.infinity,
+                                height: double.infinity,
+                              ),
+                            ),
                           );
                         }),
                       );
@@ -156,53 +127,63 @@ class _PicUploadScreenState extends State<PicUploadScreen> {
       ),
     );
   }
-  // Build file meta data list
-  // Build file meta data list for images
-  Widget _buildFileMetaDataList() {
-    return ListView.builder(
+
+  // Build file meta data as a Grid (2 per row)
+  Widget _buildFileMetaDataGrid() {
+    return GridView.builder(
       shrinkWrap: true,
+      physics: NeverScrollableScrollPhysics(),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2, // Show 2 per row
+        crossAxisSpacing: 10,
+        mainAxisSpacing: 10,
+        childAspectRatio: 1, // Adjust height-width ratio
+      ),
       itemCount: fileMetaController.fileMetaData.length,
       itemBuilder: (context, index) {
         final fileMeta = fileMetaController.fileMetaData[index];
-        return _buildFileMetaBlock(context, index, fileMeta);
+        return _buildFileMetaBlock(fileMeta);
       },
     );
   }
 
-  // Create the file metadata block (with the image name or icon)
-  Widget _buildFileMetaBlock(BuildContext context, int index, var fileMeta) {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Stack(
-        children: [
-          Container(
-            height: 100,
-            width: 150,
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.black),
-              borderRadius: BorderRadius.circular(8.0),
-            ),
-            child: Text(
+  // Create the file metadata block (without the delete icon)
+  Widget _buildFileMetaBlock(var fileMeta) {
+    return GestureDetector(
+      onTap: () {
+        print(fileMeta.id);
+        Get.to(PictureViewScreen(
+          id: fileMeta.id,
+        ));
+      },
+      child: Container(
+        padding: EdgeInsets.all(8.0),
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.black),
+          borderRadius: BorderRadius.circular(8.0),
+        ),
+        alignment: Alignment.center,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.end,
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Text(
               fileMeta.fname ?? 'No Name',
               style: TextStyle(fontWeight: FontWeight.bold),
               textAlign: TextAlign.center,
             ),
-          ),
-          Positioned(
-            top: 0,
-            right: 0,
-            child: IconButton(
-              icon: Icon(Icons.delete, color: Colors.red),
-              onPressed: () {
-                // fileMetaController.deleteFileMeta(index);
-              },
+            Center(
+              child: Text(
+                fileMeta.dtl ?? 'No Name',
+                style: TextStyle(fontWeight: FontWeight.bold),
+                textAlign: TextAlign.center,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
-
 }
 
 class FullScreenImageView extends StatelessWidget {

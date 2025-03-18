@@ -1,4 +1,3 @@
-
 import 'dart:convert';
 
 import 'package:sqflite/sqflite.dart';
@@ -25,7 +24,6 @@ class GTypeTable {
   ''');
   }
 
-
   // Upgrade logic for the gen_type table
   static Future<void> onUpgrade(Database db) async {
     await onCreate(db); // Re-create the table if upgrading
@@ -34,17 +32,16 @@ class GTypeTable {
   // Insert GType into the gen_type table
   static Future<void> insertGType(GTypeModel gtype) async {
     final db = await DatabaseHelper().database;
-  //  fetchGTypes(); // Optional: Refresh GTypes after insertion
-
+    //  fetchGTypes(); // Optional: Refresh GTypes after insertion
 
     // Convert details map to JSON string
-    String detailsJson = jsonEncode(gtype.details ?? {});
+    String detailsJson = jsonEncode(gtype.details);
 
-    print("database details :: $detailsJson");
+    // print("database details :: $detailsJson");
 
     // Prepare data to insert
     final gtypeMap = gtype.toJson();
-    gtypeMap['details'] = detailsJson;  // Ensure 'details' is a valid string
+    gtypeMap['details'] = detailsJson; // Ensure 'details' is a valid string
 
     await db.insert(
       tableName,
@@ -71,16 +68,15 @@ class GTypeTable {
 
     // If data exists, return the first record as a GTypeModel object
     if (maps.isNotEmpty) {
-      print("success in getting $id");
+    //  print("success in getting $id");
       return GTypeModel.fromJson(maps.first);
-    }else{
+    } else {
       print("mot found");
     }
 
     // If no data found, return null
     return null;
   }
-
 
   // Fetch GType by TID
   // Fetch GType by TID (matching any of the IDs in the 'capacity' column)
@@ -115,20 +111,19 @@ class GTypeTable {
 //     return [];
 //   }
 
-
   static Future<List<GTypeModel>> fetchGTypeByTid(String tid) async {
     final db = await DatabaseHelper().database;
 
     // Create a list of patterns to check for the matching 'tid' in 'capacity'
     List<String> patterns = [
       '%|$tid|%', // Match tid surrounded by pipe symbols (e.g., |1045582131|)
-      '$tid|%',   // Match tid at the start (e.g., 1045582131|)
-      '%|$tid',   // Match tid at the end (e.g., |1045582131)
-      '$tid'      // Match tid alone (e.g., 1045582131)
+      '$tid|%', // Match tid at the start (e.g., 1045582131|)
+      '%|$tid', // Match tid at the end (e.g., |1045582131)
+      '$tid' // Match tid alone (e.g., 1045582131)
     ];
 
     // Debug: Log the patterns being used
-    print("Debug: Patterns for tid: $patterns");
+  //  print("Debug: Patterns for tid: $patterns");
 
     // Update the query to include an additional condition for empty 'capacity'
     final List<Map<String, dynamic>> maps = await db.query(
@@ -141,7 +136,7 @@ class GTypeTable {
     );
 
     // Debug: Log the raw results from the database query
-    print("Debug: Raw database query results for tid $tid: $maps");
+   // print("Debug: Raw database query results for tid $tid: $maps");
 
     // If data exists, convert each map to a GTypeModel and return a list
     if (maps.isNotEmpty) {
@@ -154,9 +149,6 @@ class GTypeTable {
     // If no data found, return an empty list
     return [];
   }
-
-
-
 
   // Clear all GTypes
   static Future<void> clearGTypes() async {

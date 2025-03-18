@@ -44,7 +44,6 @@ class LoginController extends GetxController {
 
   var isLoading = false.obs; // Change this to an observable
 
-  PubNub? pubNub;
   String? sessionToken;
 
   void togglePasswordVisibility() {
@@ -56,37 +55,41 @@ class LoginController extends GetxController {
   var messageColor = Rx<Color>(Colors.green);
 
   // Check internet connection on load
-  void checkInternetConnection() async {
-    bool isConnected = await _isInternetAvailable();
-    if (!isConnected) {
-      message.value = 'Please check your internet connection.';
-      messageColor.value = Colors.red;
-    } else {
-      message.value = 'Internet is restored!';
-      messageColor.value = Colors.green;
-
-      // Hide message after 2 seconds
-      Future.delayed(Duration(seconds: 2), () {
-        message.value = '';
-      });
-    }
-  }
+  // void checkInternetConnection() async {
+  //   bool isConnected = await _isInternetAvailable();
+  //   if (!isConnected) {
+  //     message.value = 'Please check your internet connection.';
+  //     messageColor.value = Colors.red;
+  //   } else {
+  //     message.value = 'Internet is restored!';
+  //     messageColor.value = Colors.green;
+  //
+  //     // Hide message after 2 seconds
+  //     Future.delayed(Duration(seconds: 2), () {
+  //       message.value = '';
+  //     });
+  //   }
+  // }
 
   // Function to check actual internet connection
-  Future<bool> _isInternetAvailable() async {
-    try {
-      final connectivityResult = await Connectivity().checkConnectivity();
-      if (connectivityResult == ConnectivityResult.none) {
-        return false; // No internet
-      }
+  // Future<bool> _isInternetAvailable() async {
+  //   try {
+  //     final connectivityResult = await Connectivity().checkConnectivity();
+  //     if (connectivityResult == ConnectivityResult.none) {
+  //       return false; // No internet
+  //     }
+  //
+  //     // Check actual internet access
+  //     final result = await InternetAddress.lookup('google.com');
+  //     return result.isNotEmpty && result[0].rawAddress.isNotEmpty;
+  //   } catch (e) {
+  //     return false; // Error, assume no internet
+  //   }
+  // }
 
-      // Check actual internet access
-      final result = await InternetAddress.lookup('google.com');
-      return result.isNotEmpty && result[0].rawAddress.isNotEmpty;
-    } catch (e) {
-      return false; // Error, assume no internet
-    }
-  }
+
+
+
 
   //Login Button Clicked
   Future<void> login(BuildContext context) async {
@@ -96,13 +99,13 @@ class LoginController extends GetxController {
     if (_validateInputs()) {
       // Construct the login URL
       final String loginUrl = '$initURL/login?&nsp=$accountName&tid=mobi';
-      print("Step 1 - Login URL: $loginUrl");
+     // print("Step 1 - Login URL: $loginUrl");
 
       try {
         final response = await http.get(Uri.parse(loginUrl));
         if (response.statusCode == 200) {
           Map<String, dynamic> jsonResponse = xmlToJson(response.body);
-          print(' Converted JSON Response: ${jsonEncode(jsonResponse)}');
+       //   print(' Converted JSON Response: ${jsonEncode(jsonResponse)}');
 
           await _handleLoginResponse(context, jsonResponse);
         } else {
@@ -166,15 +169,15 @@ class LoginController extends GetxController {
       final String fetchUrl =
           'https://$baseUrl/mobi?&geo=0.0,0.0&os=2&pcode=${password.value}&nspace=${accountName}&action=mlogin&rid=${workerId.value}&cts=1728382466217';
 
-      print("Step-2 Login  User Api URL: $fetchUrl");
+   //   print("Step-2 Login  User Api URL: $fetchUrl");
 
       final response = await http.get(Uri.parse(fetchUrl));
 
       if (response.statusCode == 200) {
         final jsonResponse = xmlToJson(response.body);
 
-        print(
-            'Converted JSON Response ${jsonResponse['rid']}: ${jsonEncode(jsonResponse)}   ');
+        // print(
+        //     'Converted JSON Response ${jsonResponse['rid']}: ${jsonEncode(jsonResponse)}   ');
 
         // Parse response into ApiResponse model and store in database
         TokenApiReponse apiResponse = TokenApiReponse(
@@ -258,7 +261,7 @@ class LoginController extends GetxController {
       // Check if the response is successful
       if (response.statusCode == 200) {
         // Parse the XML response
-        print("Step-3 Feched Login Version data ,  Api URL: $apiUrl");
+    //   print("Step-3 Feched Login Version data ,  Api URL: $apiUrl");
         final xmlDocument = xml.XmlDocument.parse(response.body);
 
         // Extract the version (id) from the XML
@@ -272,7 +275,7 @@ class LoginController extends GetxController {
         };
 
         // Print the JSON data
-        print("Converted version JSON Response: ${jsonEncode(jsonResponse)}");
+    //    print("Converted version JSON Response: ${jsonEncode(jsonResponse)}");
 
         // Parse response into ApiResponse model
         VersionModel versionModel =

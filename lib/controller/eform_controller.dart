@@ -14,11 +14,11 @@ class EFormController extends GetxController {
 
     capacity = tid; //(Tid of event is same as specific order type);
     List<GTypeModel> fetchedGTypes = await GTypeTable.fetchGTypeByTid(capacity);
-    print(capacity);
+   // print(capacity);
 
 
     if (fetchedGTypes.isNotEmpty) {
-      print("Eform data is here:");
+    //  print("Eform data is here:");
       gTypeList.value = fetchedGTypes;
       for (var gType in fetchedGTypes) {
         print(gType

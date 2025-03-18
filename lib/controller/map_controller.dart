@@ -14,13 +14,13 @@ class MapControllers extends GetxController {
   Future<void> FetchAllOrderLocation() async {
     try {
       List<Event> allEventData = await EventTable.fetchEvents();
-      print("Fetching all events...");
+    //  print("Fetching all events...");
 
       // Clear the list before adding new locations
       orderLocations.clear();
 
       for (var data in allEventData) {
-        print("data is $data");
+       // print("data is $data");
 
         orders.add(data);
         var geoParts = data.geo.split(',');
@@ -32,7 +32,7 @@ class MapControllers extends GetxController {
           if (latitude != null && longitude != null) {
             // Add new LatLng to the observable list
             orderLocations.add(LatLng(latitude, longitude));
-            print("Added geo location: LatLng($latitude, $longitude)");
+          //  print("Added geo location: LatLng($latitude, $longitude)");
           } else {
             print("Invalid latitude or longitude in: ${data.geo}");
           }

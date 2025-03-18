@@ -43,7 +43,7 @@ class AllTermsController {
 
     final requestUrl =
         "https://$baseUrl/mobi?token=$token&nspace=${nsp}&geo=$geo&rid=$rid&action=getterm";
-    print(" Step 4 call 1 Default label : get term URL: ${requestUrl}");
+   // print(" Step 4 call 1 Default label : get term URL: ${requestUrl}");
 
     final response = await http.get(Uri.parse(requestUrl));
 
@@ -83,7 +83,7 @@ class AllTermsController {
       // Convert map to JSON string and print it
       final jsonString = jsonEncode(termsDataMap);
 
-      print("GetTerms Data JSON: $jsonString");
+     // print("GetTerms Data JSON: $jsonString");
 
       // Insert terms data into the database
       TermsDataModel termsDataModel = TermsDataModel(
@@ -112,7 +112,7 @@ class AllTermsController {
       );
 
       await TermsDataTable.insertTermsData(termsDataModel);
-      print('  Terms data Successfully added to the database');
+     // print('  Terms data Successfully added to the database');
     } else {
       Get.snackbar('Error', 'Failed to fetch terms data');
     }
@@ -126,7 +126,7 @@ class AllTermsController {
      final response = await http.get(Uri.parse(requestUrl));
 
      if (response.statusCode == 200) {
-       print("Step 4 call 2 Default Part Type : get term URL: $requestUrl");
+     //  print("Step 4 call 2 Default Part Type : get term URL: $requestUrl");
        final xmlResponse = XmlDocument.parse(response.body);
 
        final partTypesList = xmlResponse.findAllElements('ptype').map((element) {
@@ -146,13 +146,13 @@ class AllTermsController {
          }
        }).whereType<PartTypeDataModel>().toList();
 
-       print("Number of part types found: ${partTypesList.length}");
+    //   print("Number of part types found: ${partTypesList.length}");
 
        for (var partType in partTypesList) {
          await PartTypeDataTable.insertPartTypeData(partType);
        }
 
-       print('Successfully added part type data to the database');
+     //  print('Successfully added part type data to the database');
      } else {
        print("Failed to load parttype data: ${response.reasonPhrase}");
      }
@@ -195,7 +195,7 @@ class AllTermsController {
            await OrderTypeDataTable.insertOrderTypeData(OrderTypeModel.fromMap(orderTypeMap));
          }
 
-         print("Order types stored successfully.");
+      //   print("Order types stored successfully.");
        } else {
          print('Request failed with status: ${response.reasonPhrase}');
        }
@@ -215,16 +215,16 @@ class AllTermsController {
     try {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
-        print(" Step 4 call 5  status Type :  URL: $url");
+       // print(" Step 4 call 5  status Type :  URL: $url");
         // Convert XML response to JSON list
         final statusJsonList = parseStatusListToJson(response.body);
 
 
-        print("Converted json::: $statusJsonList");
+    //   print("Converted json::: $statusJsonList");
         // Save JSON data to database
         await StatusTable.insertStatusList(statusJsonList);
 
-        print(" status is Data saved to database successfully");
+       // print(" status is Data saved to database successfully");
       } else {
         Get.snackbar('Error', 'Failed to fetch status list');
       }
@@ -249,14 +249,14 @@ class AllTermsController {
     http.StreamedResponse response = await request.send();
 
     if (response.statusCode == 200) {
-      print(" Step 4 call 6 Default Get Gen Type :  URL: $requestUrl");
+    //  print(" Step 4 call 6 Default Get Gen Type :  URL: $requestUrl");
       String responseBody = await response.stream.bytesToString();
 
       // Parse the XML response
       var document = xml.XmlDocument.parse(responseBody);
       var gtypes = document.findAllElements('gtype');
 
-      print("document of g type :$document");
+     // print("document of g type :$document");
       // Convert XML to JSON
       List<Map<String, dynamic>> gtypesList = [];
 
@@ -301,12 +301,12 @@ class AllTermsController {
      // saveGTypesToDatabase(gtypesList);
       // Save each gtype entry to the table
       for (var gTypeMap in gtypesList) {
-        print("G type data here ::: $gTypeMap");
+     //   print("G type data here ::: $gTypeMap");
         var gTypeModel = GTypeModel.fromJson(gTypeMap);
         await GTypeTable.insertGType( gTypeModel);
       }
 
-      print('GType data inserted successfully');
+   //   print('GType data inserted successfully');
     } else {
       print("Failed to fetch data. HTTP Status Code: ${response.statusCode}");
       String errorResponse = await response.stream.bytesToString();
@@ -347,7 +347,7 @@ void saveGTypesToDatabase(List<Map<String, dynamic>> gtypesList) async {
   try {
     // Convert list to JSON (optional debugging step)
     String jsonString = jsonEncode(gtypesList);
-    print("Converted JSON:\n$jsonString");
+   // print("Converted JSON:\n$jsonString");
 
     // Clear existing data
     await GTypeTable.clearGTypes();
@@ -358,7 +358,7 @@ void saveGTypesToDatabase(List<Map<String, dynamic>> gtypesList) async {
       await GTypeTable.insertGType(gTypeModel);
     }
 
-    print('All GType data inserted successfully');
+   // print('All GType data inserted successfully');
   } catch (e) {
     print('Error saving GTypes: $e');
   }

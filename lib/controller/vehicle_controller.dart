@@ -73,7 +73,7 @@ class VehicleController extends GetxController {
         end_date = localEvent.endDate;
         nm = localEvent.name;
 
-        print("wkf for edit: ${wkf}");
+      //  print("wkf for edit: ${wkf}");
       } else {
         print("No event data found for ID 77611.");
       }
@@ -84,16 +84,16 @@ class VehicleController extends GetxController {
 
   //Edit controller .........................
   Future<void> edit(Map<String, String> updatedData) async {
-    print("wkf in edit $wkf");
-    print("Updated Data: $updatedData  ${updatedData['faultDesc']}");
+    // print("wkf in edit $wkf");
+    // print("Updated Data: $updatedData  ${updatedData['faultDesc']}");
     final url =
         "https://$baseUrl/mobi?token=$token&nspace=demo.com&geo=$geo&rid=$rid&action=editorder&id=$id&cid=$cid&wkf=$wkf&egeo=$geo&stmp=2700000&orderStartTime=39600000&orderEndTime=42300000&start_date=$star_date&end_date=$end_date&nm=54321&dtl=${updatedData['details']}&alt=${updatedData['faultDesc']}&po=${updatedData['registration']}&inv=${updatedData['odometer']}&tid=$tid&pid=$pid&xml=0&note=${updatedData['notes']}";
 
     try {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
-        print(response.body);
-        print("edit success");
+        // print(response.body);
+        // print("edit success");
 
         //update the database with current data
         EventTable.updateVehicle(id, updatedData);

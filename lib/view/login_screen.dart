@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:ace_routes/controller/http_connection.dart';
+import 'package:ace_routes/controller/location/location_permission.dart';
 import 'package:ace_routes/controller/loginController.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
@@ -15,6 +16,7 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final LoginController loginController = Get.put(LoginController());
+  final LocationPermission locationPermission = Get.put(LocationPermission());
 
   @override
   void initState() {

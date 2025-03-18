@@ -12,7 +12,7 @@ import '../database/Tables/file_meta_table.dart';
 import 'event_controller.dart';
 
 class FileMetaController extends GetxController {
-  // var fileMetaData = <FileMetaModel>[].obs;
+
   RxList<FileMetaModel> fileMetaData = <FileMetaModel>[].obs;
 
   RxBool isLoading = false.obs;
