@@ -551,7 +551,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     IconButtonWithBadge(
                                       icon: Icons.camera_alt_outlined,
                                       badgeCount:
-                                          '0', // Replace with your dynamic count
+                                          '3', // Replace with your dynamic count
                                       onPressed: () async {
                                         // Get the event ID
                                         String eventId =

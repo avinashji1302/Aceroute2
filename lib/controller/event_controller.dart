@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:ace_routes/controller/eform_controller.dart';
 import 'package:ace_routes/controller/getOrderPart_controller.dart';
+import 'package:ace_routes/controller/priority_controller.dart';
 import 'package:ace_routes/database/Tables/OrderTypeDataTable.dart';
 import 'package:ace_routes/database/Tables/event_table.dart';
 import 'package:get/get.dart';
@@ -33,6 +34,7 @@ class EventController extends GetxController {
       Get.put(OrderNoteController());
 
   final EFormController eForm = Get.put(EFormController());
+  final PriorityController priority = Get.put(PriorityController());
 
   var events = <Event>[].obs;
   var isLoading = false.obs;
@@ -78,6 +80,8 @@ class EventController extends GetxController {
     await allTermsController.GetAllTerms();
 
     await AllTerms.getTerm();
+
+    await priority.getPriorityData();
   }
 
   Future<void> fetchEvents() async {
@@ -91,7 +95,7 @@ class EventController extends GetxController {
     var url =
         "https://$baseUrl/mobi?token=$token&nspace=$nsp&geo=$geo&rid=$rid&action=getorders&tz=Asia/Kolkata&from=${formattedCurrentDate}&to=${formattedSecondDate}";
 
-   // print("Fetching events from URL: $url");
+    // print("Fetching events from URL: $url");
 
     try {
       var request = http.Request('GET', Uri.parse(url));
@@ -99,7 +103,7 @@ class EventController extends GetxController {
 
       if (response.statusCode == 200) {
         String xmlString = await response.stream.bytesToString();
-       // print("Raw XML response: $xmlString");
+        // print("Raw XML response: $xmlString");
 
         // Parse and store the events
         parseXmlResponse(xmlString);
@@ -172,9 +176,9 @@ class EventController extends GetxController {
     }).toList();
 
     for (Event event in fetchedEvents) {
-    //  print("Event is ${event.geo}");
+      //  print("Event is ${event.geo}");
       EventTable.insertEvent(event);
-     // print("Event added to database: ${event.toJson()['id']}");
+      // print("Event added to database: ${event.toJson()['id']}");
     }
 
     events.assignAll(fetchedEvents);
@@ -194,7 +198,7 @@ class EventController extends GetxController {
     try {
       List<Event> localEvents = await EventTable.fetchEvents();
       events.assignAll(localEvents);
-    //  print("Loaded ${localEvents.length} events from database");
+      //  print("Loaded ${localEvents.length} events from database");
 
       // Extract unique wkf and tid values
       Set<String> wkfSet = localEvents.map((event) => event.wkf).toSet();
