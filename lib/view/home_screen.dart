@@ -180,6 +180,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       eventController.categoryMap[event.tid] ??
                           'Unknown Status';
 
+                  final priorityValue =
+                      eventController.priorityId[event.pid] ?? 'Unknown Status';
+
                   return Card(
                     elevation: 5,
                     margin: const EdgeInsets.all(8.0),
@@ -304,7 +307,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 child: Row(
                                                   children: [
                                                     Text(
-                                                      "${categoryValue}:P5: Normal",
+                                                      "${categoryValue}:${priorityValue}",
                                                       style: TextStyle(
                                                         fontSize: fontSizeController
                                                             .fontSize, // Responsive font size
