@@ -48,6 +48,7 @@ class EventController extends GetxController {
   var nameMap = <String, String?>{}.obs; // Observable map
   var categoryMap = <String, String?>{}.obs; // Observable map
   var priorityId = <String, String?>{}.obs;
+  var priorityColorsId = <String, String?>{}.obs;
 
   @override
   void onInit() async {
@@ -217,18 +218,21 @@ class EventController extends GetxController {
       Map<String, String?> fetchedCategory =
           await OrderTypeDataTable.fetchCategoriesByIds(tidSet.toList());
 
-      Map<String, String?> fetchedPid =
+      Map<String, String?> fetchedValuePid =
           await PriorityTable.fetchPrioritiesByIds(pidSet.toList());
+      Map<String, String?> fetchedColorPid =
+          await PriorityTable.fetchPrioritiesColorsByIds(pidSet.toList());
 
       // Update status and categories dynamically
       nameMap.value = await FetchedStatus;
       categoryMap.value = await fetchedCategory;
-      priorityId.value = await fetchedPid;
-
+      priorityId.value = await fetchedValuePid;
+      priorityColorsId.value = await fetchedColorPid;
       // Log all data
       print("Names: ${nameMap.value}");
       print("Categories: ${categoryMap.value}");
       print("priorityId: ${priorityId.value}");
+      print("priorityColorsId: ${priorityColorsId.value}");
     } catch (e) {
       print("Error loading events from database: $e");
     } finally {

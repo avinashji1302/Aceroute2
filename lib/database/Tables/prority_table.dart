@@ -59,4 +59,35 @@ class PriorityTable {
     }
     return resultMap;
   }
+
+  // Fetch priority colors for a list of IDs
+  static Future<Map<String, String?>> fetchPrioritiesColorsByIds(
+      List<String> priorityIds) async {
+    Map<String, String?> resultMap = {};
+    try {
+      Database db = await DatabaseHelper().database;
+
+      for (String id in priorityIds) {
+        print("Fetching priority for ID: $id");
+
+        // Query database for each ID
+        List<Map<String, dynamic>> results = await db.query(
+          tableName,
+          columns: ['id', 'color'], // Fetch only required columns
+          where: 'id = ? COLLATE NOCASE', // Case-insensitive search
+          whereArgs: [id],
+        );
+
+        // Debug log
+        print("Query result for $id: $results");
+
+        // Add to result map
+        resultMap[id] =
+        results.isNotEmpty ? results.first['color'] as String? : null;
+      }
+    } catch (e) {
+      print("Error fetching priorities: $e");
+    }
+    return resultMap;
+  }
 }

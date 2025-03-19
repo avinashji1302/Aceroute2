@@ -180,9 +180,17 @@ class _HomeScreenState extends State<HomeScreen> {
                       eventController.categoryMap[event.tid] ??
                           'Unknown Status';
 
-                  final priorityValue =
-                      eventController.priorityId[event.pid] ?? 'Unknown Status';
+                  final priorityValue = eventController.priorityId[event.pid] ??
+                      'Unknown priority';
 
+                  String priorityColorString =
+                      eventController.priorityColorsId[event.pid] ??
+                          "#000000"; // Default to black if null
+                  priorityColorString = priorityColorString.replaceFirst(
+                      "#", "0xFF"); // Convert to Flutter ARGB format
+
+                  final int priorityColor =
+                      int.parse(priorityColorString); // Convert to int
                   return Card(
                     elevation: 5,
                     margin: const EdgeInsets.all(8.0),
@@ -307,13 +315,24 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 child: Row(
                                                   children: [
                                                     Text(
-                                                      "${categoryValue}:${priorityValue}",
+                                                      "${categoryValue}:",
                                                       style: TextStyle(
                                                         fontSize: fontSizeController
                                                             .fontSize, // Responsive font size
                                                         fontWeight:
                                                             FontWeight.bold,
                                                         color: Colors.grey,
+                                                      ),
+                                                    ),
+                                                    Text(
+                                                      "${priorityValue}",
+                                                      style: TextStyle(
+                                                        fontSize: fontSizeController
+                                                            .fontSize, // Responsive font size
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        color: Color(
+                                                            priorityColor),
                                                       ),
                                                     ),
                                                   ],
