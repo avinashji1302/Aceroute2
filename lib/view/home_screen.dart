@@ -29,6 +29,7 @@ import 'package:ace_routes/controller/homeController.dart';
 import 'package:intl/intl.dart';
 import 'package:sqflite/sqflite.dart';
 import '../Widgets/icon_with_badge.dart';
+import '../controller/clockout/clockout_controller.dart';
 import '../controller/file_meta_controller.dart';
 import '../controller/fontSizeController.dart';
 import '../controller/getOrderPart_controller.dart';
@@ -63,8 +64,11 @@ class _HomeScreenState extends State<HomeScreen> {
   final StatusControllers statusControllers = Get.put(StatusControllers());
   final MapControllers mapControllers = Get.put(MapControllers());
   final controller = Get.put(GetOrderPartController());
+  final ClockOut clockOut = Get.find<ClockOut>();
 
   List<bool> temp = [true, false];
+
+  bool tapped = false;
 
   @override
   void initState() {
@@ -143,7 +147,7 @@ class _HomeScreenState extends State<HomeScreen> {
         elevation: 5,
         backgroundColor: Colors.white,
       ),
-      drawer: const DrawerWidget(),
+      drawer:  DrawerWidget(),
       body: _showCard
           ? Obx(() {
               // Check if data is loading
@@ -660,7 +664,7 @@ class _HomeScreenState extends State<HomeScreen> {
               child: MapScreen(),
             ),
       bottomNavigationBar: Obx(() => BottomNavigationBar(
-            items: const <BottomNavigationBarItem>[
+            items: <BottomNavigationBarItem>[
               BottomNavigationBarItem(
                 icon: Icon(Icons.mail_rounded, size: 30),
                 label: 'Inbox',
@@ -671,7 +675,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               BottomNavigationBarItem(
                 icon: Icon(Icons.watch_later_outlined, size: 30),
-                label: 'Clocked In',
+                label: tapped ? 'Clocked In' : "Clocked Out",
               ),
             ],
             currentIndex: homeController.selectedIndex.value,
@@ -689,14 +693,38 @@ class _HomeScreenState extends State<HomeScreen> {
                 } else if (index == 1) {
                   // Map tab
 
-                  print('object');
                   _showCard = false; // Hide card
 
                   homeController.getCurrentLocation();
                 } else if (index == 2) {
                   // Clocked In tab
-                  _showCard = false; // Hide card
-                  homeController.getCurrentLocation();
+                  //  _showCard = false; // Hide card
+                  print('object');
+                  tapped = !tapped;
+                  // Find the first two events whose status is NOT "Completed"
+                  List<String> nonCompletedEventIds = eventController.events
+                      .where((event) =>
+                          eventController.nameMap[event.wkf] != "Completed")
+                      .map((event) => event.id)
+                      .take(2)
+                      .toList();
+
+                  String? lstoid = nonCompletedEventIds.isNotEmpty
+                      ? nonCompletedEventIds[0]
+                      : null;
+                  String? nxtoid = nonCompletedEventIds.length > 1
+                      ? nonCompletedEventIds[1]
+                      : null;
+
+                  // Execute action with filtered event IDs
+                  clockOut.executeAction(
+                      lstoid: lstoid, nxtoid: nxtoid, tid: tapped ? 1 : 2);
+
+                  print("clocked in lstoid  $lstoid  nxtoid $nxtoid  ");
+
+                  // clockOut.executeAction(tid: tapped ? 1 : 2);
+
+                  print("clocked in   $tapped");
                 }
               });
               homeController.onItemTapped(index);

@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:ace_routes/controller/clockout/clockout_controller.dart';
 import 'package:ace_routes/controller/eform_controller.dart';
 import 'package:ace_routes/controller/getOrderPart_controller.dart';
 import 'package:ace_routes/controller/priority_controller.dart';
@@ -36,6 +37,7 @@ class EventController extends GetxController {
 
   final EFormController eForm = Get.put(EFormController());
   final PriorityController priority = Get.put(PriorityController());
+  final ClockOut clockOut = Get.put(ClockOut());
 
   var events = <Event>[].obs;
   var isLoading = false.obs;
@@ -68,6 +70,8 @@ class EventController extends GetxController {
     //Gen Type for EForm data
 
     //  await eForm.GetGenOrderDataForForm();
+
+    await clockOut.executeAction(tid: 1);
   }
 
   Future<void> loadAllTerms() async {
