@@ -1,10 +1,12 @@
 import 'dart:convert';
 
+import 'package:ace_routes/controller/clockout/clockout_controller.dart';
 import 'package:ace_routes/controller/eform_controller.dart';
 import 'package:ace_routes/controller/getOrderPart_controller.dart';
 import 'package:ace_routes/controller/priority_controller.dart';
 import 'package:ace_routes/database/Tables/OrderTypeDataTable.dart';
 import 'package:ace_routes/database/Tables/event_table.dart';
+import 'package:ace_routes/database/Tables/prority_table.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
@@ -35,17 +37,20 @@ class EventController extends GetxController {
 
   final EFormController eForm = Get.put(EFormController());
   final PriorityController priority = Get.put(PriorityController());
+  final ClockOut clockOut = Get.put(ClockOut());
 
   var events = <Event>[].obs;
   var isLoading = false.obs;
-  String wkf = "";
-  String tid = '';
+  // String wkf = "";
+  // String tid = '';
   int daysToAdd = 1;
   RxString currentStatus = "Loading...".obs; // Reactive variable
   //RxString categoryName = "".obs;
 
   var nameMap = <String, String?>{}.obs; // Observable map
   var categoryMap = <String, String?>{}.obs; // Observable map
+  var priorityId = <String, String?>{}.obs;
+  var priorityColorsId = <String, String?>{}.obs;
 
   @override
   void onInit() async {
@@ -65,6 +70,8 @@ class EventController extends GetxController {
     //Gen Type for EForm data
 
     //  await eForm.GetGenOrderDataForForm();
+
+    await clockOut.executeAction(tid: 1);
   }
 
   Future<void> loadAllTerms() async {
@@ -203,9 +210,11 @@ class EventController extends GetxController {
       // Extract unique wkf and tid values
       Set<String> wkfSet = localEvents.map((event) => event.wkf).toSet();
       Set<String> tidSet = localEvents.map((event) => event.tid).toSet();
+      Set<String> pidSet = localEvents.map((event) => event.pid).toSet();
 
       print("wkfset $wkfSet");
       print("tidSer :$tidSet");
+      print("pidSet $pidSet");
       // Fetch all names and categories in batch
       Map<String, String?> FetchedStatus =
           await StatusTable.fetchNamesByIds(wkfSet.toList());
@@ -213,13 +222,21 @@ class EventController extends GetxController {
       Map<String, String?> fetchedCategory =
           await OrderTypeDataTable.fetchCategoriesByIds(tidSet.toList());
 
+      Map<String, String?> fetchedValuePid =
+          await PriorityTable.fetchPrioritiesByIds(pidSet.toList());
+      Map<String, String?> fetchedColorPid =
+          await PriorityTable.fetchPrioritiesColorsByIds(pidSet.toList());
+
       // Update status and categories dynamically
       nameMap.value = await FetchedStatus;
       categoryMap.value = await fetchedCategory;
-
+      priorityId.value = await fetchedValuePid;
+      priorityColorsId.value = await fetchedColorPid;
       // Log all data
-      // print("Names: ${nameMap.value}");
-      // print("Categories: ${categoryMap.value}");
+      print("Names: ${nameMap.value}");
+      print("Categories: ${categoryMap.value}");
+      print("priorityId: ${priorityId.value}");
+      print("priorityColorsId: ${priorityColorsId.value}");
     } catch (e) {
       print("Error loading events from database: $e");
     } finally {

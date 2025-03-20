@@ -87,25 +87,21 @@ class LoginController extends GetxController {
   //   }
   // }
 
-
-
-
-
   //Login Button Clicked
   Future<void> login(BuildContext context) async {
     isLoading.value = true; // Start loading
 
-    print('Login button clicked:');
+    print('Login button clicked: $timestamp');
     if (_validateInputs()) {
       // Construct the login URL
       final String loginUrl = '$initURL/login?&nsp=$accountName&tid=mobi';
-     // print("Step 1 - Login URL: $loginUrl");
+      // print("Step 1 - Login URL: $loginUrl");
 
       try {
         final response = await http.get(Uri.parse(loginUrl));
         if (response.statusCode == 200) {
           Map<String, dynamic> jsonResponse = xmlToJson(response.body);
-       //   print(' Converted JSON Response: ${jsonEncode(jsonResponse)}');
+          //   print(' Converted JSON Response: ${jsonEncode(jsonResponse)}');
 
           await _handleLoginResponse(context, jsonResponse);
         } else {
@@ -169,7 +165,7 @@ class LoginController extends GetxController {
       final String fetchUrl =
           'https://$baseUrl/mobi?&geo=0.0,0.0&os=2&pcode=${password.value}&nspace=${accountName}&action=mlogin&rid=${workerId.value}&cts=1728382466217';
 
-   //   print("Step-2 Login  User Api URL: $fetchUrl");
+      //   print("Step-2 Login  User Api URL: $fetchUrl");
 
       final response = await http.get(Uri.parse(fetchUrl));
 
@@ -261,7 +257,7 @@ class LoginController extends GetxController {
       // Check if the response is successful
       if (response.statusCode == 200) {
         // Parse the XML response
-    //   print("Step-3 Feched Login Version data ,  Api URL: $apiUrl");
+        //   print("Step-3 Feched Login Version data ,  Api URL: $apiUrl");
         final xmlDocument = xml.XmlDocument.parse(response.body);
 
         // Extract the version (id) from the XML
@@ -275,7 +271,7 @@ class LoginController extends GetxController {
         };
 
         // Print the JSON data
-    //    print("Converted version JSON Response: ${jsonEncode(jsonResponse)}");
+        //    print("Converted version JSON Response: ${jsonEncode(jsonResponse)}");
 
         // Parse response into ApiResponse model
         VersionModel versionModel =

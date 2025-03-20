@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:ace_routes/core/colors/Constants.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
@@ -15,22 +14,36 @@ class PriorityController extends GetxController {
     try {
       final response = await http.get(Uri.parse(url));
 
+      print("Raw API Response: ${response.body}"); // Debugging
+
       if (response.statusCode == 200) {
-        List<dynamic> jsonData = json.decode(response.body);
+        String cleanResponse = response.body.trim();
+
+        // Remove <data> and </data> if present
+        if (cleanResponse.startsWith("<data>")) {
+          cleanResponse = cleanResponse.replaceFirst("<data>", "").trim();
+        }
+        if (cleanResponse.endsWith("</data>")) {
+          cleanResponse = cleanResponse.substring(0, cleanResponse.length - 7).trim();
+        }
+
+        // Now decode as JSON
+        List<dynamic> jsonData = json.decode(cleanResponse);
         List<Priority> fetchedPriorities =
-            jsonData.map((data) => Priority.fromJson(data)).toList();
+        jsonData.map((data) => Priority.fromJson(data)).toList();
 
         // Store in local database
         for (var priority in fetchedPriorities) {
           await PriorityTable.insertPriority(priority);
-
-          print("priority data inserted successfully");
         }
+
+        print("Priority data inserted successfully");
       } else {
-        throw ("something went wrong with priory data");
+        throw ("Something went wrong with priority data");
       }
     } catch (e) {
-      throw ("something went wrong with priory data $e");
+      print("Error: $e"); // Debugging
+      throw ("Something went wrong with priority data: $e");
     }
   }
 }
